@@ -1,0 +1,116 @@
+{
+  "date": "2026-09-13",
+  "adapter": "isolated local preview",
+  "tests": [
+    {
+      "name": "first loop and responsive 375",
+      "project": "chromium",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "duration_ms": 7718
+        }
+      ]
+    },
+    {
+      "name": "first loop and responsive 390",
+      "project": "chromium",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "duration_ms": 7363
+        }
+      ]
+    },
+    {
+      "name": "first loop and responsive 430",
+      "project": "chromium",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "duration_ms": 6926
+        }
+      ]
+    },
+    {
+      "name": "first loop and responsive 768",
+      "project": "chromium",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "duration_ms": 7523
+        }
+      ]
+    },
+    {
+      "name": "first loop and responsive 1024",
+      "project": "chromium",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "duration_ms": 7633
+        }
+      ]
+    },
+    {
+      "name": "first loop and responsive 1440",
+      "project": "chromium",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "duration_ms": 7778
+        }
+      ]
+    },
+    {
+      "name": "homepage dialog contains keyboard focus and restores opener",
+      "project": "chromium",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "duration_ms": 438
+        }
+      ]
+    },
+    {
+      "name": "long Unicode and unbroken text wraps without silent truncation",
+      "project": "chromium",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "duration_ms": 3107
+        }
+      ]
+    },
+    {
+      "name": "CTA colors and calculated contrast",
+      "project": "chromium",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "duration_ms": 389
+        }
+      ]
+    },
+    {
+      "name": "empty account, vision draft and keyboard entry remain separate from the public example",
+      "project": "chromium",
+      "status": "expected",
+      "attempts": [
+        {
+          "status": "passed",
+          "duration_ms": 1889
+        }
+      ]
+    }
+  ]
+}
