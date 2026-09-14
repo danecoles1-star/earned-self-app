@@ -35,9 +35,11 @@ function Example() {
 export function Homepage({
   start,
   signIn,
+  signedIn,
 }: {
   start: (kind: "goal" | "vision") => void;
   signIn: () => void;
+  signedIn: boolean;
 }) {
   const dialog = useRef<HTMLDialogElement>(null),
     opener = useRef<HTMLElement | null>(null);
@@ -70,7 +72,7 @@ export function Homepage({
           <nav aria-label="Homepage">
             <a href="#how">How it works</a>
             <a href="#the-record">The Record</a>
-            <button onClick={signIn}>Sign in</button>
+            <button onClick={signIn}>{signedIn ? "My goal" : "Sign in"}</button>
           </nav>
         </header>
         <main id="main" tabIndex={-1}>

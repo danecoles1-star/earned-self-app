@@ -310,6 +310,7 @@ export function App({ adapter }: { adapter: Adapter }) {
       <Homepage
         start={start}
         signIn={() => navigate(user ? "/app" : "/auth")}
+        signedIn={!!user}
       />
     );
   else if (boot)

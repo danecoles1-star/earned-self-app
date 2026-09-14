@@ -38,6 +38,25 @@ async function start(p: Page) {
     p.getByRole("heading", { name: "Make the next move clear." }),
   ).toBeVisible();
 }
+test("homepage recognizes an authenticated returning member", async ({
+  page,
+}) => {
+  await start(page);
+  await page.goto("/");
+  const accountButton = page.getByRole("button", {
+    name: "My goal",
+    exact: true,
+  });
+  await expect(accountButton).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Sign in", exact: true }),
+  ).toHaveCount(0);
+  await accountButton.click();
+  await expect(page).toHaveURL(/\/app$/);
+  await expect(
+    page.getByRole("button", { name: "Sign out", exact: true }),
+  ).toBeVisible();
+});
 for (const width of widths) {
   test(`first loop and responsive ${width}`, async ({ page, browserName }) => {
     await page.setViewportSize({ width, height: 900 });
