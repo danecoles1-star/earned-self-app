@@ -11,7 +11,11 @@
     "test": "vitest run",
     "test:e2e": "playwright test",
     "test:db": "node scripts/test-database.mjs",
-    "format": "prettier --write src tests scripts *.ts *.json index.html"
+    "format": "prettier --write src tests scripts *.ts *.json index.html",
+    "supabase:version": "supabase --version",
+    "supabase:migrations": "supabase migration list --linked",
+    "supabase:dry-run": "supabase db push --linked --dry-run",
+    "supabase:push": "supabase db push --linked"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.57.0",
@@ -30,6 +34,7 @@
     "@vitejs/plugin-react": "^5.0.4",
     "jsdom": "^26.1.0",
     "prettier": "^3.6.2",
+    "supabase": "2.117.0",
     "typescript": "~5.9.2",
     "vite": "^6.4.2",
     "vitest": "4.1.11"

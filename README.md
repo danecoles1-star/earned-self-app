@@ -25,6 +25,21 @@ npm run dev
 
 The normal application sends email sign-in links and uses narrow database RPCs. With no configuration, it retains the pre-auth draft and honestly reports that account saving is not connected. It never falls back to preview storage.
 
+## Supabase CLI activation
+
+`npm ci` installs the pinned CLI. Follow [the CLI activation addendum](docs/Earned_Self_Supabase_CLI_Activation_Addendum_v1.md); its CLI-only activation route supersedes SQL Editor migration instructions. Only the account owner may authenticate and link the exact empty development project, using `npm exec -- supabase login` and `npm exec -- supabase link --project-ref <EXACT_DEVELOPMENT_PROJECT_REF>`.
+
+| Command | Purpose |
+| --- | --- |
+| `npm run supabase:version` | Confirm the installed CLI version |
+| `npm run supabase:migrations` | Read linked migration history |
+| `npm run supabase:dry-run` | Preview pending linked migrations without applying them |
+| `npm run supabase:push` | Apply the reviewed migrations to the linked project |
+
+Stop unless history is initially empty and the dry run lists exactly `202609130001`, then `202609130002`. Push only after checking the linked development project and approving that output. These scripts do not enforce project identity or validate the dry-run output for you. Never use them against production. No Docker or local Supabase services are needed for this workflow.
+
+`supabase/config.toml` contains local defaults, not a hosted project reference. It disables seeding, allows only the local callback, and disables anonymous sign-in. Migration push does not configure hosted Auth; the owner must configure it separately. Do not run config push, seed, reset or migration repair. The tracked `.gitignore` excludes CLI-generated `supabase/.temp/` and `supabase/.branches/` directories. Never commit credentials.
+
 ## Validate
 
 ```sh
