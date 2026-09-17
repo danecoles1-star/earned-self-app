@@ -6,27 +6,30 @@ function Example() {
   return (
     <div className="example-detail">
       <p className="eyebrow">Maya's fictional ceramics example</p>
-      <h2>Your first customer.</h2>
-      <p>Received and fulfilled a first paid order.</p>
-      <div className="record-passage">
+      <h2>Launch the business you kept postponing.</h2>
+      <p>
+        Launched a ceramics business and fulfilled three paid customer orders.
+      </p>
+      <div className="proof-passage">
         <p className="eyebrow">When I started</p>
         <blockquote>
           “I have talked about this for years. I do not know if anyone would
           pay.”
         </blockquote>
       </div>
-      <div className="record-passage chapter-after">
+      <div className="proof-passage chapter-after">
         <p className="eyebrow">What actually happened</p>
         <p>
-          Asked a customer a specific question. One message received no reply.
-          Returned with a clearer offer and fulfilled one paid order.
+          Tested production costs, made a saleable collection and opened an
+          online shop. Missed a planned customer interview, revised the plan,
+          and fulfilled three paid orders.
         </p>
       </div>
-      <div className="record-passage">
+      <div className="proof-passage">
         <p className="eyebrow">What I learned</p>
         <p>
-          One order showed someone would pay. Repeat demand and production
-          capacity still needed testing.
+          “I launched it and served my first customers. I still need to test
+          repeat demand and a sustainable production pace.”
         </p>
       </div>
     </div>
@@ -71,36 +74,39 @@ export function Homepage({
           </a>
           <nav aria-label="Homepage">
             <a href="#how">How it works</a>
-            <a href="#the-record">The Record</a>
-            <button onClick={signIn}>{signedIn ? "My goal" : "Sign in"}</button>
+            <a href="#the-proof">The Proof</a>
+            <button onClick={signIn}>
+              {signedIn ? "My pursuit" : "Sign in"}
+            </button>
           </nav>
         </header>
         <main id="main" tabIndex={-1}>
           <section
             className="market-hero market-wrap"
-            aria-label="Choose a goal"
+            aria-label="Choose a meaningful pursuit"
           >
             <div className="hero-writing">
               <p className="market-eyebrow">
                 Personal growth, through real experience
               </p>
               <h1>
-                Choose a goal.
+                Choose who you’ll become.
                 <br />
-                Make the next move.
+                Take on something big.
                 <br />
-                <em>Keep the evidence.</em>
+                <em>Build your Proof.</em>
               </h1>
               <p className="hero-description">
-                Earned Self helps you turn a meaningful goal into a clear
-                commitment, make room for it, and record what happened.
+                Turn your vision into a demanding accomplishment. Prepare with
+                purpose, put the work on the calendar, and see what you actually
+                do.
               </p>
               <div className="hero-actions">
                 <button
                   className="market-primary"
                   onClick={() => start("goal")}
                 >
-                  Start with a goal
+                  Start a pursuit
                 </button>
                 <a className="market-secondary" href="#how">
                   See how it works
@@ -111,26 +117,29 @@ export function Homepage({
               </p>
             </div>
             <div className="hero-record">
-              <div className="record-demo-label">
+              <div className="proof-demo-label">
                 <Mark />
-                <span>Fictional example · Maya’s ceramics goal</span>
+                <span>Public fictional example · Maya’s ceramics business</span>
               </div>
-              <div className="record-passage chapter-before">
+              <div className="proof-passage chapter-before">
                 <p className="eyebrow">When I started</p>
                 <blockquote>
                   “I have talked about this for years. I do not know if anyone
                   would pay.”
                 </blockquote>
               </div>
-              <div className="record-passage chapter-after">
+              <div className="proof-passage chapter-after">
                 <p className="eyebrow">What actually happened</p>
-                <h2>Received and fulfilled a first paid order.</h2>
+                <h2>
+                  Launched a ceramics business and fulfilled three paid customer
+                  orders.
+                </h2>
               </div>
-              <div className="record-passage chapter-meaning">
+              <div className="proof-passage chapter-meaning">
                 <p className="eyebrow">What I learned</p>
                 <p>
-                  One order showed someone would pay. Repeat demand and
-                  production capacity still needed testing.
+                  “I built and launched something people paid for. Now I need to
+                  find a pace I can sustain.”
                 </p>
               </div>
             </div>
@@ -144,16 +153,16 @@ export function Homepage({
               <div>
                 <p className="market-eyebrow">How Earned Self works</p>
                 <h2>
-                  Your goal.
+                  Your vision.
                   <br />
-                  <em>One clear commitment.</em>
+                  <em>A goal worth preparing for.</em>
                 </h2>
               </div>
               <p>
-                Choose something you have been putting off. Decide what you will
-                do next and what will count as done. The larger goal stays
-                visible as you prepare. After each attempt, choose the next
-                action or leave it unscheduled.
+                Name the accomplishment that moves your vision forward. Define
+                the result, build ordered milestones, and schedule the next
+                action. Every ordinary session should serve something that
+                matters.
               </p>
             </div>
             <p className="goal-categories">
@@ -172,17 +181,26 @@ export function Homepage({
                 </figcaption>
               </figure>
               <div className="working-example">
-                <p className="market-eyebrow">Maya’s goal</p>
-                <h3>Launch a small ceramics business.</h3>
+                <p className="market-eyebrow">
+                  Maya’s vision: become a working ceramics business owner
+                </p>
+                <h3>
+                  Launch my ceramics business and fulfil three paid customer
+                  orders.
+                </h3>
                 <div className="demo-step">
-                  <p className="market-eyebrow">The next commitment</p>
+                  <p className="market-eyebrow">
+                    Preparation milestone: validate a saleable collection
+                  </p>
                   <h4>
-                    Ask one potential customer about their last ceramics
-                    purchase.
+                    Test production costs and interview three potential
+                    customers.
                   </h4>
                   <p>
-                    After lunch, 15 minutes. Done means sending the question.
-                    Getting a reply is a separate result.
+                    Milestone deadline: October 9, 2026 at 5:00 PM,
+                    America/Denver. Next action: price the first collection on
+                    October 5 at 12:30 PM, America/Denver. Done means a cost
+                    sheet for six pieces.
                   </p>
                   <button className="market-primary" onClick={open}>
                     See this example
@@ -192,16 +210,16 @@ export function Homepage({
             </div>
             <div className="method-line">
               <p>
-                <span>1. Prepare</span>Identify what you need to learn or
-                arrange.
+                <span>1. Prepare</span>Define the capabilities, unknowns and
+                milestones that lead to your accomplishment.
               </p>
               <p>
-                <span>2. Make room</span>Choose a time that fits your day, or
-                leave it open.
+                <span>2. Commit</span>Set a milestone deadline and a specific
+                time for the next action.
               </p>
               <p>
-                <span>3. Record</span>Done, partly, or didn’t happen. Detail is
-                optional.
+                <span>3. Build Proof</span>Done, partly done, or didn’t happen.
+                Report honestly. Decide what changes next.
               </p>
             </div>
           </section>
@@ -218,34 +236,43 @@ export function Homepage({
                   <em>didn’t happen.</em>
                 </h2>
                 <p>
-                  The missed commitment stays in your Record. Choose a different
-                  next action or return when you are ready.
+                  You committed to this because it matters to you. What
+                  prevented it, and what will you change before committing
+                  again?
                 </p>
                 <button className="market-light" onClick={() => start("goal")}>
-                  Choose your next action
+                  Make the plan real
                 </button>
               </div>
               <div className="return-excerpt">
-                <div className="record-passage">
+                <div className="proof-passage">
                   <p className="eyebrow">Missed</p>
-                  <h3>The planned message was not sent.</h3>
-                  <p>Work ran late. Maya recorded what happened.</p>
+                  <h3>The customer interview didn’t happen.</h3>
+                  <p>
+                    “I left the session at the end of an overloaded day.” Maya
+                    reported the miss.
+                  </p>
                 </div>
-                <div className="record-passage">
+                <div className="proof-passage">
                   <p className="eyebrow">Returned</p>
-                  <h3>A specific question, sent after lunch.</h3>
-                  <p>The earlier miss stayed in her Record.</p>
+                  <h3>
+                    A protected lunch session. Three interviews completed.
+                  </h3>
+                  <p>
+                    She revised the schedule. The earlier miss and original date
+                    stayed in her Proof.
+                  </p>
                 </div>
               </div>
             </div>
           </section>
           <section
-            id="the-record"
-            className="market-wrap growing-record"
-            aria-label="The Record over time"
+            id="the-proof"
+            className="market-wrap growing-proof"
+            aria-label="The Proof over time"
           >
-            <div className="record-intro">
-              <p className="market-eyebrow">The Record over time</p>
+            <div className="proof-intro">
+              <p className="market-eyebrow">The Proof over time</p>
               <h2>
                 Earlier doubts.
                 <br />
@@ -263,20 +290,23 @@ export function Homepage({
                 essay or a positive interpretation of every attempt.
               </p>
             </div>
-            <div className="record-timeline">
+            <div className="proof-timeline">
               <ol>
                 <li>
                   <span>Day 14</span>
-                  <h3>A question sent. No reply.</h3>
+                  <h3>A collection costed. An interview missed.</h3>
                   <p>
-                    Maya kept sending the message separate from receiving an
-                    answer.
+                    Preparation made progress. The missed session still needed a
+                    decision.
                   </p>
                 </li>
                 <li>
                   <span>Day 45</span>
-                  <h3>A first paid order fulfilled.</h3>
-                  <p>She recorded the costs and time involved.</p>
+                  <h3>Business launched. Three orders fulfilled.</h3>
+                  <p>
+                    The defined accomplishment happened. Maya kept the actual
+                    costs and work beside her starting words.
+                  </p>
                 </li>
                 <li>
                   <span>Six months</span>
@@ -288,7 +318,7 @@ export function Homepage({
                 </li>
               </ol>
               <button className="market-text" onClick={open}>
-                Open the example Record
+                Open the example Proof
               </button>
             </div>
           </section>
@@ -329,9 +359,9 @@ export function Homepage({
                     <em>a goal that matters.</em>
                   </h2>
                   <p>
-                    Planning, short check-ins and a Record you can use again.
-                    Keep pursuing new goals with the experience of earlier
-                    attempts close at hand.
+                    A demanding goal, credible preparation and Proof you can use
+                    again. Keep pursuing new goals with the experience of
+                    earlier attempts close at hand.
                   </p>
                 </div>
                 <div className="membership-offer">
@@ -346,7 +376,7 @@ export function Homepage({
                     className="market-primary"
                     onClick={() => start("goal")}
                   >
-                    Start with a goal
+                    Start a pursuit
                   </button>
                   <button
                     className="market-text"
@@ -361,15 +391,17 @@ export function Homepage({
                 <details>
                   <summary>What if my goal is not clear yet?</summary>
                   <p>
-                    Start with a goal or a vision in your own words. Choose a
-                    useful first action and say what will count as done.
+                    Save your vision as a draft. Define a significant
+                    accomplishment, its observable outcome and its preparation
+                    plan before activating it.
                   </p>
                 </details>
                 <details>
                   <summary>Do I need to check in every day?</summary>
                   <p>
-                    No. Return after an action or when you need to choose your
-                    next step. A quick status is enough. Reflection is optional.
+                    Return when scheduled work needs an update. Report done,
+                    partly done or didn’t happen. For a partial result or miss,
+                    name what prevented it and what you will change.
                   </p>
                 </details>
                 <details>
@@ -400,7 +432,7 @@ export function Homepage({
       <dialog
         ref={dialog}
         className="product-modal"
-        aria-label="Fictional example Record"
+        aria-label="Fictional example Proof"
         onKeyDown={(e) => {
           if (e.key !== "Tab") return;
           const items = [

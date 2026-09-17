@@ -1,22 +1,54 @@
 export type Result = "done" | "partly" | "did_not_happen";
-export type Mode = "deliberate" | "quick";
+export type PursuitState =
+  | "draft"
+  | "active"
+  | "paused"
+  | "changed_direction"
+  | "completed"
+  | "abandoned";
 export interface User {
   id: string;
   email?: string;
 }
-export interface Goal {
+export interface Milestone {
+  id: string;
+  title: string;
+  criterion: string;
+  localDate: string;
+  localTime: string;
+  timeZone: string;
+}
+export interface Foundation {
+  words: string;
+  vision: string;
+  outcome: string;
+  meaning: string;
+  constraints: string;
+  capabilities: string;
+  unknowns: string;
+  affirmed: boolean;
+  milestones: Milestone[];
+}
+export interface Goal extends Foundation {
   id: string;
   owner_id: string;
-  words: string;
   kind: "goal" | "vision";
-  meaning: string | null;
   created_at: string;
   version: number;
+  revision: number;
+  status: PursuitState;
+}
+export interface GoalRevision extends Foundation {
+  goal_id: string;
+  revision: number;
+  recorded_at: string;
 }
 export interface Commitment {
   id: string;
   owner_id: string;
   goal_id: string;
+  milestone_id: string | null;
+  plan_revision: number | null;
   revision: number;
   version: number;
   state: "active" | "reported";
@@ -28,7 +60,7 @@ export interface Definition {
   revision: number;
   action: string;
   criterion: string;
-  mode: Mode;
+  mode: "deliberate" | "quick";
 }
 export interface Schedule {
   id: string;
@@ -40,6 +72,8 @@ export interface Schedule {
   time_zone: string | null;
   starts_at: string | null;
   location: string | null;
+  state: "current" | "superseded";
+  created_at: string;
 }
 export interface Evidence {
   id: string;
@@ -60,9 +94,25 @@ export interface Report {
   reflection: string | null;
   occurred_on: string | null;
   recorded_at: string;
+  prevented: string | null;
+  adjustment: string | null;
+}
+export interface PursuitEvent {
+  id: string;
+  goal_id: string;
+  kind:
+    | "reschedule"
+    | "milestone_schedule"
+    | "milestone"
+    | "status"
+    | "decision";
+  data: Record<string, string>;
+  recorded_at: string;
 }
 export interface Snapshot {
   goals: Goal[];
+  goalHistory: GoalRevision[];
+  events: PursuitEvent[];
   commitments: Commitment[];
   definitions: Definition[];
   schedules: Schedule[];
@@ -74,7 +124,18 @@ export interface Snapshot {
 export interface Command {
   operationId: string;
   actorId: string;
-  kind: "goal" | "commitment" | "outcome" | "detail" | "select" | "support";
+  kind:
+    | "goal"
+    | "plan"
+    | "commitment"
+    | "reschedule"
+    | "milestone_schedule"
+    | "milestone"
+    | "status"
+    | "outcome"
+    | "detail"
+    | "select"
+    | "support";
   payload: Record<string, unknown>;
 }
 export interface Receipt {
@@ -93,8 +154,21 @@ export interface Adapter {
   enterPreview?(): Promise<void>;
   failNext?(): void;
 }
+export const emptyFoundation = (): Foundation => ({
+  words: "",
+  vision: "",
+  outcome: "",
+  meaning: "",
+  constraints: "",
+  capabilities: "",
+  unknowns: "",
+  affirmed: false,
+  milestones: [],
+});
 export const emptySnapshot = (): Snapshot => ({
   goals: [],
+  goalHistory: [],
+  events: [],
   commitments: [],
   definitions: [],
   schedules: [],
@@ -105,6 +179,14 @@ export const emptySnapshot = (): Snapshot => ({
 });
 export const resultLabel: Record<Result, string> = {
   done: "Done",
-  partly: "Partly",
+  partly: "Partly done",
   did_not_happen: "Didn’t happen",
+};
+export const stateLabel: Record<PursuitState, string> = {
+  draft: "Draft pursuit",
+  active: "Active pursuit",
+  paused: "Paused pursuit",
+  changed_direction: "Changed direction",
+  completed: "Major accomplishment completed",
+  abandoned: "Abandoned pursuit",
 };

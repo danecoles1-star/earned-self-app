@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { App } from "../src/App";
 import {
   emptySnapshot,
+  emptyFoundation,
   type Adapter,
   type Receipt,
   type Snapshot,
@@ -44,7 +45,9 @@ it("shows loading and failure honestly, disables navigation while saving, and re
         owner_id: "member-a",
         words: String(c.payload.words),
         kind: "goal",
-        meaning: null,
+        ...emptyFoundation(),
+        status: "draft",
+        revision: 1,
         created_at: new Date().toISOString(),
         version: 1,
       });
@@ -54,30 +57,37 @@ it("shows loading and failure honestly, disables navigation while saving, and re
   };
   const u = userEvent.setup();
   render(<App adapter={adapter} />);
-  await screen.findByText("Loading your goal and Record…");
+  await screen.findByText("Loading your goal and Proof…");
   await act(async () => ready(emptySnapshot()));
   await u.click(
     await screen.findByRole("button", {
-      name: "Start with a goal",
+      name: "Start a pursuit",
       exact: true,
     }),
   );
-  await u.type(screen.getByLabelText("Your goal"), "Finish my own draft.");
-  await u.click(screen.getByRole("button", { name: "Save my goal" }));
+  await u.type(
+    screen.getByLabelText(
+      "What significant accomplishment would move you toward that vision? (optional)",
+    ),
+    "Finish my own draft.",
+  );
+  await u.click(screen.getByRole("button", { name: "Save pursuit draft" }));
   expect(screen.getByRole("button", { name: "Saving…" })).toBeDisabled();
   expect(
-    screen.getByRole("button", { name: "Record", exact: true }),
+    screen.getByRole("button", { name: "Proof", exact: true }),
   ).toBeDisabled();
   expect(screen.queryByText("Saved to your account.")).not.toBeInTheDocument();
   await act(async () =>
     rejectSave(new Error("Connection interrupted. Try this save again.")),
   );
   await screen.findByRole("alert");
-  expect(screen.getByLabelText("Your goal")).toHaveValue(
-    "Finish my own draft.",
-  );
+  expect(
+    screen.getByLabelText(
+      "What significant accomplishment would move you toward that vision? (optional)",
+    ),
+  ).toHaveValue("Finish my own draft.");
   expect(screen.queryByText("Saved to your account.")).not.toBeInTheDocument();
-  await u.click(screen.getByRole("button", { name: "Save my goal" }));
+  await u.click(screen.getByRole("button", { name: "Save pursuit draft" }));
   await waitFor(() => expect(attempted).toHaveLength(2));
   expect(attempted[1]).toBe(attempted[0]);
   await screen.findByText("Saved to your account.");
