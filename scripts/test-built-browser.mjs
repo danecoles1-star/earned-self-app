@@ -76,11 +76,14 @@ for (const width of [375, 390, 430, 768, 1024, 1440]) {
   });
   await photo.screenshot({ path: `${output}/ceramics-${width}.png` });
   await page
-    .getByRole("button", { name: "Start with a goal", exact: true })
+    .getByRole("button", { name: "Start a pursuit", exact: true })
     .first()
     .click();
   await page
-    .getByLabel("Your goal", { exact: true })
+    .getByLabel(
+      "What significant accomplishment would move you toward that vision? (optional)",
+      { exact: true },
+    )
     .fill("My own goal, not a demonstration.");
   await page
     .getByRole("button", { name: "Keep my draft and continue" })

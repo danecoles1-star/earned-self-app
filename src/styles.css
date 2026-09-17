@@ -372,12 +372,12 @@ input[type="checkbox"] {
   min-height: 48px;
   padding: 12px 18px;
 }
-.record-aside {
+.proof-aside {
   border-top: 1px solid var(--line);
   padding: 24px 0;
   min-width: 0;
 }
-.record-aside p,
+.proof-aside p,
 .member-text {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
@@ -418,7 +418,7 @@ input[type="checkbox"] {
   display: block;
   font-size: 14px;
 }
-.record-passage {
+.proof-passage {
   padding: 24px 28px;
   border-top: 1px solid var(--line);
 }
@@ -429,10 +429,10 @@ input[type="checkbox"] {
 .chapter-after .eyebrow {
   color: #365361;
 }
-.record-detail {
+.proof-detail {
   max-width: 850px;
 }
-.record-detail .record-passage p:last-child {
+.proof-detail .proof-passage p:last-child {
   margin-bottom: 0;
 }
 .mode-picker {
@@ -491,7 +491,7 @@ input[type="checkbox"] {
 .marketing .membership-section .market-text {
   color: #a63b28;
 }
-.marketing .record-passage p:last-child {
+.marketing .proof-passage p:last-child {
   margin-bottom: 0;
 }
 .market-page {
@@ -578,7 +578,7 @@ dialog button {
   .status-row button {
     flex: 1 1 auto;
   }
-  .record-passage {
+  .proof-passage {
     padding: 24px 21px;
   }
   .chapter-head {
@@ -670,4 +670,55 @@ fieldset:disabled {
   gap: 10px;
   flex-wrap: wrap;
   min-width: 0;
+}
+
+.accomplishment {
+  font-size: clamp(30px, 4vw, 46px);
+  max-width: 900px;
+}
+.milestone-focus,
+.proof-aside {
+  min-width: 0;
+}
+.proof-aside {
+  border-top: 1px solid var(--line);
+  padding: 24px 0;
+}
+.milestone-editor,
+.proof-attempt,
+.proof-event {
+  border-top: 1px solid var(--line);
+  padding: 24px 0;
+  margin: 24px 0;
+}
+.proof-passage {
+  padding: 24px;
+  border-left: 2px solid var(--ember-accent);
+}
+.proof-passage p,
+.proof-attempt p,
+.proof-event p {
+  white-space: pre-wrap;
+}
+.accountability-prompt {
+  margin-top: 24px;
+  border-left: 3px solid var(--ember-accent);
+  padding-left: 16px;
+}
+.report-action {
+  max-width: 760px;
+  padding: 24px 0;
+  border-block: 1px solid var(--line);
+}
+.report-action [aria-pressed="true"] {
+  background: var(--pale);
+  color: var(--ink);
+}
+.schedule-fields {
+  min-width: 0;
+}
+input,
+textarea,
+select {
+  max-width: 100%;
 }

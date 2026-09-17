@@ -36,7 +36,7 @@ The normal application sends email sign-in links and uses narrow database RPCs. 
 | `npm run supabase:dry-run` | Preview pending linked migrations without applying them |
 | `npm run supabase:push` | Apply the reviewed migrations to the linked project |
 
-Stop unless history is initially empty and the dry run lists exactly `202609130001`, then `202609130002`. Push only after checking the linked development project and approving that output. These scripts do not enforce project identity or validate the dry-run output for you. Never use them against production. No Docker or local Supabase services are needed for this workflow.
+Stop unless history is initially empty and the dry run lists exactly `202609130001`, then `202609130002`, then `202609150001`. Push only after checking the linked development project and approving that output. These scripts do not enforce project identity or validate the dry-run output for you. Never use them against production. No Docker or local Supabase services are needed for this workflow.
 
 `supabase/config.toml` contains local defaults, not a hosted project reference. It disables seeding, allows only the local callback, and disables anonymous sign-in. Migration push does not configure hosted Auth; the owner must configure it separately. Do not run config push, seed, reset or migration repair. The tracked `.gitignore` excludes CLI-generated `supabase/.temp/` and `supabase/.branches/` directories. Never commit credentials.
 
@@ -50,17 +50,15 @@ npx playwright install chromium firefox
 npm run test:e2e
 ```
 
-`test:db` applies the two migrations only to a disposable in-memory PGlite PostgreSQL database with simulated authentication roles. It never reads Supabase connection variables. It is not a substitute for testing the real project's JWTs and RLS.
+`test:db` applies all three migrations only to a disposable in-memory PGlite PostgreSQL database with simulated authentication roles. It never reads Supabase connection variables. It is not a substitute for testing the real project's JWTs and RLS.
 
 `test:e2e` starts the isolated local adapter. `ES_SCREENSHOTS_DIR` optionally selects an evidence-output directory. `ES_BROWSER_EXECUTABLE` optionally selects an existing local Chromium executable for restricted test environments; normal installations should use Playwright's managed browsers. Neither setting changes the shipped application.
 
 ## Included experience
 
-Six-section homepage; member-authored goal or vision; draft before authentication; email sign-in; deliberate or quick commitment; required action and done criterion; optional date, time, IANA time zone and location; dominant goal; Done / Partly / Didn’t happen; optional factual detail and reflection revisions; private Record; next commitment; basic goal switching; sign-out and return.
+Vision → major accomplishment → observable outcome → preparation milestones → scheduled action → honest Proof. Incomplete pursuits remain drafts. Activation requires complete planning, member affirmation, milestone deadlines and a next action with date, time and IANA zone. Misses, partial results, revised schedules, milestone completion, pause, changed direction, abandonment and major accomplishment completion have distinct histories.
 
-The first implementation intentionally stops short of the broader MVP. It does not expose editing an existing commitment, rescheduling, result-status correction, targeted undo, pause, goal completion, account deletion or export controls. Immutable definitions and versioned reports leave room for reviewed follow-up commands. No feature is represented as implemented simply because its data could be extended.
-
-No billing, trial activation, AI, patterns, Edge, uploads, calendar integration, wallpaper, notifications, outreach, sharing, public profile or program catalog is included. Homepage membership text describes planned pricing and clearly identifies this free private test.
+Public fictional ceramics content is isolated from member data. No AI, billing, uploads, notifications or production services were added. See the updated Supabase implementation document for the command contract and migration compatibility.
 
 ## Source organization
 
@@ -73,7 +71,7 @@ No billing, trial activation, AI, patterns, Edge, uploads, calendar integration,
 - `public/`: preview-wide headers, robots exclusion and SPA fallback.
 - `docs/`: implementation, setup, limits and test evidence.
 
-The Record is a projection over real definitions and reported evidence. There is no Record table, score, simulated accomplishment, or automatic inference of a missed action.
+Proof is a projection over real definitions and reported evidence. There is no Proof table, score, simulated accomplishment, or automatic inference of a missed action.
 
 ## Next step
 

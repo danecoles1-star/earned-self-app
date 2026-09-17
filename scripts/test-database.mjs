@@ -13,7 +13,15 @@ await db.exec(
 );
 for (const file of fs.readdirSync("supabase/migrations").sort())
   await db.exec(fs.readFileSync("supabase/migrations/" + file, "utf8"));
-pass("Both migrations compile in embedded PostgreSQL");
+pass("All three migrations compile in embedded PostgreSQL");
+await db.exec(
+  "CREATE SCHEMA supabase_migrations; CREATE TABLE supabase_migrations.schema_migrations(version text); INSERT INTO supabase_migrations.schema_migrations VALUES ('202609130001'),('202609130002'),('202609150001');",
+);
+await db.exec(
+  fs.readFileSync("docs/Earned_Self_Supabase_Verification_v2.sql", "utf8"),
+);
+pass("Read-only installed-schema verifier passes");
+
 const a = randomUUID(),
   b = randomUUID();
 await db.query("INSERT INTO auth.users VALUES ($1),($2)", [a, b]);
@@ -45,7 +53,22 @@ const goal = randomUUID(),
   payload = {
     id: goal,
     words: "Publish a short essay.\n自分の言葉 ✨",
-    kind: "vision",
+    vision: "Become a published writer",
+    outcome: "Essay published",
+    constraints: "Keep my job",
+    capabilities: "Edit clearly",
+    unknowns: "Publication fit",
+    affirmed: true,
+    milestones: [
+      {
+        id: "11111111-1111-4111-8111-111111111111",
+        title: "Draft essay",
+        criterion: "Draft ready",
+        localDate: "2030-12-01",
+        localTime: "17:00",
+        timeZone: "America/Denver",
+      },
+    ],
     meaning: "Something I have put off.",
   };
 const first = await command(a, "goal", payload, op),
@@ -68,7 +91,8 @@ await rejected(
       goalId: goal,
       action: "X",
       criterion: "Y",
-      mode: "quick",
+      milestoneId: "11111111-1111-4111-8111-111111111111",
+      decision: "continue",
     }),
   /unavailable/,
 );
@@ -95,9 +119,10 @@ const c = {
   goalId: goal,
   action: "Write the opening paragraph.",
   criterion: "A paragraph saved in my draft.",
-  mode: "deliberate",
+  milestoneId: "11111111-1111-4111-8111-111111111111",
+  decision: "continue",
   localDate: "2020-01-10",
-  localTime: "",
+  localTime: "12:00",
   timeZone: "America/Denver",
   location: "Desk",
 };
@@ -106,8 +131,8 @@ await command(a, "commitment", c, cOp);
 let s = await state();
 assert.equal(s.commitments.length, 1);
 assert.equal(s.evidence.length, 0);
-assert.equal(s.schedules[0].starts_at, null);
-pass("One commitment; date-only past due remains unreported");
+assert.ok(s.schedules[0].starts_at);
+pass("One commitment; past due remains unreported");
 await rejected(
   () => command(a, "commitment", { ...c, id: randomUUID() }),
   /current commitment/,
@@ -121,6 +146,8 @@ const evidence = cid,
     commitmentId: cid,
     version: 1,
     result: "did_not_happen",
+    prevented: "Work ran late",
+    adjustment: "Protect lunch",
   };
 await command(a, "outcome", outcome, outcomeOp);
 await command(a, "outcome", outcome, outcomeOp);
@@ -137,8 +164,9 @@ const next = randomUUID();
 await command(a, "commitment", {
   ...c,
   id: next,
-  mode: "quick",
-  localDate: "",
+  decision: "recommit",
+  reason: "Protect lunch",
+  localDate: "2030-10-01",
   location: "",
 });
 s = await state();
@@ -190,7 +218,8 @@ await as(a);
 const goalB = randomUUID();
 await command(a, "goal", {
   id: goalB,
-  kind: "goal",
+  ...payload,
+  id: goalB,
   words: "Another independent goal.",
 });
 await command(a, "select", { goalId: goal });
@@ -198,6 +227,28 @@ s = await state();
 assert.equal(s.selectedGoal, goal);
 assert.equal(s.commitments.filter((c) => c.goal_id === goalB).length, 0);
 pass("Goal A to B to A preserves independent plans");
+await rejected(
+  () =>
+    command(a, "commitment", {
+      ...c,
+      id: randomUUID(),
+      goalId: goalB,
+      localTime: "",
+    }),
+  /required/,
+);
+await rejected(
+  () =>
+    command(a, "commitment", {
+      ...c,
+      id: randomUUID(),
+      goalId: goalB,
+      milestoneId: randomUUID(),
+    }),
+  /milestone/,
+);
+pass("Required action time and milestone membership enforced by SQL");
+
 await rejected(
   () =>
     command(a, "goal", {
@@ -217,7 +268,8 @@ await rejected(
       goalId: goalB,
       action: "Prepare",
       criterion: "Done",
-      mode: "quick",
+      milestoneId: "11111111-1111-4111-8111-111111111111",
+      decision: "continue",
       localDate: "2026-03-08",
       localTime: "02:30",
       timeZone: "America/Denver",
@@ -234,7 +286,8 @@ await rejected(
       goalId: goalB,
       action: "Prepare",
       criterion: "Done",
-      mode: "quick",
+      milestoneId: "11111111-1111-4111-8111-111111111111",
+      decision: "continue",
       localDate: "2026-11-01",
       localTime: "01:30",
       timeZone: "America/Denver",
@@ -271,7 +324,8 @@ await rejected(
         goalId: goalB,
         action: "",
         criterion: "x",
-        mode: "quick",
+        milestoneId: "11111111-1111-4111-8111-111111111111",
+        decision: "continue",
       },
       orphanOp,
     ),
@@ -287,6 +341,119 @@ assert.equal(
   0,
 );
 pass("Failed command leaves no receipt or partial data");
+await as(a);
+s = await state();
+assert.equal(s.goals.find((g) => g.id === goal).status, "active");
+assert.equal(s.goals.find((g) => g.id === goalB).status, "draft");
+pass("Draft and active pursuits are distinct");
+const current = s.commitments.find((c) => c.id === next);
+const reschedule = {
+  goalId: goal,
+  commitmentId: next,
+  version: current.version,
+  action: "Protected lunch",
+  criterion: "Paragraph",
+  localDate: "2030-10-02",
+  localTime: "12:00",
+  timeZone: "America/Denver",
+  reason: "Protect preparation",
+};
+await command(a, "reschedule", reschedule);
+s = await state();
+assert.equal(s.definitions.filter((d) => d.commitment_id === next).length, 2);
+assert.equal(s.schedules.filter((x) => x.commitment_id === next).length, 2);
+await rejected(() => command(a, "reschedule", reschedule), /changed/);
+pass("Rescheduling keeps prior definition and schedule; stale revision denied");
+let g = s.goals.find((g) => g.id === goal);
+await command(a, "milestone_schedule", {
+  goalId: goal,
+  version: g.version,
+  milestoneId: payload.milestones[0].id,
+  localDate: "2030-12-02",
+  localTime: "17:00",
+  timeZone: "America/Denver",
+  reason: "More preparation",
+});
+s = await state();
+assert.equal(
+  s.goalHistory.find((h) => h.goal_id === goal && h.revision === 1)
+    .milestones[0].localDate,
+  "2030-12-01",
+);
+pass("Milestone deadline revision retains original plan");
+g = s.goals.find((g) => g.id === goal);
+await command(a, "status", {
+  goalId: goal,
+  version: g.version,
+  status: "paused",
+  detail: "Resolve blocker",
+});
+s = await state();
+g = s.goals.find((g) => g.id === goal);
+assert.equal(g.status, "paused");
+await command(a, "status", {
+  goalId: goal,
+  version: g.version,
+  status: "active",
+  detail: "Ready to return",
+});
+s = await state();
+g = s.goals.find((g) => g.id === goal);
+await rejected(
+  () =>
+    command(a, "status", {
+      goalId: goal,
+      version: g.version,
+      status: "completed",
+      detail: "Done",
+      reflection: "Learned",
+      next: "Another",
+    }),
+  /outstanding/,
+);
+await command(a, "outcome", {
+  id: randomUUID(),
+  goalId: goal,
+  commitmentId: next,
+  version: 2,
+  result: "done",
+});
+await command(a, "milestone", {
+  goalId: goal,
+  version: g.version,
+  milestoneId: payload.milestones[0].id,
+  detail: "Draft completed",
+});
+s = await state();
+g = s.goals.find((g) => g.id === goal);
+assert.equal(g.status, "active");
+await command(a, "status", {
+  goalId: goal,
+  version: g.version,
+  status: "completed",
+  detail: "Published essay",
+  reflection: "My own conclusion",
+  next: "Write again",
+});
+s = await state();
+assert.equal(s.goals.find((g) => g.id === goal).status, "completed");
+pass(
+  "Pause, resume, preparation completion and major completion remain distinct",
+);
+await as(b);
+assert.equal(
+  (await db.query("SELECT * FROM public.es_pursuit_events")).rows.length,
+  0,
+);
+await rejected(
+  () =>
+    db.exec(
+      "INSERT INTO public.es_pursuit_events(owner_id,goal_id,kind,data) VALUES(gen_random_uuid(),gen_random_uuid(),'status','{}')",
+    ),
+  /permission denied/,
+);
+pass("New event history has owner RLS and no direct browser writes");
+await db.exec("RESET ROLE");
 await db.query("DELETE FROM auth.users WHERE id=$1", [a]);
 assert.equal(
   (await db.query("SELECT * FROM public.es_goals WHERE owner_id=$1", [a])).rows

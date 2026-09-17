@@ -3,199 +3,301 @@ import {
   applyLocal,
   emptySnapshot,
   actionStatus,
+  isOverdue,
   required,
   type LocalStore,
 } from "../src/data/domain";
-import type { Command } from "../src/data/types";
-import { canUseDraft, loadDraft, saveDraft } from "../src/data/drafts";
-const actor = "account-a";
-function command(
+import { scheduledInstant } from "../src/data/time";
+import { emptyFoundation, type Command } from "../src/data/types";
+import { loadDraft, saveDraft, canUseDraft } from "../src/data/drafts";
+import { foundation, action, mid } from "./fixtures";
+const command = (
   kind: Command["kind"],
   payload: Record<string, unknown>,
-): Command {
-  return { kind, payload, actorId: actor, operationId: crypto.randomUUID() };
-}
+): Command => ({
+  kind,
+  payload,
+  actorId: "a",
+  operationId: crypto.randomUUID(),
+});
 function setup() {
   let store: LocalStore = { snapshot: emptySnapshot(), receipts: {} };
   const run = (c: Command) => {
-    const r = applyLocal(store, c, actor);
+    const r = applyLocal(store, c, "a");
     store = r.store;
     return r.receipt;
   };
-  run(
-    command("goal", {
-      id: "g",
-      words: "Write my essay. 私の言葉 ✨",
-      kind: "vision",
-    }),
-  );
-  return { run, get: () => store };
+  run(command("goal", { id: "g", ...foundation }));
+  return { run, get: () => store.snapshot };
 }
-describe("durable loop state contract", () => {
-  it("starts honestly empty", () =>
-    expect(emptySnapshot().evidence).toEqual([]));
-  it("keeps exact member words", () =>
-    expect(setup().get().snapshot.goals[0].words).toBe(
-      "Write my essay. 私の言葉 ✨",
-    ));
-  it("rejects blank and oversized action text without truncation", () => {
-    expect(() => required("   ", "Action")).toThrow();
-    expect(() => required("x".repeat(10001), "Action")).toThrow(
-      /not been shortened/,
-    );
-  });
-  it("replays one operation once and rejects changed payload", () => {
-    const t = setup(),
-      c = command("commitment", {
-        id: "c",
-        goalId: "g",
-        mode: "quick",
-        action: "Write",
-        criterion: "Paragraph",
-      });
-    expect(t.run(c)).toEqual(t.run(c));
-    expect(t.get().snapshot.commitments).toHaveLength(1);
+describe("structured pursuit contract", () => {
+  it("allows incomplete drafts, never auto-activates", () => {
+    const t = setup();
+    t.run(command("goal", { id: "draft", ...emptyFoundation() }));
+    expect(t.get().goals[1].status).toBe("draft");
     expect(() =>
-      t.run({ ...c, payload: { ...c.payload, action: "Changed" } }),
-    ).toThrow(/changed/);
+      t.run(command("commitment", { ...action, goalId: "draft" })),
+    ).toThrow();
   });
-  it("does not infer miss from date", () => {
+  it("requires meaningful planning, affirmation and complete scheduling", () => {
+    for (const field of [
+      "vision",
+      "words",
+      "outcome",
+      "meaning",
+      "constraints",
+      "capabilities",
+      "unknowns",
+      "affirmed",
+    ]) {
+      const t = setup();
+      t.run(
+        command("plan", {
+          goalId: "g",
+          version: 1,
+          ...foundation,
+          [field]: field === "affirmed" ? false : "",
+        }),
+      );
+      expect(() => t.run(command("commitment", action))).toThrow();
+    }
+    for (const field of ["localDate", "localTime", "timeZone"]) {
+      const t = setup();
+      expect(() =>
+        t.run(command("commitment", { ...action, [field]: "" })),
+      ).toThrow();
+    }
+  });
+  it("retains original words and draft revisions", () => {
     const t = setup();
     t.run(
-      command("commitment", {
-        id: "c",
+      command("plan", {
         goalId: "g",
-        mode: "deliberate",
-        action: "Write",
-        criterion: "Paragraph",
-        localDate: "2000-01-01",
+        version: 1,
+        ...foundation,
+        vision: "My words 自分 ✨",
       }),
     );
-    expect(actionStatus(t.get().snapshot, "c")).toBe("unreported");
+    expect(t.get().goalHistory[0].vision).toBe(foundation.vision);
+    expect(t.get().goals[0].vision).toBe("My words 自分 ✨");
   });
-  it("allows one current commitment per goal", () => {
+  it("replays idempotently and rejects changed payload, duplicates and spoofed owner", () => {
     const t = setup(),
-      p = {
-        goalId: "g",
-        mode: "quick",
-        action: "Write",
-        criterion: "Paragraph",
-      };
-    t.run(command("commitment", { ...p, id: "c" }));
-    expect(() => t.run(command("commitment", { ...p, id: "d" }))).toThrow(
+      c = command("commitment", action);
+    expect(t.run(c)).toEqual(t.run(c));
+    expect(() =>
+      t.run({ ...c, payload: { ...action, action: "Other" } }),
+    ).toThrow(/changed/);
+    expect(() => t.run(command("commitment", { ...action, id: "x" }))).toThrow(
       /current commitment/,
     );
+    expect(() => t.run({ ...c, actorId: "b" })).toThrow(/account changed/);
   });
-  it("keeps a miss when another commitment is made", () => {
+  it("requires milestone ownership and deadline ordering", () => {
     const t = setup();
+    expect(() =>
+      t.run(command("commitment", { ...action, milestoneId: "foreign" })),
+    ).toThrow(/milestone/);
+    expect(() =>
+      t.run(command("commitment", { ...action, localDate: "2031-01-01" })),
+    ).toThrow(/deadline/);
+  });
+  it("past due is unreported and cannot be hidden by rescheduling", () => {
+    const t = setup();
+    t.run(command("commitment", { ...action, localDate: "2000-01-01" }));
+    expect(actionStatus(t.get(), "c")).toBe("unreported");
+    expect(isOverdue(t.get(), "c")).toBe(true);
+    expect(() =>
+      t.run(
+        command("reschedule", {
+          goalId: "g",
+          commitmentId: "c",
+          version: 1,
+          action: "Try",
+          criterion: "Done",
+          localDate: "2030-10-02",
+          localTime: "12:00",
+          timeZone: "America/Denver",
+          reason: "New",
+        }),
+      ),
+    ).toThrow(/needs an update/);
+  });
+  it("keeps misses and requires a revised decision on return", () => {
+    const t = setup();
+    t.run(command("commitment", action));
+    const p = {
+      id: "e",
+      goalId: "g",
+      commitmentId: "c",
+      version: 1,
+      result: "partly",
+    };
+    expect(() => t.run(command("outcome", p))).toThrow(/prevented/);
     t.run(
-      command("commitment", {
-        id: "c",
-        goalId: "g",
-        mode: "quick",
-        action: "Write",
-        criterion: "Paragraph",
+      command("outcome", {
+        ...p,
+        prevented: "Overloaded day",
+        adjustment: "Protect lunch",
       }),
     );
+    expect(() =>
+      t.run(command("commitment", { ...action, id: "next" })),
+    ).toThrow(/earlier result/);
+    t.run(
+      command("commitment", {
+        ...action,
+        id: "next",
+        decision: "address_blocker",
+        reason: "Protect lunch",
+      }),
+    );
+    expect(actionStatus(t.get(), "c")).toBe("partly");
+    expect(t.get().goals[0].status).toBe("active");
+  });
+  it("keeps schedules, reasons and immutable definitions across repeated changes", () => {
+    const t = setup();
+    t.run(command("commitment", action));
+    for (let i = 1; i <= 3; i++)
+      t.run(
+        command("reschedule", {
+          goalId: "g",
+          commitmentId: "c",
+          version: i,
+          action: "Revised " + i,
+          criterion: "Costs",
+          localDate: `2030-10-0${i + 1}`,
+          localTime: "12:00",
+          timeZone: "America/Denver",
+          reason: "Change " + i,
+        }),
+      );
+    expect(t.get().schedules).toHaveLength(4);
+    expect(t.get().definitions[0].action).toBe(action.action);
+    expect(t.get().events.filter((e) => e.kind === "reschedule")).toHaveLength(
+      3,
+    );
+  });
+  it("preserves milestone deadline history independently of actions", () => {
+    const t = setup();
+    t.run(command("commitment", action));
+    t.run(
+      command("milestone_schedule", {
+        goalId: "g",
+        version: 2,
+        milestoneId: mid,
+        localDate: "2030-12-02",
+        localTime: "17:00",
+        timeZone: "America/Denver",
+        reason: "Need another test",
+      }),
+    );
+    expect(t.get().goalHistory[0].milestones[0].localDate).toBe("2030-12-01");
+    expect(t.get().goals[0].milestones[0].localDate).toBe("2030-12-02");
+  });
+  it("distinguishes preparation, milestone and major accomplishment", () => {
+    const t = setup();
+    t.run(command("commitment", action));
     t.run(
       command("outcome", {
         id: "e",
         goalId: "g",
         commitmentId: "c",
         version: 1,
-        result: "did_not_happen",
+        result: "done",
       }),
     );
     t.run(
-      command("commitment", {
-        id: "d",
+      command("milestone", {
         goalId: "g",
-        mode: "quick",
-        action: "Try after lunch",
-        criterion: "Paragraph saved",
+        version: 2,
+        milestoneId: mid,
+        detail: "Six costs",
       }),
     );
-    expect(actionStatus(t.get().snapshot, "c")).toBe("did_not_happen");
-    expect(t.get().snapshot.commitments).toHaveLength(2);
+    expect(t.get().goals[0].status).toBe("active");
+    expect(() =>
+      t.run(command("commitment", { ...action, id: "next" })),
+    ).toThrow(/milestone/);
+    t.run(
+      command("status", {
+        goalId: "g",
+        version: 3,
+        status: "completed",
+        detail: "Three orders delivered",
+        reflection: "Demand is real",
+        next: "Test capacity",
+      }),
+    );
+    expect(t.get().goals[0].status).toBe("completed");
   });
-  it("keeps one evidence identity while optional detail gains revisions", () => {
+  it("keeps pause, changed direction and abandonment distinct", () => {
+    for (const status of ["paused", "changed_direction", "abandoned"]) {
+      const t = setup();
+      t.run(
+        command("status", {
+          goalId: "g",
+          version: 1,
+          status,
+          detail: "My decision",
+        }),
+      );
+      expect(t.get().goals[0].status).toBe(status);
+      expect(t.get().evidence).toHaveLength(0);
+    }
+  });
+  it("retains reflection revisions and rejects stale updates", () => {
     const t = setup();
+    t.run(command("commitment", action));
     t.run(
-      command("commitment", {
-        id: "c",
+      command("outcome", {
+        id: "e",
         goalId: "g",
-        mode: "quick",
-        action: "Write",
-        criterion: "Paragraph",
+        commitmentId: "c",
+        version: 1,
+        result: "done",
       }),
     );
-    const c = command("outcome", {
-      id: "e",
+    const c = command("detail", {
       goalId: "g",
-      commitmentId: "c",
+      evidenceId: "e",
       version: 1,
-      result: "done",
+      reflection: "My conclusion",
     });
     t.run(c);
-    t.run(c);
-    t.run(
-      command("detail", {
-        goalId: "g",
-        evidenceId: "e",
-        version: 1,
-        detail: "Written.",
-        reflection: "Lunch worked.",
-      }),
+    expect(t.get().reports).toHaveLength(2);
+    expect(() => t.run({ ...c, operationId: crypto.randomUUID() })).toThrow(
+      /changed/,
     );
-    expect(t.get().snapshot.evidence).toHaveLength(1);
-    expect(t.get().snapshot.reports).toHaveLength(2);
-    expect(t.get().snapshot.evidence[0].revision).toBe(2);
   });
-  it("blocks mixed-goal evidence and changed account submissions", () => {
+  it("rejects unknown fields and oversized words without truncating", () => {
+    expect(() => required("x".repeat(10001), "Words")).toThrow(/shortened/);
     const t = setup();
-    t.run(
-      command("commitment", {
-        id: "c",
-        goalId: "g",
-        mode: "quick",
-        action: "Write",
-        criterion: "Paragraph",
-      }),
-    );
     expect(() =>
-      t.run(
-        command("outcome", {
-          id: "e",
-          goalId: "other",
-          commitmentId: "c",
-          version: 1,
-          result: "done",
-        }),
-      ),
-    ).toThrow(/unavailable/);
-    expect(() =>
-      t.run({ ...command("goal", { words: "x", kind: "goal" }), actorId: "b" }),
-    ).toThrow(/account changed/);
-  });
-  it("goal switching only changes selection", () => {
-    const t = setup();
-    t.run(command("goal", { id: "g2", kind: "goal", words: "Another goal" }));
-    t.run(command("select", { goalId: "g" }));
-    expect(t.get().snapshot.selectedGoal).toBe("g");
-    expect(t.get().snapshot.evidence).toHaveLength(0);
+      t.run(command("goal", { id: "other", ...foundation, owner_id: "b" })),
+    ).toThrow(/Unsupported/);
   });
 });
-describe("pre-auth draft ownership", () => {
+describe("time zones", () => {
+  it("uses the declared zone", () =>
+    expect(scheduledInstant("2030-01-01", "12:00", "America/Denver")).toBe(
+      "2030-01-01T19:00:00.000Z",
+    ));
+  it.each([
+    ["2026-03-08", "02:30"],
+    ["2026-11-01", "01:30"],
+  ])("rejects DST gap/fold %s %s", (d, t) =>
+    expect(() => scheduledInstant(d, t, "America/Denver")).toThrow(
+      /clock changes/,
+    ),
+  );
+});
+describe("preauth drafts", () => {
   beforeEach(() => localStorage.clear());
-  it("preserves draft across a fresh read", () => {
-    const d = loadDraft();
-    d.words = "My exact words.\n✨";
+  it("retains writing and ownership", () => {
+    const d = { ...loadDraft(), vision: "My vision ✨", boundOwner: "a" };
     saveDraft(d);
     expect(loadDraft()).toEqual(d);
-  });
-  it("requires the original account for a bound draft", () => {
-    const d = { ...loadDraft(), boundOwner: "a" };
     expect(canUseDraft(d, "b")).toBe(false);
-    expect(canUseDraft(d, "a")).toBe(true);
   });
 });

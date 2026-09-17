@@ -65,7 +65,7 @@ export function createSupabaseAdapter(): Adapter {
       const { data, error } = await requireClient().rpc("es_read_state");
       if (error)
         throw new Error(
-          "Your saved work could not be loaded. Retry without creating a new goal.",
+          "Your saved work could not be loaded. Retry without creating a new pursuit.",
         );
       return data as Snapshot;
     },

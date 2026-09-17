@@ -1,31 +1,27 @@
-export interface EntryDraft {
+import { emptyFoundation, type Foundation } from "./types";
+export interface EntryDraft extends Foundation {
   id: string;
-  words: string;
-  kind: "goal" | "vision";
-  meaning: string;
   boundOwner: string | null;
   operationId: string;
 }
 const key = __LOCAL_PREVIEW__
-  ? "earned-self:preview-only:entry-draft:v1"
-  : "earned-self:private-test:entry-draft:v1";
+  ? "earned-self:preview-only:entry-draft:v2"
+  : "earned-self:private-test:entry-draft:v2";
 export function loadDraft(): EntryDraft {
   try {
     const d = JSON.parse(localStorage.getItem(key) || "null");
     if (
       d &&
       typeof d.words === "string" &&
+      typeof d.vision === "string" &&
       typeof d.id === "string" &&
-      typeof d.operationId === "string" &&
-      ["goal", "vision"].includes(d.kind)
+      typeof d.operationId === "string"
     )
       return d;
   } catch {}
   return {
+    ...emptyFoundation(),
     id: crypto.randomUUID(),
-    words: "",
-    kind: "goal",
-    meaning: "",
     boundOwner: null,
     operationId: crypto.randomUUID(),
   };

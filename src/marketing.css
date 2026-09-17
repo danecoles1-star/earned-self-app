@@ -239,7 +239,7 @@
   width: 100%;
   justify-self: end;
 }
-.record-demo-label {
+.proof-demo-label {
   display: flex;
   gap: 13px;
   align-items: center;
@@ -248,19 +248,19 @@
   font-size: 14px;
   line-height: 1.5;
 }
-.record-demo-label img {
+.proof-demo-label img {
   width: 35px;
   height: 35px;
 }
-.record-demo-label small {
+.proof-demo-label small {
   font-size: 12px;
   color: #b9cbd0;
 }
-.hero-record .record-passage {
+.hero-record .proof-passage {
   padding: 25px 29px;
   margin: 0;
 }
-.hero-record .record-passage blockquote {
+.hero-record .proof-passage blockquote {
   font-size: 30px;
   line-height: 1.2;
 }
@@ -467,7 +467,7 @@
 .return-excerpt {
   border-top: 1px solid #ffffff70;
 }
-.return-excerpt .record-passage {
+.return-excerpt .proof-passage {
   padding: 25px 0;
   border-bottom: 1px solid #ffffff70;
 }
@@ -487,59 +487,59 @@
 .return-excerpt > .market-meta {
   margin: 18px 0 0;
 }
-.growing-record {
+.growing-proof {
   padding-block: 100px;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 80px;
   align-items: start;
 }
-.record-intro {
+.proof-intro {
   position: sticky;
   top: 40px;
 }
-.record-intro > p {
+.proof-intro > p {
   max-width: 440px;
 }
-.record-live-study {
+.proof-live-study {
   min-width: 0;
 }
-.record-live-window {
+.proof-live-window {
   border: 1px solid #ffffff50;
   height: 720px;
   overflow: auto;
   overscroll-behavior: contain;
   background: #172329;
 }
-.record-live-window .stage {
+.proof-live-window .stage {
   width: 100%;
   padding: 0;
   margin: 0;
 }
-.record-live-window .device {
+.proof-live-window .device {
   width: 100%;
   max-width: none;
   box-shadow: none;
 }
-.record-live-window .outside-note {
+.proof-live-window .outside-note {
   display: none;
 }
-.record-live-window .workspace .app-header {
+.proof-live-window .workspace .app-header {
   padding: 18px;
 }
-.record-live-window .workspace .content {
+.proof-live-window .workspace .content {
   padding: 26px 22px 60px;
 }
-.record-live-window .workspace .record-masthead h1 {
+.proof-live-window .workspace .proof-masthead h1 {
   font-size: 38px;
 }
-.record-live-window .workspace .record-masthead p {
+.proof-live-window .workspace .proof-masthead p {
   font-size: 14px;
 }
-.record-live-window .workspace .record-pullquote {
+.proof-live-window .workspace .proof-pullquote {
   display: none;
 }
-.record-live-window .workspace h1 {
+.proof-live-window .workspace h1 {
   font-size: 36px;
 }
 .edge-section {
@@ -745,10 +745,10 @@
   .hero-actions {
     flex-direction: column;
   }
-  .hero-record .record-passage {
+  .hero-record .proof-passage {
     padding: 22px;
   }
-  .hero-record .record-passage blockquote {
+  .hero-record .proof-passage blockquote {
     font-size: 27px;
   }
   .founder-layout {
@@ -764,7 +764,7 @@
   .return-layout {
     gap: 40px;
   }
-  .growing-record {
+  .growing-proof {
     gap: 40px;
   }
   .membership-layout {
@@ -821,10 +821,10 @@
   .hero-record {
     max-width: none;
   }
-  .hero-record .record-passage {
+  .hero-record .proof-passage {
     padding: 24px;
   }
-  .hero-record .record-passage blockquote {
+  .hero-record .proof-passage blockquote {
     font-size: 29px;
   }
   .hero-record .chapter-after h2 {
@@ -833,10 +833,10 @@
   .hero-record .chapter-meaning blockquote {
     font-size: 25px;
   }
-  .record-demo-label {
+  .proof-demo-label {
     padding: 18px 22px;
   }
-  .record-demo-label small {
+  .proof-demo-label small {
     font-size: 13px;
   }
   .founder-band {
@@ -929,36 +929,36 @@
   .return-excerpt h3 {
     font-size: 29px;
   }
-  .growing-record {
+  .growing-proof {
     display: block;
     padding-block: 55px;
   }
-  .record-intro {
+  .proof-intro {
     position: static;
   }
-  .record-live-study {
+  .proof-live-study {
     margin-top: 30px;
   }
-  .record-live-window {
+  .proof-live-window {
     height: 650px;
   }
-  .record-live-window .workspace .app-header {
+  .proof-live-window .workspace .app-header {
     padding: 16px 12px;
   }
-  .record-live-window .workspace .brand-button {
+  .proof-live-window .workspace .brand-button {
     max-width: 140px;
   }
-  .record-live-window .workspace .content {
+  .proof-live-window .workspace .content {
     padding: 25px 16px 50px;
   }
-  .record-live-window .workspace .chapter-skim > div {
+  .proof-live-window .workspace .chapter-skim > div {
     grid-template-columns: 80px minmax(0, 1fr);
     gap: 10px;
   }
-  .record-live-window .workspace .chapter-cover strong {
+  .proof-live-window .workspace .chapter-cover strong {
     font-size: 26px;
   }
-  .record-live-window .workspace .support {
+  .proof-live-window .workspace .support {
     max-width: 118px;
   }
   .edge-section {
@@ -1037,7 +1037,7 @@
   font-size: clamp(40px, 4.5cqw, 66px);
   line-height: 1.12;
 }
-.reduced-home .hero-record .record-passage {
+.reduced-home .hero-record .proof-passage {
   padding: 18px 24px;
 }
 .reduced-home .hero-record blockquote {
@@ -1068,31 +1068,31 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
   margin-top: 30px;
 }
-.reduced-home .growing-record {
+.reduced-home .growing-proof {
   padding-block: 65px;
   align-items: center;
 }
-.reduced-home .record-intro {
+.reduced-home .proof-intro {
   position: static;
 }
-.record-timeline ol {
+.proof-timeline ol {
   list-style: none;
   margin: 0;
   padding: 0;
 }
-.record-timeline li {
+.proof-timeline li {
   border-top: 1px solid #ffffff35;
   padding: 20px 0;
 }
-.record-timeline li > span {
+.proof-timeline li > span {
   color: #b9cbd0;
   font-size: 13px;
 }
-.record-timeline h3 {
+.proof-timeline h3 {
   font-size: 25px;
   margin: 9px 0;
 }
-.record-timeline p {
+.proof-timeline p {
   font-size: 15px;
 }
 .reduced-home .edge-section {
@@ -1140,7 +1140,7 @@
   .reduced-home h1 {
     font-size: clamp(37px, 9.5cqw, 58px);
   }
-  .reduced-home .hero-record .record-passage {
+  .reduced-home .hero-record .proof-passage {
     padding: 18px 22px;
   }
   .reduced-home .method-line {
@@ -1159,10 +1159,10 @@
     flex-wrap: wrap;
   }
   .reduced-home .experience-section,
-  .reduced-home .growing-record {
+  .reduced-home .growing-proof {
     padding-block: 40px;
   }
-  .record-timeline {
+  .proof-timeline {
     margin-top: 28px;
   }
   .reduced-home .goal-categories {
@@ -1179,7 +1179,7 @@
     flex-wrap: wrap;
   }
 }
-/* Current-file QA corrections: contain shared Record styles within marketing layouts. */
+/* Current-file QA corrections: contain shared Proof styles within marketing layouts. */
 .marketing .return-excerpt .chapter-after {
   margin: 0;
   width: auto;
