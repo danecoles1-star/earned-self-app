@@ -1,248 +1,195 @@
-import { test, expect, type Page } from "@playwright/test";
+import { test, expect } from "@playwright/test";
+import assert from "node:assert/strict";
 import fs from "node:fs";
-const output = process.env.ES_SCREENSHOTS_DIR ?? "test-results/screenshots";
-async function bounds(p: Page) {
-  expect(
-    await p.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
-  ).toBe(true);
-}
-async function shot(p: Page, name: string) {
+
+test("first visit through first action, failure recovery, accomplishment and next ambition", async ({
+  page: p,
+}) => {
+  test.setTimeout(90000);
+  await p.setViewportSize({ width: 390, height: 844 });
+  const errors: string[] = [];
+  p.on("pageerror", (e) => errors.push(e.message));
+  const click = async (n: string) =>
+    p.getByRole("button", { name: n, exact: true }).click();
+  const fill = async (n: string, v: string) =>
+    p.getByLabel(n, { exact: true }).fill(v);
+  const next = async () => click("Continue");
+  const output = process.env.ES_SCREENSHOTS_DIR || "test-results/screenshots";
   fs.mkdirSync(output, { recursive: true });
-  await bounds(p);
-  await p.screenshot({ path: `${output}/${name}.png`, fullPage: true });
-}
-async function setup(p: Page) {
+  const shot = async (n: string) => {
+    await p.screenshot({ path: `${output}/${n}.png`, fullPage: true });
+    expect(
+      await p.evaluate(() => document.documentElement.scrollWidth > innerWidth),
+    ).toBe(false);
+  };
   await p.goto("/");
-  await p
-    .getByRole("button", { name: "Start a pursuit", exact: true })
-    .first()
-    .click();
-  await p
-    .getByLabel("Who do you want to become? (optional)", { exact: true })
-    .fill("Become a working maker.");
-  await p.getByRole("button", { name: "Keep my draft and continue" }).click();
-  await p.reload();
-  await p.getByRole("button", { name: "Enter local preview" }).click();
-  await p.getByRole("button", { name: "Save pursuit draft" }).click();
-  await expect(
-    p.getByRole("heading", { name: "Make the plan real." }),
-  ).toBeVisible();
-}
-async function plan(p: Page) {
-  for (const [label, value] of [
-    [
-      "What significant accomplishment would move you toward that vision?",
-      "Launch my ceramics business",
-    ],
-    ["What would completing it look like?", "Three paid orders fulfilled"],
-    ["Why this matters now", "I have postponed this"],
-    ["Important constraints or risks", "Keep my job"],
-    ["Capabilities to develop", "Cost production"],
-    ["Important unknowns to resolve", "Repeat demand"],
-  ])
-    await p.getByLabel(label + " (optional)", { exact: true }).fill(value);
+  await shot("01-home-mobile");
+  await click("Begin");
+  assert(
+    await p.getByRole("button", { name: "Continue", exact: true }).isDisabled(),
+  );
+  await click("I am ready for more");
+  await next();
+  await fill("Your future self", "Become a confident published writer");
+  await shot("03-identity-mobile");
+  await next();
+  await click("Work & creation");
+  await next();
+  await fill("My big vision", "Publish a researched essay");
+  await next();
+  await fill("My reason", "Share a perspective I have kept to myself");
+  await next();
+  await fill(
+    "I will know I have done it when…",
+    "My essay is published and available to read",
+  );
+  await fill(
+    "What makes this a stretch?",
+    "I have never shared my writing publicly",
+  );
+  await next();
+  await click("Confidence");
+  await next();
+  await fill("My first move", "Write one opening sentence");
+  await fill("Done means", "One sentence is on the page");
+  await click("Begin move");
+  await click("Start");
+  await click("I have tried it");
+  await click("Done");
+  await fill("What happened?", "I wrote one opening sentence");
+  await click("Record what happened");
+  await shot("12-first-proof-mobile");
+  await click("Keep going");
+  await click("Enter local preview");
+  await click("Save my first Proof");
+  await click("Save and prepare my ambition");
+  await fill("My constraints", "Thirty minutes after work");
+  await next();
+  await fill("What I need to build", "Research and revise an argument");
+  await next();
+  await click("Nothing unresolved right now");
+  await next();
+  await fill(
+    "When it gets difficult",
+    "If I am tired, I will work on one paragraph before dinner",
+  );
+  await next();
+  await click("Add a milestone");
+  await fill("A turning point", "Finish the first draft");
+  await fill("Evidence", "A complete essay draft");
+  await fill("Milestone 1 deadline date", "2030-12-01");
+  await fill("Milestone 1 deadline time", "17:00");
+  await fill("Milestone 1 deadline time zone", "America/Denver");
+  await next();
   await p.getByRole("checkbox").check();
-  await p.getByRole("button", { name: "Add milestone" }).click();
+  await click("Keep my preparation");
+  await fill("My next move", "Draft the opening paragraph");
+  await fill("Done means", "A complete opening paragraph");
+  await next();
+  await fill("Action date", "2030-11-01");
+  await fill("Action time", "17:00");
+  await fill("Action time zone", "America/Denver");
+  await fill("Where?", "At my desk");
+  await next();
+  await click("Commit to this ambition");
+  await shot("25-calendar-mobile");
+  const download = p.waitForEvent("download");
+  await click("Apple Calendar");
+  const dl = await download;
+  assert.equal(dl.suggestedFilename(), "Earned_Self_Move.ics");
+  await click("Continue without adding");
+  await shot("30-now-mobile");
+  await click("Begin my move");
+  await click("Report what happened");
+  await click("Partly");
+  await fill("What happened?", "Wrote two sentences");
+  assert(
+    await p
+      .getByRole("button", { name: "Save to Proof", exact: true })
+      .isDisabled(),
+  );
+  await fill("What prevented it?", "I did not have my sources");
+  await fill("What will you change?", "Gather the sources first");
+  await click("Test next save failure");
+  await click("Save to Proof");
+  await p.getByRole("alert").filter({ hasText: "this save failed" }).waitFor();
+  assert.equal(
+    await p.getByLabel("What happened?", { exact: true }).inputValue(),
+    "Wrote two sentences",
+  );
+  await click("Save to Proof");
+  await shot("35-proof-mobile");
+  await click("Choose what comes next");
+  await click("Ambition");
+  await click("Milestones · Finish the first draft");
+  await fill(
+    "What shows it is complete?",
+    "The full essay draft is written and reviewed",
+  );
+  await click("Mark milestone complete");
   await p
-    .getByLabel("Milestone 1 title (optional)")
-    .fill("Validate collection");
-  await p
-    .getByLabel("Milestone 1 completion criteria (optional)")
-    .fill("Cost six pieces");
-  await p
-    .getByLabel("Milestone 1 deadline date", { exact: true })
-    .fill("2030-12-01");
-  await p
-    .getByLabel("Milestone 1 deadline time", { exact: true })
-    .fill("17:00");
-  await p.getByLabel("Milestone 1 deadline time zone").fill("America/Denver");
-  await p.getByRole("button", { name: "Save preparation draft" }).click();
-  await p.getByRole("button", { name: "Schedule first action" }).click();
-}
-async function action(p: Page, date = "2000-01-01") {
-  await p.getByLabel("Your next action").fill("Cost the collection");
-  await p.getByLabel("Action done means").fill("Six costs saved");
-  await p.getByLabel("Action date", { exact: true }).fill(date);
-  await p.getByLabel("Action time", { exact: true }).fill("12:00");
-  await p.getByLabel("Action time zone").fill("America/Denver");
-}
-for (const width of [375, 390, 430, 768, 1024, 1440])
-  test(`structured pursuit and Proof at ${width}`, async ({ page: p }) => {
-    await p.setViewportSize({ width, height: 900 });
-    const errors: string[] = [];
-    p.on("pageerror", (e) => errors.push(e.message));
-    await p.goto("/");
-    await shot(p, `homepage-${width}`);
-    await setup(p);
-    await shot(p, `draft-${width}`);
-    await plan(p);
-    await action(p);
-    await shot(p, `action-${width}`);
-    await p.getByRole("button", { name: "Activate pursuit" }).click();
-    await expect(
-      p.getByRole("heading", { name: "Your commitment needs an update." }),
-    ).toBeVisible();
-    await shot(p, `pursuit-${width}`);
-    await p.getByRole("button", { name: "Didn’t happen", exact: true }).click();
-    await p.getByLabel("What prevented it?").fill("Overloaded day");
-    await p.getByLabel("What will you change?").fill("Protect lunch");
-    await p.getByRole("button", { name: "Test next save failure" }).click();
-    await p.getByRole("button", { name: "Save preparation result" }).click();
-    await expect(p.getByRole("alert")).toContainText("save failed");
-    await p.getByRole("button", { name: "Save preparation result" }).click();
-    await expect(
-      p.getByRole("heading", { name: "The result is part of your Proof." }),
-    ).toBeVisible();
-    await shot(p, `proof-detail-${width}`);
-    await p.getByRole("button", { name: "Choose what comes next" }).click();
-    await p.getByRole("button", { name: "Schedule next action" }).click();
-    await action(p, "2030-10-01");
-    await p.getByLabel("What will change in this plan?").fill("Protect lunch");
-    await p.getByRole("button", { name: "Commit to this action" }).click();
-    await p.getByRole("button", { name: "Done", exact: true }).click();
-    await p.getByRole("button", { name: "Save preparation result" }).click();
-    await p.getByRole("button", { name: "Choose what comes next" }).click();
-    await p
-      .getByText("Complete this preparation milestone", { exact: true })
-      .click();
-    await p
-      .getByLabel("What completed this milestone?")
-      .fill("Cost sheet complete");
-    await p
-      .getByRole("button", { name: "Complete milestone and advance" })
-      .click();
-    await expect(
-      p.getByRole("heading", { name: "All planned milestones completed." }),
-    ).toBeVisible();
-    await p
-      .getByText("Choose the pursuit’s next state", { exact: true })
-      .click();
-    await p
-      .getByLabel("Your decision", { exact: true })
-      .selectOption("completed");
-    await p
-      .getByLabel("What actually happened at the major accomplishment?")
-      .fill("Three paid orders fulfilled");
-    await p
-      .getByLabel("Your own reflection")
-      .fill("I launched it. Now test repeat demand.");
-    await p.getByLabel("What comes next?").fill("Test production pace");
-    await p.getByRole("button", { name: "Save pursuit decision" }).click();
-    await p.getByRole("button", { name: "Proof", exact: true }).click();
-    await expect(p.getByRole("heading", { name: "Your Proof." })).toBeVisible();
-    await expect(p.locator("main")).toContainText("Didn’t happen");
-    await expect(p.locator("main")).toContainText(
-      "Major accomplishment completed",
-    );
-    await expect(p.locator("main")).not.toContainText("Maya");
-    await shot(p, `proof-${width}`);
-    await p.reload();
-    await expect(p.getByRole("heading", { name: "Your Proof." })).toBeVisible();
-    expect(errors).toEqual([]);
-  });
-test("keyboard, public example isolation and required scheduling", async ({
-  page: p,
-}) => {
+    .getByRole("heading", { name: "You reached a turning point." })
+    .waitFor();
+  await shot("38-milestone-mobile");
+  await click("See what comes next");
+  await click("Ambition");
+  await click("Pause, return or complete");
+  await click("I accomplished it");
+  await fill("What actually happened?", "The essay has been published");
+  await next();
+  await fill("What has changed?", "I can share my writing despite uncertainty");
+  await fill("What will you carry forward?", "Make time to write every week");
+  await click("Confirm accomplishment");
+  await p.getByRole("heading", { name: "You did the work." }).waitFor();
+  await shot("45-accomplishment-mobile");
+  await click("Take this with me");
+  await fill("Words to carry", "Keep writing.");
+  await click("Preview lock screen");
+  const wallpaper = p.waitForEvent("download");
+  await click("Save image");
+  assert.equal(
+    (await wallpaper).suggestedFilename(),
+    "Earned_Self_Lock_Screen.png",
+  );
+  await shot("53-wallpaper-mobile");
+  await click("Go back");
+  await click("Go back");
+  await click("Choose my next ambition");
+  assert(
+    await p.getByRole("button", { name: "Continue", exact: true }).isDisabled(),
+  );
+  await p.setViewportSize({ width: 1440, height: 1000 });
   await p.goto("/");
-  const open = p.getByRole("button", { name: "See this example" });
-  await open.focus();
-  await p.keyboard.press("Enter");
-  await expect(p.getByRole("dialog")).toBeVisible();
-  await p.keyboard.press("Tab");
-  expect(
-    await p.evaluate(() => !!document.activeElement?.closest("dialog")),
-  ).toBe(true);
-  await p.keyboard.press("Escape");
-  await expect(open).toBeFocused();
-  await p.getByRole("button", { name: "Sign in", exact: true }).click();
-  await p.getByRole("button", { name: "Enter local preview" }).click();
-  await expect(p.locator("main")).not.toContainText("Maya");
-  await p.getByRole("button", { name: "Start a pursuit", exact: true }).click();
-  const field = p.getByLabel("Who do you want to become? (optional)", {
-    exact: true,
-  });
-  await field.focus();
-  await p.keyboard.type("My vision");
-  await p.keyboard.press("Tab");
-  await expect(
-    p.getByLabel(
-      "What significant accomplishment would move you toward that vision? (optional)",
-      { exact: true },
-    ),
-  ).toBeFocused();
-  await p.getByRole("button", { name: "Save pursuit draft" }).click();
-  await plan(p);
-  await action(p, "2030-10-01");
-  await p.getByLabel("Action time", { exact: true }).fill("");
-  await p.getByRole("button", { name: "Activate pursuit" }).click();
-  await expect(
-    p.getByRole("heading", { name: "Put the work on the calendar." }),
-  ).toBeVisible();
-  expect(
-    await p
-      .getByLabel("Action time", { exact: true })
-      .evaluate((e: HTMLInputElement) => e.validity.valueMissing),
-  ).toBe(true);
-});
-test("reschedule, pause, resume and changed direction retain history", async ({
-  page: p,
-}) => {
-  await setup(p);
-  await plan(p);
-  await action(p, "2030-10-01");
-  await p.getByRole("button", { name: "Activate pursuit" }).click();
-  await p.getByRole("button", { name: "Revise action and schedule" }).click();
-  await p.getByLabel("Action date", { exact: true }).fill("2030-10-02");
-  await p.getByLabel("What will change in this plan?").fill("Protected time");
-  await p.getByRole("button", { name: "Save revised agreement" }).click();
-  await expect(p.getByText(/The date changed 1 time/)).toBeVisible();
-  await p.getByText("Choose the pursuit’s next state", { exact: true }).click();
-  await p
-    .getByLabel("Why are you making this decision?")
-    .fill("Resolve blocker");
-  await p.getByRole("button", { name: "Save pursuit decision" }).click();
-  await expect(
-    p.getByRole("heading", { name: "Paused pursuit" }),
-  ).toBeVisible();
-  await p.getByText("Choose the pursuit’s next state", { exact: true }).click();
-  await p.getByLabel("Your decision", { exact: true }).selectOption("active");
-  await p.getByLabel("Why are you making this decision?").fill("Ready");
-  await p.getByRole("button", { name: "Save pursuit decision" }).click();
-  await expect(
-    p.getByRole("heading", { name: "Active pursuit" }),
-  ).toBeVisible();
-  await p.getByText("Choose the pursuit’s next state", { exact: true }).click();
-  await p
-    .getByLabel("Your decision", { exact: true })
-    .selectOption("changed_direction");
-  await p
-    .getByLabel("Why are you making this decision?")
-    .fill("Different ambition");
-  await p.getByRole("button", { name: "Save pursuit decision" }).click();
-  await expect(
-    p.getByRole("heading", { name: "Changed direction" }),
-  ).toBeVisible();
-  await p.getByRole("button", { name: "Proof", exact: true }).click();
-  await expect(p.locator("main")).toContainText("Protected time");
-  await expect(p.locator("main")).toContainText("Unreported");
+  await shot("01-home-desktop");
+  assert.deepEqual(errors, []);
 });
 
-test("homepage recognizes an authenticated returning member", async ({
-  page,
+test("small screen keyboard entry, required answer and reload recovery", async ({
+  page: p,
 }) => {
-  await setup(page);
-  await page.goto("/");
-  const accountButton = page.getByRole("button", {
-    name: "My pursuit",
-    exact: true,
-  });
-  await expect(accountButton).toBeVisible();
+  await p.setViewportSize({ width: 375, height: 812 });
+  await p.goto("/");
+  await p.getByRole("button", { name: "Begin", exact: true }).focus();
+  await p.keyboard.press("Enter");
   await expect(
-    page.getByRole("button", { name: "Sign in", exact: true }),
-  ).toHaveCount(0);
-  await accountButton.click();
-  await expect(page).toHaveURL(/\/app$/);
+    p.getByRole("button", { name: "Continue", exact: true }),
+  ).toBeDisabled();
+  await p
+    .getByRole("button", { name: "I am ready for more", exact: true })
+    .click();
+  await p.getByRole("button", { name: "Continue", exact: true }).click();
+  await p.getByLabel("Your future self", { exact: true }).fill("   ");
   await expect(
-    page.getByRole("button", { name: "Sign out", exact: true }),
-  ).toBeVisible();
+    p.getByRole("button", { name: "Continue", exact: true }),
+  ).toBeDisabled();
+  await p
+    .getByLabel("Your future self", { exact: true })
+    .fill("Become someone who follows through");
+  await p.reload();
+  await expect(p.getByLabel("Your future self", { exact: true })).toHaveValue(
+    "Become someone who follows through",
+  );
+  expect(
+    await p.evaluate(() => document.documentElement.scrollWidth > innerWidth),
+  ).toBe(false);
 });

@@ -1,4 +1,16 @@
 import {
+  MoveEditor,
+  ReportMove,
+  MilestoneComplete,
+  Decision,
+} from "./experience/Actions";
+import { Ambition, ProofList, ProofEntry } from "./experience/Ambition";
+import { Calendar, Wallpaper, Settings } from "./experience/Carry";
+import { Preparation } from "./experience/Preparation";
+import { MemberHome } from "./experience/MemberHome";
+import { Art, Page } from "./experience/ui";
+import { Onboarding } from "./experience/Onboarding";
+import {
   useCallback,
   useEffect,
   useRef,
@@ -50,6 +62,7 @@ import {
   Pursuit,
   Proof,
   ProofDetail,
+  ReportAction,
   type Save,
 } from "./components/PursuitScreens";
 function Privacy() {
@@ -220,6 +233,7 @@ export function App({ adapter }: { adapter: Adapter }) {
           : "Saved to your account.",
       );
       await refresh();
+      if (owner.current !== actorId) return;
       after?.(ack);
     } catch (e) {
       if (owner.current === actorId) {
@@ -273,99 +287,69 @@ export function App({ adapter }: { adapter: Adapter }) {
       </main>
     );
   else if (path === "/start")
-    screen = (
-      <main id="main" className="workspace narrow">
-        <p className="eyebrow">Start with your own words</p>
-        <h1 tabIndex={-1}>Who do you want to become?</h1>
-        <p className="intro">
-          Choose something that will demand more of you. Give that vision a
-          significant accomplishment to work toward.
-        </p>
-        {user && !canUseDraft(draft, user.id) ? (
-          <div className="notice">
-            <p>
-              This draft belongs to a different signed-in account. It has not
-              been imported.
-            </p>
-            <button
-              className="secondary"
-              onClick={() => {
-                clearDraft();
-                setDraft(loadDraft());
-              }}
-            >
-              Start a separate draft
-            </button>
-          </div>
-        ) : (
-          <form
-            className="form"
-            onSubmit={(e) => {
-              e.preventDefault();
-              try {
-                if (!user) {
-                  saveDraft(draft);
-                  navigate("/auth");
-                } else {
-                  const d = { ...draft, boundOwner: user.id };
-                  saveDraft(d);
-                  setDraft(d);
-                  void save(
-                    "goal",
-                    Object.fromEntries(
-                      [
-                        "id",
-                        "words",
-                        "vision",
-                        "outcome",
-                        "meaning",
-                        "constraints",
-                        "capabilities",
-                        "unknowns",
-                        "affirmed",
-                        "milestones",
-                      ].map((k) => [k, d[k as keyof EntryDraft]]),
-                    ),
-                    (r) => {
-                      clearDraft();
-                      setDraft(loadDraft());
-                      navigate("/plan/" + r.id);
-                    },
-                  );
-                }
-              } catch (e) {
-                setError(message(e));
-              }
+    screen =
+      user && !canUseDraft(draft, user.id) ? (
+        <main id="main" className="workspace">
+          <h1>This draft belongs to another account.</h1>
+          <button
+            className="button"
+            onClick={() => {
+              clearDraft();
+              setDraft(loadDraft());
             }}
           >
-            <fieldset disabled={saving}>
-              <FoundationFields value={draft} change={changeDraft} />
-              <p className="muted">
-                {draftError ||
-                  "Your draft is kept on this device. You choose whether to save it to your account."}
-              </p>
-              <div className="actions">
-                <button className="button" disabled={saving}>
-                  {saving
-                    ? "Saving…"
-                    : user
-                      ? "Save pursuit draft"
-                      : "Keep my draft and continue"}
-                </button>
-                <button
-                  className="text-button"
-                  type="button"
-                  disabled={saving}
-                  onClick={() => navigate(user ? "/app" : "/")}
-                >
-                  Back
-                </button>
-              </div>
-            </fieldset>
-          </form>
-        )}
-      </main>
-    );
+            Start a separate draft
+          </button>
+        </main>
+      ) : (
+        <Onboarding
+          draft={draft}
+          change={changeDraft}
+          signedIn={!!user}
+          saving={saving}
+          error={draftError || error}
+          back={() => navigate(user ? "/app" : "/")}
+          onFinish={() => {
+            if (!user) {
+              navigate("/auth");
+              return;
+            }
+            const bound = { ...draft, boundOwner: user.id };
+            try {
+              saveDraft(bound);
+              setDraft(bound);
+            } catch {
+              setError(
+                "Your draft could not be kept on this device. Keep this page open.",
+              );
+              return;
+            }
+            const existing = snapshot.goals.find((g) => g.id === draft.id);
+            if (existing) {
+              navigate("/import-first/" + existing.id);
+              return;
+            }
+            void save(
+              "goal",
+              Object.fromEntries(
+                [
+                  "id",
+                  "words",
+                  "vision",
+                  "outcome",
+                  "meaning",
+                  "constraints",
+                  "capabilities",
+                  "unknowns",
+                  "affirmed",
+                  "milestones",
+                ].map((k) => [k, bound[k as keyof EntryDraft]]),
+              ),
+              (r) => navigate("/import-first/" + r.id),
+            );
+          }}
+        />
+      );
   else if (!user || path === "/auth")
     screen = (
       <Auth
@@ -403,9 +387,57 @@ export function App({ adapter }: { adapter: Adapter }) {
         )}
       </main>
     );
-  else if (path.startsWith("/plan/") || path.startsWith("/commitment/")) {
+  else if (path.startsWith("/import-first/")) {
     const goal = snapshot.goals.find((g) => g.id === path.split("/")[2]);
-    const Editor = path.startsWith("/plan/") ? PlanEditor : CommitmentEditor;
+    const first = draft.experience?.first;
+    const finish = () => {
+      clearDraft();
+      setDraft(loadDraft());
+      navigate("/plan/" + goal!.id);
+    };
+    screen =
+      goal && goal.id === draft.id && canUseDraft(draft, user.id) ? (
+        <main id="main" className="workspace narrow">
+          <h1>Keep your first Proof.</h1>
+          <p>
+            {first?.detail || "Your ambition is saved. Continue preparing it."}
+          </p>
+          <button
+            className="button"
+            disabled={saving}
+            onClick={() => {
+              if (
+                !first?.result ||
+                snapshot.evidence.some((e) => e.id === first.id)
+              ) {
+                finish();
+                return;
+              }
+              void save(
+                "first_move",
+                {
+                  id: first.id,
+                  goalId: goal.id,
+                  action: first.action,
+                  criterion: first.criterion,
+                  result: first.result,
+                  detail: first.detail,
+                  prevented: first.prevented,
+                  adjustment: first.adjustment,
+                },
+                finish,
+              );
+            }}
+          >
+            {saving ? "Saving…" : "Save and prepare my ambition"}
+          </button>
+        </main>
+      ) : (
+        <Unavailable navigate={navigate} />
+      );
+  } else if (path.startsWith("/plan/") || path.startsWith("/commitment/")) {
+    const goal = snapshot.goals.find((g) => g.id === path.split("/")[2]);
+    const Editor = path.startsWith("/plan/") ? Preparation : MoveEditor;
     screen = goal ? (
       <Editor
         key={`${user.id}:${goal.id}:${goal.revision}`}
@@ -422,11 +454,10 @@ export function App({ adapter }: { adapter: Adapter }) {
   } else if (path.startsWith("/proof/")) {
     const entry = snapshot.evidence.find((e) => e.id === path.split("/")[2]);
     screen = entry ? (
-      <ProofDetail
+      <ProofEntry
         key={`${user.id}:${entry.id}:${entry.revision}`}
-        user={user}
         snapshot={snapshot}
-        entryId={entry.id}
+        id={entry.id}
         save={save}
         saving={saving}
         navigate={navigate}
@@ -435,8 +466,118 @@ export function App({ adapter }: { adapter: Adapter }) {
       <Unavailable navigate={navigate} />
     );
   } else if (path === "/proof")
-    screen = <Proof snapshot={snapshot} navigate={navigate} />;
-  else
+    screen = <ProofList snapshot={snapshot} navigate={navigate} />;
+  else if (path === "/manage" && selected)
+    screen = (
+      <Ambition goal={selected} snapshot={snapshot} navigate={navigate} />
+    );
+  else if (path.startsWith("/milestone/") || path.startsWith("/decision/")) {
+    const g = snapshot.goals.find((g) => g.id === path.split("/")[2]);
+    const Component = path.startsWith("/milestone/")
+      ? MilestoneComplete
+      : Decision;
+    screen = g ? (
+      <Component
+        goal={g}
+        snapshot={snapshot}
+        save={save}
+        saving={saving}
+        navigate={navigate}
+      />
+    ) : (
+      <Unavailable navigate={navigate} />
+    );
+  } else if (path.startsWith("/milestone-done/"))
+    screen = (
+      <Page
+        title="You reached a turning point."
+        sub="Take a moment to recognize the work."
+        footer={
+          <button className="button" onClick={() => navigate("/app")}>
+            See what comes next
+          </button>
+        }
+      >
+        <Art kind="path" />
+      </Page>
+    );
+  else if (path === "/settings")
+    screen = (
+      <Settings
+        snapshot={snapshot}
+        navigate={navigate}
+        save={(mode) => void save("support", { mode })}
+        selectAmbition={(goalId) =>
+          void save("select", { goalId }, () => navigate("/app"))
+        }
+        signOut={() => void signOut()}
+        saving={saving}
+      />
+    );
+  else if (path.startsWith("/calendar/") || path.startsWith("/wallpaper/")) {
+    const g = snapshot.goals.find((g) => g.id === path.split("/")[2]);
+    screen = g ? (
+      path.startsWith("/calendar/") ? (
+        <Calendar goal={g} snapshot={snapshot} navigate={navigate} />
+      ) : (
+        <Wallpaper goal={g} navigate={navigate} />
+      )
+    ) : (
+      <Unavailable navigate={navigate} />
+    );
+  } else if (path === "/app" && selected)
+    screen = (
+      <MemberHome goal={selected} snapshot={snapshot} navigate={navigate} />
+    );
+  else if (path.startsWith("/focus/")) {
+    const g = snapshot.goals.find((g) => g.id === path.split("/")[2]);
+    const c = g && currentAction(snapshot, g.id);
+    const d = c && definition(snapshot, c.id, c.revision);
+    screen =
+      g && c && d ? (
+        <Page
+          title="This is your move."
+          sub="One commitment. Your full attention."
+          back={() => navigate("/app")}
+          footer={
+            <>
+              <button
+                className="button"
+                onClick={() => navigate("/report/" + g.id)}
+              >
+                Report what happened
+              </button>
+              <button
+                className="quiet"
+                onClick={() => navigate("/commitment/" + g.id)}
+              >
+                Something got in the way
+              </button>
+            </>
+          }
+        >
+          <h2>{d.action}</h2>
+          <p>Done means: {d.criterion}</p>
+          <Art kind="path" />
+        </Page>
+      ) : (
+        <Unavailable navigate={navigate} />
+      );
+  } else if (path.startsWith("/report/")) {
+    const g = snapshot.goals.find((g) => g.id === path.split("/")[2]);
+    screen =
+      g && currentAction(snapshot, g.id) ? (
+        <ReportMove
+          goal={g}
+          snapshot={snapshot}
+          save={save}
+          saving={saving}
+          navigate={navigate}
+        />
+      ) : (
+        <Unavailable navigate={navigate} />
+      );
+  } else
     screen = (
       <main id="main" className="workspace">
         <div className="support-row">
@@ -504,22 +645,24 @@ export function App({ adapter }: { adapter: Adapter }) {
       <a className="skip" href="#main">
         Skip to content
       </a>
-      <div className="test-banner">
-        {__LOCAL_PREVIEW__
-          ? "LOCAL PREVIEW: browser-only personal entries. Not an account."
-          : "Private test · No billing or trial activation."}
-        {__LOCAL_PREVIEW__ && (
-          <button
-            onClick={() => {
-              adapter.failNext?.();
-              setNotice("The next preview save will fail once.");
-            }}
-          >
-            Test next save failure
-          </button>
-        )}
-      </div>
-      {path !== "/" && (
+      {__LOCAL_PREVIEW__ && (
+        <div className="test-banner">
+          {__LOCAL_PREVIEW__
+            ? "LOCAL PREVIEW: browser-only personal entries. Not an account."
+            : "Private test · No billing or trial activation."}
+          {__LOCAL_PREVIEW__ && (
+            <button
+              onClick={() => {
+                adapter.failNext?.();
+                setNotice("The next preview save will fail once.");
+              }}
+            >
+              Test next save failure
+            </button>
+          )}
+        </div>
+      )}
+      {path === "/history" && (
         <header className="app-header">
           <a
             href="/"
@@ -531,18 +674,10 @@ export function App({ adapter }: { adapter: Adapter }) {
             <Brand />
           </a>
           <nav aria-label="Member navigation">
-            <button
-              disabled={saving}
-              aria-current={path === "/app" ? "page" : undefined}
-              onClick={() => navigate("/app")}
-            >
+            <button disabled={saving} onClick={() => navigate("/app")}>
               My pursuit
             </button>
-            <button
-              disabled={saving}
-              aria-current={path === "/proof" ? "page" : undefined}
-              onClick={() => navigate("/proof")}
-            >
+            <button disabled={saving} onClick={() => navigate("/proof")}>
               Proof
             </button>
             {user ? (
@@ -557,7 +692,7 @@ export function App({ adapter }: { adapter: Adapter }) {
           </nav>
         </header>
       )}
-      {path !== "/" && (
+      {path !== "/" && path !== "/start" && (
         <div className="global-status">
           <p className="live-status" role="status">
             {notice}
@@ -569,7 +704,9 @@ export function App({ adapter }: { adapter: Adapter }) {
           )}
         </div>
       )}
-      {screen}
+      <div inert={saving} aria-busy={saving}>
+        {screen}
+      </div>
     </>
   );
 }
@@ -590,11 +727,16 @@ function Auth({
     [sent, setSent] = useState(false),
     [busy, setBusy] = useState(false);
   return (
-    <main id="main" className="workspace narrow">
-      <p className="eyebrow">Keep your work private</p>
-      <h1 tabIndex={-1}>
-        {user ? "You are signed in." : "Your pursuit. Your account."}
-      </h1>
+    <Page
+      title={
+        user
+          ? "You are signed in."
+          : sent
+            ? "Check your inbox."
+            : "Keep becoming."
+      }
+      sub={user ? undefined : "Keep your ambition and Proof together."}
+    >
       {user ? (
         <>
           <p>
@@ -687,7 +829,7 @@ function Auth({
         </>
       )}
       <Privacy />
-    </main>
+    </Page>
   );
 }
 function Unavailable({ navigate }: { navigate: (p: string) => void }) {

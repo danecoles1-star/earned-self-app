@@ -1,0 +1,577 @@
+import { useState } from "react";
+import type { Goal, Snapshot, Result } from "../data/types";
+import {
+  currentAction,
+  currentMilestone,
+  currentSchedule,
+  definition,
+  currentReport,
+  isOverdue,
+  ready,
+} from "../data/domain";
+import {
+  ScheduleFields,
+  useTextDraft,
+  type Save,
+} from "../components/PursuitScreens";
+import { Art, Page, Input, Choice, Help } from "./ui";
+import { scheduledInstant } from "../data/time";
+type Props = {
+  goal: Goal;
+  snapshot: Snapshot;
+  save: Save;
+  saving: boolean;
+  navigate: (p: string) => void;
+};
+export function MoveEditor({
+  goal: g,
+  snapshot: s,
+  save,
+  saving,
+  navigate,
+}: Props) {
+  const c = currentAction(s, g.id),
+    d = c && definition(s, c.id, c.revision),
+    time = c && currentSchedule(s, c.id),
+    m = currentMilestone(s, g);
+  const priorEntry = s.evidence.filter((e) => e.goal_id === g.id).at(-1);
+  const prior =
+    priorEntry && currentReport(s, priorEntry.id, priorEntry.revision);
+  const key = `earned-self:move:${g.owner_id}:${g.id}:${c?.id || "new"}:${c?.revision || 0}`;
+  const {
+    value: v,
+    change,
+    error,
+  } = useTextDraft(key, {
+    id: crypto.randomUUID(),
+    action: d?.action || "",
+    criterion: d?.criterion || "",
+    localDate: time?.local_date || "",
+    localTime: time?.local_time?.slice(0, 5) || "",
+    timeZone:
+      time?.time_zone || Intl.DateTimeFormat().resolvedOptions().timeZone,
+    location: time?.location || "",
+    reason: "",
+    decision: prior && prior.result !== "done" ? "recommit" : "continue",
+  });
+  const [step, setStep] = useState(0),
+    [issue, setIssue] = useState("");
+  const set = (field: string, value: string) =>
+    change({ ...v, [field]: value });
+  let blocked = "";
+  try {
+    ready(g);
+  } catch (e) {
+    blocked = (e as Error).message;
+  }
+  if (!blocked && (!m || !["draft", "active", "paused"].includes(g.status)))
+    blocked = "Review your ambition before choosing another move.";
+  if (c && isOverdue(s, c.id))
+    blocked = "Report what happened before changing this overdue agreement.";
+  const next = () => {
+    setIssue("");
+    if (step === 1) {
+      try {
+        scheduledInstant(v.localDate, v.localTime, v.timeZone);
+      } catch (e) {
+        setIssue((e as Error).message);
+        return;
+      }
+    }
+    setStep(step + 1);
+  };
+  const submit = () => {
+    const base = {
+      goalId: g.id,
+      action: v.action,
+      criterion: v.criterion,
+      localDate: v.localDate,
+      localTime: v.localTime,
+      timeZone: v.timeZone,
+      location: v.location,
+    };
+    void save(
+      c ? "reschedule" : "commitment",
+      c
+        ? { ...base, commitmentId: c.id, version: c.version, reason: v.reason }
+        : {
+            ...base,
+            id: v.id,
+            milestoneId: m!.id,
+            decision: v.decision,
+            reason: v.reason,
+          },
+      () => {
+        localStorage.removeItem(key);
+        navigate("/calendar/" + g.id);
+      },
+    );
+  };
+  return (
+    <Page
+      title={
+        c
+          ? "Revise the agreement."
+          : step === 0
+            ? "Choose your next move."
+            : step === 1
+              ? "Give it a place."
+              : "Make it a commitment."
+      }
+      sub={
+        step === 0
+          ? "One action that moves your ambition forward."
+          : step === 1
+            ? "When and where will you do it?"
+            : "Review the agreement you are making."
+      }
+      dark={false}
+      back={() => (step ? setStep(step - 1) : navigate("/app"))}
+      progress={[step + 1, 3]}
+      footer={
+        blocked ? (
+          <button
+            className="button"
+            onClick={() =>
+              navigate(
+                c
+                  ? "/report/" + g.id
+                  : g.status === "draft"
+                    ? "/plan/" + g.id
+                    : "/manage",
+              )
+            }
+          >
+            Review my preparation
+          </button>
+        ) : (
+          <>
+            {(error || issue) && <p role="alert">{error || issue}</p>}
+            <button
+              className="button"
+              disabled={
+                saving ||
+                (step === 0
+                  ? !(v.action.trim() && v.criterion.trim())
+                  : step === 1
+                    ? !(
+                        v.localDate &&
+                        v.localTime &&
+                        v.timeZone &&
+                        v.location.trim()
+                      )
+                    : (!!c || v.decision !== "continue") && !v.reason.trim())
+              }
+              onClick={() => (step < 2 ? next() : submit())}
+            >
+              {saving
+                ? "Saving…"
+                : step < 2
+                  ? "Continue"
+                  : c
+                    ? "Save revised agreement"
+                    : g.status === "draft"
+                      ? "Commit to this ambition"
+                      : "Commit to this move"}
+            </button>
+          </>
+        )
+      }
+    >
+      {blocked ? (
+        <p role="alert">{blocked}</p>
+      ) : (
+        <>
+          {step === 0 && (
+            <>
+              <p className="small">{m?.title}</p>
+              <Input
+                label="My next move"
+                value={v.action}
+                onChange={(v) => set("action", v)}
+                placeholder="I will…"
+              />
+              <Input
+                label="Done means"
+                value={v.criterion}
+                onChange={(v) => set("criterion", v)}
+                placeholder="Describe the observable finish…"
+              />
+              <Help
+                ambition={g.words}
+                field={`what action would give you evidence toward “${m?.criterion}”?`}
+              />
+            </>
+          )}
+          {step === 1 && (
+            <>
+              <ScheduleFields
+                value={v}
+                change={(patch) => change({ ...v, ...patch })}
+              />
+              <Input
+                label="Where?"
+                value={v.location}
+                onChange={(v) => set("location", v)}
+                placeholder="Where will you do it?"
+              />
+            </>
+          )}
+          {step === 2 && (
+            <>
+              <h2>{v.action}</h2>
+              <p>Done means: {v.criterion}</p>
+              <p>
+                {v.localDate} · {v.localTime} · {v.timeZone}
+              </p>
+              <p>{v.location}</p>
+              {c ? (
+                <p className="small">The earlier agreement stays in Proof.</p>
+              ) : (
+                <label>
+                  Your next decision
+                  <select
+                    value={v.decision}
+                    onChange={(e) => set("decision", e.target.value)}
+                  >
+                    {(!prior || prior.result === "done") && (
+                      <option value="continue">Continue preparation</option>
+                    )}
+                    <option value="recommit">
+                      Recommit with a revised plan
+                    </option>
+                    <option value="change_approach">Change the approach</option>
+                    <option value="address_blocker">Address a blocker</option>
+                  </select>
+                </label>
+              )}
+              {(c || v.decision !== "continue") && (
+                <Input
+                  label="What will change in this plan?"
+                  value={v.reason}
+                  onChange={(v) => set("reason", v)}
+                />
+              )}
+            </>
+          )}
+        </>
+      )}
+    </Page>
+  );
+}
+export function ReportMove({
+  goal: g,
+  snapshot: s,
+  save,
+  saving,
+  navigate,
+}: Props) {
+  const c = currentAction(s, g.id)!;
+  const key = `earned-self:report:${g.owner_id}:${c.id}`;
+  const {
+    value: v,
+    change,
+    error,
+  } = useTextDraft(key, {
+    result: "" as "" | Result,
+    detail: "",
+    prevented: "",
+    adjustment: "",
+  });
+  const set = (field: string, value: string) =>
+    change({ ...v, [field]: value });
+  const valid =
+    v.result &&
+    v.detail.trim() &&
+    (v.result === "done" || (v.prevented.trim() && v.adjustment.trim()));
+  return (
+    <Page
+      title="What actually happened?"
+      sub="Be honest. Keep what you learned."
+      dark={false}
+      back={() => navigate("/focus/" + g.id)}
+      footer={
+        <>
+          {error && <p role="alert">{error}</p>}
+          <button
+            className="button"
+            disabled={saving || !valid}
+            onClick={() =>
+              void save(
+                "outcome",
+                {
+                  id: c.id,
+                  goalId: g.id,
+                  commitmentId: c.id,
+                  version: c.version,
+                  ...v,
+                },
+                (r) => {
+                  localStorage.removeItem(key);
+                  navigate("/proof/" + r.id);
+                },
+              )
+            }
+          >
+            {saving ? "Saving…" : "Save to Proof"}
+          </button>
+        </>
+      }
+    >
+      <div className="choices">
+        {(
+          [
+            ["done", "Done"],
+            ["partly", "Partly"],
+            ["did_not_happen", "Did not happen"],
+          ] as const
+        ).map(([result, label]) => (
+          <Choice
+            key={result}
+            selected={v.result === result}
+            onClick={() => set("result", result)}
+          >
+            {label}
+          </Choice>
+        ))}
+      </div>
+      <Input
+        label="What happened?"
+        value={v.detail}
+        onChange={(v) => set("detail", v)}
+        placeholder="Write a short, factual account…"
+      />
+      {v.result && v.result !== "done" && (
+        <>
+          <Input
+            label="What prevented it?"
+            value={v.prevented}
+            onChange={(v) => set("prevented", v)}
+          />
+          <Input
+            label="What will you change?"
+            value={v.adjustment}
+            onChange={(v) => set("adjustment", v)}
+          />
+        </>
+      )}
+    </Page>
+  );
+}
+export function MilestoneComplete({
+  goal: g,
+  snapshot: s,
+  save,
+  saving,
+  navigate,
+}: Props) {
+  const m = currentMilestone(s, g);
+  const { value, change, error } = useTextDraft(
+    `earned-self:milestone:${g.owner_id}:${m?.id}`,
+    { detail: "" },
+  );
+  const [completed, setCompleted] = useState(false);
+  return (
+    <Page
+      title={completed ? "You reached a turning point." : "Did you reach it?"}
+      sub={
+        completed
+          ? "Take a moment to recognize the work."
+          : "Compare your work with the criterion you chose."
+      }
+      dark={completed}
+      back={() => navigate("/manage")}
+      footer={
+        completed ? (
+          <button className="button" onClick={() => navigate("/app")}>
+            See what comes next
+          </button>
+        ) : (
+          <>
+            <button
+              className="button"
+              disabled={
+                saving || !m || !value.detail.trim() || !!currentAction(s, g.id)
+              }
+              onClick={() =>
+                void save(
+                  "milestone",
+                  {
+                    goalId: g.id,
+                    version: g.version,
+                    milestoneId: m!.id,
+                    detail: value.detail,
+                  },
+                  () => {
+                    localStorage.removeItem(
+                      `earned-self:milestone:${g.owner_id}:${m!.id}`,
+                    );
+                    navigate("/milestone-done/" + g.id);
+                  },
+                )
+              }
+            >
+              Mark milestone complete
+            </button>
+            <button className="quiet" onClick={() => navigate("/app")}>
+              Keep working
+            </button>
+          </>
+        )
+      }
+    >
+      {completed ? (
+        <Art kind="path" />
+      ) : (
+        <>
+          <h2>{m?.title || "All planned milestones are complete."}</h2>
+          <p>{m?.criterion}</p>
+          {currentAction(s, g.id) && (
+            <p>Report your current move before completing the milestone.</p>
+          )}
+          <Input
+            label="What shows it is complete?"
+            value={value.detail}
+            onChange={(detail) => change({ detail })}
+            placeholder="Describe the evidence…"
+          />
+          {error && <p role="alert">{error}</p>}
+        </>
+      )}
+    </Page>
+  );
+}
+export function Decision({ goal: g, save, saving, navigate }: Props) {
+  const [status, setStatus] = useState(""),
+    [step, setStep] = useState(0);
+  const {
+    value: v,
+    change,
+    error,
+  } = useTextDraft(`earned-self:decision:${g.owner_id}:${g.id}`, {
+    detail: "",
+    reflection: "",
+    next: "",
+  });
+  const set = (field: string, value: string) =>
+    change({ ...v, [field]: value });
+  const completed = status === "completed";
+  const valid =
+    !!v.detail.trim() &&
+    (!completed || !!(v.reflection.trim() && v.next.trim()));
+  return (
+    <Page
+      title={
+        !status
+          ? "Choose what comes next."
+          : completed
+            ? step === 0
+              ? "Did you do what you set out to do?"
+              : "Who are you now?"
+            : status === "paused"
+              ? "Make room to return."
+              : status === "active"
+                ? "Return with intention."
+                : "Choose a new direction."
+      }
+      sub={
+        completed
+          ? step === 0
+            ? "Look at the outcome and your Proof."
+            : "Remember where you began. Name what changed."
+          : undefined
+      }
+      dark={false}
+      back={() => (status ? setStatus("") : navigate("/manage"))}
+      footer={
+        status ? (
+          <>
+            {error && <p role="alert">{error}</p>}
+            <button
+              className="button"
+              disabled={
+                saving || (completed && step === 0 ? !v.detail.trim() : !valid)
+              }
+              onClick={() => {
+                if (completed && step === 0) {
+                  setStep(1);
+                  return;
+                }
+                void save(
+                  "status",
+                  { goalId: g.id, version: g.version, status, ...v },
+                  () => navigate("/app"),
+                );
+              }}
+            >
+              {saving
+                ? "Saving…"
+                : completed && step === 0
+                  ? "Continue"
+                  : completed
+                    ? "Confirm accomplishment"
+                    : "Save my decision"}
+            </button>
+          </>
+        ) : undefined
+      }
+    >
+      {!status ? (
+        <>
+          {[
+            ["paused", "Pause for now"],
+            ["changed_direction", "Grow in a new direction"],
+            ["completed", "I accomplished it"],
+            ...(g.status === "paused"
+              ? [["active", "Resume scheduled preparation"]]
+              : []),
+          ]
+            .filter(([v]) => v !== g.status)
+            .map(([v, label]) => (
+              <Choice key={v} selected={false} onClick={() => setStatus(v)}>
+                {label}
+              </Choice>
+            ))}
+        </>
+      ) : (
+        <>
+          {completed && step === 0 && (
+            <>
+              <h2>Your saved finish</h2>
+              <p>{g.outcome}</p>
+            </>
+          )}
+          {step === 0 && (
+            <Input
+              label={
+                completed
+                  ? "What actually happened?"
+                  : "Why are you making this decision?"
+              }
+              value={v.detail}
+              onChange={(v) => set("detail", v)}
+            />
+          )}{" "}
+          {completed && step === 1 && (
+            <>
+              <p className="small">Where you began</p>
+              <h2>{g.vision}</h2>
+              <Input
+                label="What has changed?"
+                value={v.reflection}
+                onChange={(v) => set("reflection", v)}
+                placeholder="How do you see yourself now?"
+              />
+              <Input
+                label="What will you carry forward?"
+                value={v.next}
+                onChange={(v) => set("next", v)}
+                placeholder="Name what you want to keep…"
+              />
+            </>
+          )}
+        </>
+      )}
+    </Page>
+  );
+}

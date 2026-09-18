@@ -22,6 +22,16 @@ export function required(value: unknown, label: string, max = 10000): string {
 }
 export const foundationKeys = Object.keys(emptyFoundation());
 const allowed: Record<Command["kind"], string[]> = {
+  first_move: [
+    "id",
+    "goalId",
+    "action",
+    "criterion",
+    "result",
+    "detail",
+    "prevented",
+    "adjustment",
+  ],
   goal: ["id", ...foundationKeys],
   plan: ["goalId", "version", ...foundationKeys],
   commitment: [
@@ -197,7 +207,12 @@ export function validateCommand(c: Command) {
     scheduledInstant(p.localDate, p.localTime, p.timeZone);
   }
   if (c.kind === "reschedule") required(p.reason, "What will change");
-  if (c.kind === "outcome") {
+  if (c.kind === "first_move") {
+    required(p.action, "Action");
+    required(p.criterion, "Done criterion");
+    required(p.detail, "What happened");
+  }
+  if (c.kind === "outcome" || c.kind === "first_move") {
     if (!["done", "partly", "did_not_happen"].includes(String(p.result)))
       throw new Error("Choose what happened.");
     if (p.result !== "done") {
@@ -290,7 +305,53 @@ export function applyLocal(
       if (g.version !== p.version)
         throw new Error("This pursuit changed. Reload before saving.");
     };
-    if (c.kind === "select") {
+    if (c.kind === "first_move") {
+      if (g.status !== "draft" || s.commitments.some((c) => c.goal_id === g.id))
+        throw new Error(
+          "First move already imported or preparation has started",
+        );
+      s.commitments.push({
+        id,
+        owner_id: owner,
+        goal_id: g.id,
+        milestone_id: null,
+        plan_revision: null,
+        revision: 1,
+        version: 1,
+        state: "reported",
+        created_at: now,
+      });
+      s.definitions.push({
+        commitment_id: id,
+        goal_id: g.id,
+        revision: 1,
+        action: String(p.action),
+        criterion: String(p.criterion),
+        mode: "quick",
+      });
+      s.evidence.push({
+        id,
+        goal_id: g.id,
+        commitment_id: id,
+        commitment_revision: 1,
+        schedule_id: null,
+        revision: 1,
+        recorded_at: now,
+        version: 1,
+      });
+      s.reports.push({
+        evidence_id: id,
+        goal_id: g.id,
+        revision: 1,
+        result: p.result as Result,
+        detail: String(p.detail),
+        reflection: null,
+        occurred_on: null,
+        recorded_at: now,
+        prevented: String(p.prevented || ""),
+        adjustment: String(p.adjustment || ""),
+      });
+    } else if (c.kind === "select") {
       s.selectedGoal = g.id;
       receipt = { id: g.id, version: 1 };
     } else if (c.kind === "plan") {

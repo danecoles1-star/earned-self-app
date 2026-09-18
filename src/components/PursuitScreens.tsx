@@ -182,7 +182,7 @@ export function ScheduleFields({
         onChange={(e) => change({ ...value, timeZone: e.target.value })}
       />
       <p className="muted">
-        Use an IANA zone, such as America/Denver or Europe/London.
+        Your time zone keeps this commitment at the right local time.
       </p>
     </div>
   );
@@ -545,7 +545,13 @@ export function CommitmentEditor({
     </main>
   );
 }
-function ReportAction({ goal, snapshot, save, saving, navigate }: Props) {
+export function ReportAction({
+  goal,
+  snapshot,
+  save,
+  saving,
+  navigate,
+}: Props) {
   const c = currentAction(snapshot, goal.id)!;
   const [result, setResult] = useState<Result | null>(null);
   const key = `earned-self:report:${goal.owner_id}:${c.id}`;
@@ -623,7 +629,6 @@ function ReportAction({ goal, snapshot, save, saving, navigate }: Props) {
             <Field
               label="What happened"
               value={value.detail}
-              optional
               onChange={(detail) => change({ ...value, detail })}
             />
             {error && <p role="alert">{error}</p>}

@@ -125,6 +125,7 @@ export interface Command {
   operationId: string;
   actorId: string;
   kind:
+    | "first_move"
     | "goal"
     | "plan"
     | "commitment"

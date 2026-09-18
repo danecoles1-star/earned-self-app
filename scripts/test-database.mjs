@@ -13,12 +13,12 @@ await db.exec(
 );
 for (const file of fs.readdirSync("supabase/migrations").sort())
   await db.exec(fs.readFileSync("supabase/migrations/" + file, "utf8"));
-pass("All three migrations compile in embedded PostgreSQL");
+pass("All four migrations compile in embedded PostgreSQL");
 await db.exec(
-  "CREATE SCHEMA supabase_migrations; CREATE TABLE supabase_migrations.schema_migrations(version text); INSERT INTO supabase_migrations.schema_migrations VALUES ('202609130001'),('202609130002'),('202609150001');",
+  "CREATE SCHEMA supabase_migrations; CREATE TABLE supabase_migrations.schema_migrations(version text); INSERT INTO supabase_migrations.schema_migrations VALUES ('202609130001'),('202609130002'),('202609150001'),('202609180001');",
 );
 await db.exec(
-  fs.readFileSync("docs/Earned_Self_Supabase_Verification_v2.sql", "utf8"),
+  fs.readFileSync("docs/Earned_Self_Supabase_Verification_v3.sql", "utf8"),
 );
 pass("Read-only installed-schema verifier passes");
 
@@ -453,6 +453,77 @@ await rejected(
   /permission denied/,
 );
 pass("New event history has owner RLS and no direct browser writes");
+// First-action import uses the same authenticated command boundary.
+await as(a);
+const firstGoal = randomUUID(),
+  firstMove = randomUUID(),
+  firstOp = randomUUID();
+await command(a, "goal", { ...payload, id: firstGoal });
+const firstPayload = {
+  id: firstMove,
+  goalId: firstGoal,
+  action: "Draft one opening sentence",
+  criterion: "One sentence written",
+  result: "done",
+  detail: "I wrote an opening sentence.",
+};
+await rejected(
+  () => command(a, "first_move", { ...firstPayload, detail: "  " }),
+  /clear before saving/i,
+);
+await rejected(
+  () => command(a, "first_move", { ...firstPayload, result: "partly" }),
+  /clear before saving/i,
+);
+assert.equal(
+  (await state()).evidence.filter((e) => e.goal_id === firstGoal).length,
+  0,
+);
+pass(
+  "First-action import requires a fact and explanations for an incomplete result",
+);
+const firstReceipt = await command(a, "first_move", firstPayload, firstOp);
+assert.deepEqual(
+  await command(a, "first_move", firstPayload, firstOp),
+  firstReceipt,
+);
+let firstState = await state();
+assert.equal(firstState.goals.find((g) => g.id === firstGoal).status, "draft");
+assert.equal(
+  firstState.commitments.find((c) => c.id === firstMove).state,
+  "reported",
+);
+assert.equal(
+  firstState.schedules.filter((c) => c.commitment_id === firstMove).length,
+  0,
+);
+assert.equal(
+  firstState.evidence.filter((e) => e.goal_id === firstGoal).length,
+  1,
+);
+pass(
+  "First-action import is atomic and idempotent without inventing a schedule or activation",
+);
+await rejected(
+  () => command(a, "first_move", { ...firstPayload, id: randomUUID() }),
+  /already imported/i,
+);
+await rejected(
+  () =>
+    command(a, "first_move", { ...firstPayload, detail: "Changed" }, firstOp),
+  /changed/i,
+);
+pass("Duplicate first-action imports and changed retries are rejected");
+await as(b);
+await rejected(
+  () => command(b, "first_move", { ...firstPayload, id: randomUUID() }),
+  /own draft/i,
+);
+assert.equal(
+  (await state()).evidence.some((e) => e.id === firstMove),
+  false,
+);
+pass("First-action import cannot read or write another account");
 await db.exec("RESET ROLE");
 await db.query("DELETE FROM auth.users WHERE id=$1", [a]);
 assert.equal(

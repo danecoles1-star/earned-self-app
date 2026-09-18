@@ -5,6 +5,7 @@ import type { Adapter } from "./data/types";
 import "./styles.css";
 import "./marketing.css";
 import "./logo.css";
+import "./experience/experience.css";
 async function start() {
   let adapter: Adapter;
   if (__LOCAL_PREVIEW__) {
