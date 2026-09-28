@@ -9,6 +9,8 @@ import "./experience/experience.css";
 async function start() {
   let adapter: Adapter;
   if (__LOCAL_PREVIEW__) {
+    const { enablePhonePreview } = await import("./preview/phone");
+    enablePhonePreview();
     const { createPreviewAdapter } = await import("./preview/adapter");
     adapter = createPreviewAdapter();
   } else {

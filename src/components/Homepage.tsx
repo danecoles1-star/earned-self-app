@@ -10,6 +10,7 @@ export function Homepage({
 }) {
   return (
     <Page
+      layout="welcome"
       title="Become You."
       sub="The real you will be earned."
       footer={

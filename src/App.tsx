@@ -648,7 +648,7 @@ export function App({ adapter }: { adapter: Adapter }) {
       {__LOCAL_PREVIEW__ && (
         <div className="test-banner">
           {__LOCAL_PREVIEW__
-            ? "LOCAL PREVIEW: browser-only personal entries. Not an account."
+            ? "Local preview · saved on this device"
             : "Private test · No billing or trial activation."}
           {__LOCAL_PREVIEW__ && (
             <button

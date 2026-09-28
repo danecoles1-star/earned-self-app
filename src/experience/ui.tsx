@@ -15,7 +15,9 @@ export function Page({
   dark = true,
   footer,
   progress,
+  layout = "flow",
 }: {
+  layout?: "flow" | "welcome";
   title: string;
   sub?: string;
   children: ReactNode;
@@ -30,7 +32,11 @@ export function Page({
     window.scrollTo(0, 0);
   }, [title]);
   return (
-    <div className={"experience " + (dark ? "ink" : "mineral")}>
+    <div
+      className={
+        "experience experience-" + layout + " " + (dark ? "ink" : "mineral")
+      }
+    >
       <header className="experience-header">
         <Brand mineral={!dark} />
         {back && (
@@ -40,19 +46,23 @@ export function Page({
         )}
       </header>
       <main id="main" className="experience-main">
-        {progress && (
-          <div
-            className="journey-progress"
-            aria-label={`Step ${progress[0]} of ${progress[1]}`}
-          >
-            <span style={{ width: `${(progress[0] / progress[1]) * 100}%` }} />
-          </div>
-        )}
-        <h1 ref={heading} tabIndex={-1}>
-          {title}
-        </h1>
-        {sub && <p className="experience-sub">{sub}</p>}
-        {children}
+        <div className="experience-heading">
+          {progress && (
+            <div
+              className="journey-progress"
+              aria-label={`Step ${progress[0]} of ${progress[1]}`}
+            >
+              <span
+                style={{ width: `${(progress[0] / progress[1]) * 100}%` }}
+              />
+            </div>
+          )}
+          <h1 ref={heading} tabIndex={-1}>
+            {title}
+          </h1>
+          {sub && <p className="experience-sub">{sub}</p>}
+        </div>
+        <div className="experience-content">{children}</div>
       </main>
       {footer && <footer className="experience-footer">{footer}</footer>}
     </div>

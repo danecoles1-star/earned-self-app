@@ -193,3 +193,49 @@ test("small screen keyboard entry, required answer and reload recovery", async (
     await p.evaluate(() => document.documentElement.scrollWidth > innerWidth),
   ).toBe(false);
 });
+
+test("responsive opening keeps the primary action visible on phones and desktop", async ({
+  page,
+}) => {
+  for (const [width, height] of [
+    [375, 812],
+    [390, 844],
+    [430, 932],
+    [768, 1024],
+    [1440, 900],
+  ]) {
+    await page.setViewportSize({ width, height });
+    await page.goto("/");
+    const begin = page.getByRole("button", { name: "Begin", exact: true });
+    await expect(begin).toBeVisible();
+    const box = await begin.boundingBox();
+    expect(box!.y + box!.height).toBeLessThanOrEqual(height);
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth),
+    ).toBeLessThanOrEqual(width);
+  }
+});
+
+test("phone preview works when HTTP does not provide randomUUID", async ({
+  page,
+}) => {
+  await page.addInitScript(() => {
+    Object.defineProperty(crypto, "randomUUID", {
+      configurable: true,
+      value: undefined,
+    });
+  });
+  await page.goto("/");
+  await page.getByRole("button", { name: "Begin", exact: true }).click();
+  await page
+    .getByRole("button", { name: "I am ready for more", exact: true })
+    .click();
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await page
+    .getByLabel("Your future self", { exact: true })
+    .fill("Become someone who follows through");
+  await page.reload();
+  await expect(
+    page.getByLabel("Your future self", { exact: true }),
+  ).toHaveValue("Become someone who follows through");
+});
