@@ -37,3 +37,35 @@ export function clearDraft() {
 export function canUseDraft(d: EntryDraft, owner: string) {
   return d.boundOwner === null || d.boundOwner === owner;
 }
+
+const archivePrefix = key + ":archive:";
+export function archiveDraft(draft: EntryDraft) {
+  if (draft.words || draft.vision)
+    localStorage.setItem(archivePrefix + draft.id, JSON.stringify(draft));
+}
+export function archivedDrafts(owner: string | null): EntryDraft[] {
+  try {
+    return Object.keys(localStorage)
+      .filter((k) => k.startsWith(archivePrefix))
+      .flatMap((k) => {
+        try {
+          const d = JSON.parse(localStorage.getItem(k)!);
+          return d &&
+            typeof d.id === "string" &&
+            typeof d.words === "string" &&
+            typeof d.vision === "string" &&
+            (d.boundOwner === null || d.boundOwner === owner)
+            ? [d as EntryDraft]
+            : [];
+        } catch {
+          return [];
+        }
+      });
+  } catch {
+    return [];
+  }
+}
+export function restoreDraft(draft: EntryDraft) {
+  saveDraft(draft);
+  localStorage.removeItem(archivePrefix + draft.id);
+}

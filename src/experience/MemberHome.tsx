@@ -20,6 +20,31 @@ export function MemberHome({
     time = c && currentSchedule(snapshot, c.id),
     milestone = currentMilestone(snapshot, goal);
   const done = goal.status === "completed";
+  const ended = ["completed", "changed_direction", "abandoned"].includes(
+    goal.status,
+  );
+  const nextPath = c
+    ? "/focus/" + goal.id
+    : ended
+      ? "/new"
+      : goal.status === "draft"
+        ? "/plan/" + goal.id
+        : goal.status === "paused"
+          ? "/decision/" + goal.id
+          : !milestone
+            ? "/decision/" + goal.id
+            : "/commitment/" + goal.id;
+  const nextLabel = c
+    ? "Begin my move"
+    : ended
+      ? "Choose my next ambition"
+      : goal.status === "draft"
+        ? "Prepare my ambition"
+        : goal.status === "paused"
+          ? "Choose how to return"
+          : !milestone
+            ? "Review my accomplishment"
+            : "Choose my next move";
   return (
     <Page
       title={done ? "You did the work." : "Your next move."}
@@ -30,27 +55,8 @@ export function MemberHome({
       }
       footer={
         <>
-          <button
-            className="button"
-            onClick={() =>
-              navigate(
-                done
-                  ? "/proof"
-                  : goal.status === "draft"
-                    ? "/plan/" + goal.id
-                    : c
-                      ? "/focus/" + goal.id
-                      : "/commitment/" + goal.id,
-              )
-            }
-          >
-            {done
-              ? "See my journey"
-              : goal.status === "draft"
-                ? "Prepare my ambition"
-                : c
-                  ? "Begin my move"
-                  : "Choose my next move"}
+          <button className="button" onClick={() => navigate(nextPath)}>
+            {nextLabel}
           </button>
           <nav className="bottom-navigation" aria-label="Main navigation">
             <button
@@ -76,8 +82,8 @@ export function MemberHome({
       {done ? (
         <>
           <Art kind="mountain" />
-          <button className="button" onClick={() => navigate("/start")}>
-            Choose my next ambition
+          <button className="button" onClick={() => navigate("/proof")}>
+            See my Proof
           </button>
         </>
       ) : (
@@ -90,15 +96,17 @@ export function MemberHome({
               <span>Your ambition</span>
               <strong>{milestone?.title || goal.words}</strong>
             </button>
-            <button
-              onClick={() =>
-                navigate(c ? "/focus/" + goal.id : "/commitment/" + goal.id)
-              }
-            >
+            <button onClick={() => navigate(nextPath)}>
               <span>Current commitment</span>
               <strong>{d?.action || "Choose the next move"}</strong>
             </button>
-            <button onClick={() => navigate("/commitment/" + goal.id)}>
+            <button
+              onClick={() =>
+                navigate(
+                  c && time?.starts_at ? "/commitment/" + goal.id : nextPath,
+                )
+              }
+            >
               <span>When & where</span>
               <strong>
                 {time
@@ -120,20 +128,22 @@ export function MemberHome({
           </div>
         </>
       )}
-      <button
-        className="quiet"
-        onClick={() => navigate("/wallpaper/" + goal.id)}
-      >
-        Take this with me
-      </button>
-      {c && (
+      <div className="member-tools">
         <button
           className="quiet"
-          onClick={() => navigate("/calendar/" + goal.id)}
+          onClick={() => navigate("/wallpaper/" + goal.id)}
         >
-          Add my move to a calendar
+          Take this with me
         </button>
-      )}
+        {c && time?.starts_at && (
+          <button
+            className="quiet"
+            onClick={() => navigate("/calendar/" + goal.id)}
+          >
+            Add my move to a calendar
+          </button>
+        )}
+      </div>
     </Page>
   );
 }

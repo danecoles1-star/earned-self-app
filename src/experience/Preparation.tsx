@@ -6,7 +6,7 @@ import type {
   Snapshot,
   User,
 } from "../data/types";
-import { foundationKeys, ready } from "../data/domain";
+import { currentAction, foundationKeys, ready } from "../data/domain";
 import {
   useTextDraft,
   ScheduleFields,
@@ -121,6 +121,36 @@ export function Preparation({
     }
     setStep(step + 1);
   };
+  const outstanding = currentAction(snapshot, goal.id);
+  if (outstanding || goal.status !== "draft")
+    return (
+      <Page
+        title={
+          outstanding
+            ? "Finish the open loop."
+            : "Your preparation is already committed."
+        }
+        dark={false}
+        back={() => navigate("/app")}
+        footer={
+          <button
+            className="button"
+            onClick={() =>
+              navigate(outstanding ? "/report/" + goal.id : "/manage")
+            }
+          >
+            {outstanding ? "Report what happened" : "View my ambition"}
+          </button>
+        }
+      >
+        <p>
+          {outstanding
+            ? "Record what happened with your current move before changing your preparation."
+            : "Your earlier agreement stays in your history. Review your ambition to choose what comes next."}
+        </p>
+        <p>Any preparation draft on this device has been kept.</p>
+      </Page>
+    );
   return (
     <Page
       title={

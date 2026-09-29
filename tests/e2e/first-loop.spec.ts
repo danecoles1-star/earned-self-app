@@ -155,6 +155,7 @@ test("first visit through first action, failure recovery, accomplishment and nex
   await click("Go back");
   await click("Go back");
   await click("Choose my next ambition");
+  await click("Begin a fresh ambition");
   assert(
     await p.getByRole("button", { name: "Continue", exact: true }).isDisabled(),
   );

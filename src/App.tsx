@@ -42,6 +42,9 @@ import {
   saveDraft,
   clearDraft,
   canUseDraft,
+  archiveDraft,
+  archivedDrafts,
+  restoreDraft,
   type EntryDraft,
 } from "./data/drafts";
 const message = (e: unknown) =>
@@ -83,6 +86,9 @@ export function App({ adapter }: { adapter: Adapter }) {
     [error, setError] = useState(""),
     [notice, setNotice] = useState(""),
     [saving, setSaving] = useState(false);
+  const resumeAfterRead = useRef<{ owner: string; run: () => void } | null>(
+    null,
+  );
   const owner = useRef<string | null>(null),
     busy = useRef(false),
     epoch = useRef(0),
@@ -95,7 +101,11 @@ export function App({ adapter }: { adapter: Adapter }) {
     window.scrollTo(0, 0);
   }, []);
   useEffect(() => {
-    const pop = () => setPath(location.pathname);
+    const pop = () => {
+      setPath(location.pathname);
+      setError("");
+      setNotice("");
+    };
     window.addEventListener("popstate", pop);
     return () => window.removeEventListener("popstate", pop);
   }, []);
@@ -104,6 +114,7 @@ export function App({ adapter }: { adapter: Adapter }) {
       observed = false;
     const set = (u: User | null) => {
       if (!alive) return;
+      if (owner.current !== (u?.id ?? null)) resumeAfterRead.current = null;
       owner.current = u?.id ?? null;
       setUser(u);
       setBoot(false);
@@ -131,15 +142,20 @@ export function App({ adapter }: { adapter: Adapter }) {
   const refresh = useCallback(async () => {
     const id = owner.current,
       run = ++epoch.current;
-    if (!id) return;
+    if (!id) return false;
     setLoading(true);
     setLoadError("");
     try {
       const state = await adapter.read();
-      if (owner.current === id && epoch.current === run) setSnapshot(state);
+      if (owner.current === id && epoch.current === run) {
+        setSnapshot(state);
+        return true;
+      }
+      return false;
     } catch (e) {
       if (owner.current === id && epoch.current === run)
         setLoadError(message(e));
+      return false;
     } finally {
       if (owner.current === id && epoch.current === run) setLoading(false);
     }
@@ -232,8 +248,13 @@ export function App({ adapter }: { adapter: Adapter }) {
           ? "Saved on this device. Preview data only."
           : "Saved to your account.",
       );
-      await refresh();
+      const refreshed = await refresh();
       if (owner.current !== actorId) return;
+      if (!refreshed) {
+        resumeAfterRead.current = { owner: actorId, run: () => after?.(ack!) };
+        setNotice("Saved. Reload your saved work to continue.");
+        return;
+      }
       after?.(ack);
     } catch (e) {
       if (owner.current === actorId) {
@@ -286,16 +307,76 @@ export function App({ adapter }: { adapter: Adapter }) {
         <p role="status">Loading…</p>
       </main>
     );
-  else if (path === "/start")
-    screen =
-      user && !canUseDraft(draft, user.id) ? (
-        <main id="main" className="workspace">
-          <h1>This draft belongs to another account.</h1>
+  else if (path === "/new")
+    screen = (
+      <Page
+        title="Make room for what is next."
+        dark={false}
+        back={() => navigate("/app")}
+        footer={
           <button
             className="button"
             onClick={() => {
-              clearDraft();
-              setDraft(loadDraft());
+              try {
+                archiveDraft(draft);
+                clearDraft();
+                setDraft(loadDraft());
+                setDraftError("");
+                navigate("/start");
+              } catch {
+                setError(
+                  "Your earlier draft could not be kept. Please try again.",
+                );
+              }
+            }}
+          >
+            Begin a fresh ambition
+          </button>
+        }
+      >
+        <p>
+          Your saved ambitions and Proof stay in your account. Start with your
+          own words on a blank page.
+        </p>
+        {(draft.words || draft.vision) && (
+          <p>Your unfinished entry draft will be kept on this device.</p>
+        )}
+        {archivedDrafts(user?.id ?? null).map((earlier) => {
+          return (
+            <button
+              key={earlier.id}
+              className="experience-choice"
+              onClick={() => {
+                try {
+                  archiveDraft(draft);
+                  restoreDraft(earlier);
+                  setDraft(earlier);
+                  navigate("/start");
+                } catch {
+                  setError(
+                    "Your earlier draft could not be opened. Please try again.",
+                  );
+                }
+              }}
+            >
+              Resume earlier draft: {earlier.words || earlier.vision}
+            </button>
+          );
+        })}
+      </Page>
+    );
+  else if (path === "/start")
+    screen =
+      draft.boundOwner && (!user || !canUseDraft(draft, user.id)) ? (
+        <main id="main" className="workspace">
+          <h1>Sign in to open your saved draft.</h1>
+          <button className="button" onClick={() => navigate("/auth")}>
+            Sign in
+          </button>
+          <button
+            className="button"
+            onClick={() => {
+              navigate("/new");
             }}
           >
             Start a separate draft
@@ -380,7 +461,17 @@ export function App({ adapter }: { adapter: Adapter }) {
         ) : (
           <>
             <p role="alert">{loadError}</p>
-            <button className="button" onClick={() => void refresh()}>
+            <button
+              className="button"
+              onClick={async () => {
+                if (await refresh()) {
+                  const pending = resumeAfterRead.current;
+                  resumeAfterRead.current = null;
+                  if (pending?.owner === owner.current) pending.run();
+                  setNotice("");
+                }
+              }}
+            >
               Reload saved work
             </button>
           </>

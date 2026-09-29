@@ -44,7 +44,7 @@ export function Ambition({
           <button onClick={() => navigate("/milestone/" + g.id)}>
             Milestones · {m?.title || "All completed"}
           </button>
-          {g.status === "draft" && (
+          {g.status === "draft" && !currentAction(s, g.id) && (
             <button onClick={() => navigate("/plan/" + g.id)}>
               Complete my preparation
             </button>

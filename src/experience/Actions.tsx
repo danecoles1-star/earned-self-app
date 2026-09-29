@@ -66,6 +66,9 @@ export function MoveEditor({
   }
   if (!blocked && (!m || !["draft", "active", "paused"].includes(g.status)))
     blocked = "Review your ambition before choosing another move.";
+  if (c && (g.status === "draft" || !c.milestone_id))
+    blocked =
+      "Record what happened with your current move before preparing a scheduled action.";
   if (c && isOverdue(s, c.id))
     blocked = "Report what happened before changing this overdue agreement.";
   const next = () => {
@@ -142,7 +145,7 @@ export function MoveEditor({
               )
             }
           >
-            Review my preparation
+            {c ? "Report what happened" : "Review my preparation"}
           </button>
         ) : (
           <>
@@ -391,7 +394,11 @@ export function MilestoneComplete({
             <button
               className="button"
               disabled={
-                saving || !m || !value.detail.trim() || !!currentAction(s, g.id)
+                saving ||
+                g.status !== "active" ||
+                !m ||
+                !value.detail.trim() ||
+                !!currentAction(s, g.id)
               }
               onClick={() =>
                 void save(
@@ -426,6 +433,12 @@ export function MilestoneComplete({
         <>
           <h2>{m?.title || "All planned milestones are complete."}</h2>
           <p>{m?.criterion}</p>
+          {g.status !== "active" && (
+            <p>
+              Return to your ambition and schedule a move before completing a
+              milestone.
+            </p>
+          )}
           {currentAction(s, g.id) && (
             <p>Report your current move before completing the milestone.</p>
           )}
@@ -441,7 +454,7 @@ export function MilestoneComplete({
     </Page>
   );
 }
-export function Decision({ goal: g, save, saving, navigate }: Props) {
+export function Decision({ goal: g, snapshot, save, saving, navigate }: Props) {
   const [status, setStatus] = useState(""),
     [step, setStep] = useState(0);
   const {
@@ -456,6 +469,27 @@ export function Decision({ goal: g, save, saving, navigate }: Props) {
   const set = (field: string, value: string) =>
     change({ ...v, [field]: value });
   const completed = status === "completed";
+  const outstanding = currentAction(snapshot, g.id);
+  const ended = ["completed", "changed_direction", "abandoned"].includes(
+    g.status,
+  );
+  let prepared = true;
+  try {
+    ready(g);
+  } catch {
+    prepared = false;
+  }
+  const scheduled =
+    outstanding && currentSchedule(snapshot, outstanding.id)?.starts_at;
+  const blocked = ended
+    ? "This ambition has ended. Its record stays in Proof."
+    : completed && outstanding
+      ? "Report your current move before completing this ambition."
+      : completed && !prepared
+        ? "Complete your preparation before recording this accomplishment."
+        : status === "active" && (!scheduled || !prepared)
+          ? "Schedule your next move before returning to active preparation."
+          : "";
   const valid =
     !!v.detail.trim() &&
     (!completed || !!(v.reflection.trim() && v.next.trim()));
@@ -482,9 +516,32 @@ export function Decision({ goal: g, save, saving, navigate }: Props) {
           : undefined
       }
       dark={false}
-      back={() => (status ? setStatus("") : navigate("/manage"))}
+      back={() => (status ? (setStatus(""), setStep(0)) : navigate("/manage"))}
       footer={
-        status ? (
+        blocked ? (
+          <button
+            className="button"
+            onClick={() =>
+              navigate(
+                ended
+                  ? "/new"
+                  : outstanding
+                    ? "/report/" + g.id
+                    : g.status === "draft"
+                      ? "/plan/" + g.id
+                      : "/commitment/" + g.id,
+              )
+            }
+          >
+            {ended
+              ? "Choose my next ambition"
+              : outstanding
+                ? "Report what happened"
+                : g.status === "draft"
+                  ? "Prepare my ambition"
+                  : "Schedule my next move"}
+          </button>
+        ) : status ? (
           <>
             {error && <p role="alert">{error}</p>}
             <button
@@ -516,7 +573,9 @@ export function Decision({ goal: g, save, saving, navigate }: Props) {
         ) : undefined
       }
     >
-      {!status ? (
+      {blocked ? (
+        <p role="alert">{blocked}</p>
+      ) : !status ? (
         <>
           {[
             ["paused", "Pause for now"],
@@ -528,7 +587,14 @@ export function Decision({ goal: g, save, saving, navigate }: Props) {
           ]
             .filter(([v]) => v !== g.status)
             .map(([v, label]) => (
-              <Choice key={v} selected={false} onClick={() => setStatus(v)}>
+              <Choice
+                key={v}
+                selected={false}
+                onClick={() => {
+                  setStep(0);
+                  setStatus(v);
+                }}
+              >
                 {label}
               </Choice>
             ))}

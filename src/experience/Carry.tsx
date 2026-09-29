@@ -348,7 +348,7 @@ export function Settings({
           </select>
         </label>
       )}
-      <button className="experience-choice" onClick={() => navigate("/start")}>
+      <button className="experience-choice" onClick={() => navigate("/new")}>
         Begin another ambition
       </button>
       <button className="quiet" disabled={saving} onClick={signOut}>
