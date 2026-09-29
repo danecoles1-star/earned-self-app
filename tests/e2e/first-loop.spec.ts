@@ -92,11 +92,30 @@ test("first visit through first action, failure recovery, accomplishment and nex
   await fill("Where?", "At my desk");
   await next();
   await click("Commit to this ambition");
+  await expect(
+    p.getByRole("heading", { name: "Make room for it." }),
+  ).toBeVisible();
   await shot("25-calendar-mobile");
-  const download = p.waitForEvent("download");
+  await p.setViewportSize({ width: 1440, height: 1000 });
+  await shot("25-calendar-desktop");
+  await p.setViewportSize({ width: 390, height: 844 });
+  const calendarRequest = p.context().waitForEvent("request", {
+    predicate: (request) => request.url().endsWith("/calendar-event.ics"),
+  });
   await click("Apple Calendar");
-  const dl = await download;
-  assert.equal(dl.suggestedFilename(), "Earned_Self_Move.ics");
+  const request = await calendarRequest;
+  expect(request.method()).toBe("POST");
+  const response = await request.response();
+  expect(response?.status()).toBe(200);
+  expect(response?.headers()["content-disposition"]).toContain("inline;");
+  expect(request.url()).not.toContain("?");
+  const fields = new URLSearchParams(request.postData()!);
+  expect(fields.get("action")).toBe("Draft the opening paragraph");
+  expect(fields.get("starts")).toBe("2030-11-01T23:00:00.000Z");
+  // Desktop Chromium may download calendar MIME responses. This is not an iOS test.
+  await expect(
+    p.getByRole("heading", { name: "Make room for it." }),
+  ).toBeVisible();
   await click("Continue without adding");
   await shot("30-now-mobile");
   await click("Begin my move");

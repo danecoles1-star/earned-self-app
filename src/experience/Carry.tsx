@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import type { Goal, Snapshot } from "../data/types";
 import { currentAction, currentSchedule, definition } from "../data/domain";
 import { Page, Input, Choice, artwork } from "./ui";
-import { calendarContent, download, googleCalendarUrl } from "./exports";
+import { download, googleCalendarUrl } from "./exports";
 import mark from "../assets/mark-transparent.png";
 export function Calendar({
   goal,
@@ -57,22 +57,43 @@ export function Calendar({
           >
             Google Calendar
           </a>
-          <button
-            className="experience-choice"
-            onClick={() => {
-              download(
-                new Blob([calendarContent(d, s, minutes, location.origin)], {
-                  type: "text/calendar;charset=utf-8",
-                }),
-                "Earned_Self_Move.ics",
-              );
-              setNotice(
-                "Open the calendar file, review the event, then add it in Calendar.",
-              );
-            }}
+          <form
+            action="/calendar-event.ics"
+            method="post"
+            target="_blank"
+            rel="noopener noreferrer"
+            onSubmit={() =>
+              setNotice("Review the event in Calendar and tap Add to finish.")
+            }
           >
-            Apple Calendar
-          </button>
+            {Object.entries({
+              action: d.action,
+              criterion: d.criterion,
+              location: s.location || "",
+              id: s.commitment_id,
+              revision: String(s.commitment_revision),
+              starts: s.starts_at,
+              minutes: String(minutes),
+            }).map(([name, value]) => (
+              <input key={name} type="hidden" name={name} value={value} />
+            ))}
+            <button className="experience-choice" type="submit">
+              <svg
+                width="26"
+                height="26"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                aria-hidden="true"
+                focusable="false"
+              >
+                <rect x="3" y="5" width="18" height="16" rx="3" />
+                <path d="M7 3v4M17 3v4M3 10h18M8 15h2M14 15h2" />
+              </svg>
+              Apple Calendar
+            </button>
+          </form>
           <p className="small">
             Review and confirm in your calendar. If your plan changes, update
             that event too.

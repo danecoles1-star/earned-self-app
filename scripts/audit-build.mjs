@@ -42,3 +42,13 @@ if (!fs.readFileSync("dist/_headers", "utf8").includes("X-Robots-Tag: noindex"))
 console.log(
   "Build boundary PASS: no preview adapter, preview identities or detected service credentials.",
 );
+
+const calendarRoutes = JSON.parse(fs.readFileSync("dist/_routes.json", "utf8"));
+if (
+  calendarRoutes.version !== 1 ||
+  JSON.stringify(calendarRoutes.include) !== '["/calendar-event.ics"]' ||
+  calendarRoutes.exclude.length !== 0 ||
+  !fs.existsSync("dist/_worker.js")
+)
+  throw new Error("Missing calendar worker or incorrect route scope");
+console.log("Calendar handler and route included in build.");
