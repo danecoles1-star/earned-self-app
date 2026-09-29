@@ -374,6 +374,33 @@ export function MilestoneComplete({
     { detail: "" },
   );
   const [completed, setCompleted] = useState(false);
+  if (!m && !completed) {
+    const hasMilestones = g.milestones.length > 0;
+    const canPrepare = g.status === "draft" && !currentAction(s, g.id);
+    return (
+      <Page
+        title={
+          hasMilestones ? "Every milestone reached." : "No milestones yet."
+        }
+        children={null}
+        sub={
+          hasMilestones
+            ? "Return to your ambition to decide what comes next."
+            : "Milestones mark the turning points in your preparation."
+        }
+        dark={false}
+        back={() => navigate("/manage")}
+        footer={
+          <button
+            className="button"
+            onClick={() => navigate(canPrepare ? "/plan/" + g.id : "/manage")}
+          >
+            {canPrepare ? "Prepare my ambition" : "Return to my ambition"}
+          </button>
+        }
+      />
+    );
+  }
   return (
     <Page
       title={completed ? "You reached a turning point." : "Did you reach it?"}

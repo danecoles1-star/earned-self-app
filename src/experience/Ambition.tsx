@@ -42,7 +42,10 @@ export function Ambition({
             My preparation
           </button>
           <button onClick={() => navigate("/milestone/" + g.id)}>
-            Milestones · {m?.title || "All completed"}
+            Milestones ·{" "}
+            {g.milestones.length
+              ? m?.title || "All completed"
+              : "None planned yet"}
           </button>
           {g.status === "draft" && !currentAction(s, g.id) && (
             <button onClick={() => navigate("/plan/" + g.id)}>
@@ -77,6 +80,7 @@ export function Ambition({
           <h2>Open questions</h2>
           <p>{g.unknowns}</p>
           <h2>My milestones</h2>
+          {!g.milestones.length && <p>No milestones planned yet.</p>}
           {g.milestones.map((m) => (
             <div className="first-proof" key={m.id}>
               <h3>{m.title}</h3>
