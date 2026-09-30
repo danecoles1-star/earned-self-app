@@ -144,7 +144,7 @@ export function Help({
           {example && (
             <p>
               <strong>One possibility:</strong> {example} Choose it only if it
-              serves your ambition.
+              serves your challenge.
             </p>
           )}
           <p>Write what is true for you. You can refine it as you learn.</p>

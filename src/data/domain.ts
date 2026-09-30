@@ -22,6 +22,7 @@ export function required(value: unknown, label: string, max = 10000): string {
 }
 export const foundationKeys = Object.keys(emptyFoundation());
 const allowed: Record<Command["kind"], string[]> = {
+  planned_step: ["goalId", "id", "milestoneId", "action", "criterion"],
   first_move: [
     "id",
     "goalId",
@@ -38,6 +39,7 @@ const allowed: Record<Command["kind"], string[]> = {
     "id",
     "goalId",
     "milestoneId",
+    "plannedStepId",
     "action",
     "criterion",
     "localDate",
@@ -68,7 +70,7 @@ const allowed: Record<Command["kind"], string[]> = {
     "timeZone",
     "reason",
   ],
-  milestone: ["goalId", "version", "milestoneId", "detail"],
+  milestone: ["goalId", "version", "milestoneId", "detail", "result"],
   status: ["goalId", "version", "status", "detail", "reflection", "next"],
   outcome: [
     "id",
@@ -207,12 +209,22 @@ export function validateCommand(c: Command) {
     scheduledInstant(p.localDate, p.localTime, p.timeZone);
   }
   if (c.kind === "reschedule") required(p.reason, "What will change");
+  if (c.kind === "planned_step") {
+    required(p.action, "Step");
+    required(p.criterion, "Completion criterion");
+  }
+  if (
+    c.kind === "milestone" &&
+    p.result !== undefined &&
+    !["done", "attempted"].includes(String(p.result))
+  )
+    throw new Error("Choose a milestone result.");
   if (c.kind === "first_move") {
     required(p.action, "Action");
     required(p.criterion, "Done criterion");
-    required(p.detail, "What happened");
+    if (p.result !== "") required(p.detail, "What happened");
   }
-  if (c.kind === "outcome" || c.kind === "first_move") {
+  if (c.kind === "outcome" || (c.kind === "first_move" && p.result !== "")) {
     if (!["done", "partly", "did_not_happen"].includes(String(p.result)))
       throw new Error("Choose what happened.");
     if (p.result !== "done") {
@@ -305,7 +317,27 @@ export function applyLocal(
       if (g.version !== p.version)
         throw new Error("This pursuit changed. Reload before saving.");
     };
-    if (c.kind === "first_move") {
+    if (c.kind === "planned_step") {
+      if (
+        !["draft", "active", "paused"].includes(g.status) ||
+        !g.milestones.some((m) => m.id === p.milestoneId) ||
+        s.events.some(
+          (e) =>
+            e.goal_id === g.id &&
+            e.kind === "milestone" &&
+            e.data.milestoneId === p.milestoneId,
+        )
+      )
+        throw new Error("Choose an unfinished milestone.");
+      if (s.events.some((e) => e.data.stepId === p.id))
+        throw new Error("Step already planned.");
+      event(g.id, "planned_step", {
+        stepId: String(p.id),
+        milestoneId: String(p.milestoneId),
+        action: String(p.action),
+        criterion: String(p.criterion),
+      });
+    } else if (c.kind === "first_move") {
       if (g.status !== "draft" || s.commitments.some((c) => c.goal_id === g.id))
         throw new Error(
           "First move already imported or preparation has started",
@@ -318,7 +350,7 @@ export function applyLocal(
         plan_revision: null,
         revision: 1,
         version: 1,
-        state: "reported",
+        state: p.result === "" ? "active" : "reported",
         created_at: now,
       });
       s.definitions.push({
@@ -329,37 +361,59 @@ export function applyLocal(
         criterion: String(p.criterion),
         mode: "quick",
       });
-      s.evidence.push({
-        id,
-        goal_id: g.id,
-        commitment_id: id,
-        commitment_revision: 1,
-        schedule_id: null,
-        revision: 1,
-        recorded_at: now,
-        version: 1,
-      });
-      s.reports.push({
-        evidence_id: id,
-        goal_id: g.id,
-        revision: 1,
-        result: p.result as Result,
-        detail: String(p.detail),
-        reflection: null,
-        occurred_on: null,
-        recorded_at: now,
-        prevented: String(p.prevented || ""),
-        adjustment: String(p.adjustment || ""),
-      });
+      if (p.result !== "") {
+        s.evidence.push({
+          id,
+          goal_id: g.id,
+          commitment_id: id,
+          commitment_revision: 1,
+          schedule_id: null,
+          revision: 1,
+          recorded_at: now,
+          version: 1,
+        });
+        s.reports.push({
+          evidence_id: id,
+          goal_id: g.id,
+          revision: 1,
+          result: p.result as Result,
+          detail: String(p.detail),
+          reflection: null,
+          occurred_on: null,
+          recorded_at: now,
+          prevented: String(p.prevented || ""),
+          adjustment: String(p.adjustment || ""),
+        });
+      }
     } else if (c.kind === "select") {
       s.selectedGoal = g.id;
       receipt = { id: g.id, version: 1 };
     } else if (c.kind === "plan") {
       version();
-      if (g.status !== "draft" || current)
-        throw new Error(
-          "Only an uncommitted draft can be edited. Report any earlier commitment first.",
-        );
+      if (g.status !== "draft" || current) {
+        if (!["active", "paused"].includes(g.status))
+          throw new Error(
+            "Finish the current step before changing preparation.",
+          );
+        const next = foundation();
+        if (
+          foundationKeys
+            .filter((k) => k !== "milestones")
+            .some(
+              (k) =>
+                JSON.stringify(next[k as keyof Foundation]) !==
+                JSON.stringify(g[k as keyof Foundation]),
+            ) ||
+          next.milestones.length <= g.milestones.length ||
+          g.milestones.some(
+            (m, i) => JSON.stringify(m) !== JSON.stringify(next.milestones[i]),
+          )
+        )
+          throw new Error(
+            "Keep existing agreements unchanged. Add new milestones at the end.",
+          );
+        ready(next);
+      }
       Object.assign(g, foundation());
       g.revision++;
       g.version++;
@@ -457,6 +511,23 @@ export function applyLocal(
       )
         throw new Error("Choose how you will respond to the earlier result.");
       if (p.decision !== "continue") required(p.reason, "Revised plan");
+      if (
+        p.plannedStepId &&
+        (!s.events.some(
+          (e) =>
+            e.goal_id === g.id &&
+            e.kind === "planned_step" &&
+            e.data.stepId === p.plannedStepId &&
+            e.data.milestoneId === p.milestoneId,
+        ) ||
+          s.events.some(
+            (e) =>
+              e.goal_id === g.id &&
+              e.kind === "decision" &&
+              e.data.plannedStepId === p.plannedStepId,
+          ))
+      )
+        throw new Error("Planned step unavailable.");
       if (s.commitments.some((c) => c.id === id))
         throw new Error("Commitment already exists.");
       s.commitments.push({
@@ -500,6 +571,7 @@ export function applyLocal(
       g.status = "active";
       g.version++;
       event(g.id, "decision", {
+        plannedStepId: String(p.plannedStepId || ""),
         decision: String(p.decision),
         detail: String(p.reason || ""),
         commitmentId: id,
@@ -618,10 +690,14 @@ export function applyLocal(
           "Report current work before completing the current milestone.",
         );
       required(p.detail, "What completed this milestone");
-      event(g.id, "milestone", {
-        milestoneId: milestone.id,
-        detail: String(p.detail),
-      });
+      event(
+        g.id,
+        p.result === "attempted" ? "milestone_attempt" : "milestone",
+        {
+          milestoneId: milestone.id,
+          detail: String(p.detail),
+        },
+      );
       g.version++;
       receipt = { id: g.id, version: g.version };
     } else if (c.kind === "status") {

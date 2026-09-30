@@ -21,7 +21,7 @@ export function Calendar({
   return (
     <Page
       title="Make room for it."
-      sub="Keep your next move in your calendar."
+      sub="Keep your next step in your calendar."
       dark={false}
       back={() => navigate("/app")}
       footer={

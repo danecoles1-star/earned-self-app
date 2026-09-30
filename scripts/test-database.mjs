@@ -13,12 +13,12 @@ await db.exec(
 );
 for (const file of fs.readdirSync("supabase/migrations").sort())
   await db.exec(fs.readFileSync("supabase/migrations/" + file, "utf8"));
-pass("All four migrations compile in embedded PostgreSQL");
+pass("All migrations compile in embedded PostgreSQL");
 await db.exec(
-  "CREATE SCHEMA supabase_migrations; CREATE TABLE supabase_migrations.schema_migrations(version text); INSERT INTO supabase_migrations.schema_migrations VALUES ('202609130001'),('202609130002'),('202609150001'),('202609180001');",
+  "CREATE SCHEMA supabase_migrations; CREATE TABLE supabase_migrations.schema_migrations(version text); INSERT INTO supabase_migrations.schema_migrations VALUES ('202609130001'),('202609130002'),('202609150001'),('202609180001'),('202609300001');",
 );
 await db.exec(
-  fs.readFileSync("docs/Earned_Self_Supabase_Verification_v3.sql", "utf8"),
+  fs.readFileSync("docs/Earned_Self_Supabase_Verification_v4.sql", "utf8"),
 );
 pass("Read-only installed-schema verifier passes");
 
@@ -524,6 +524,154 @@ assert.equal(
   false,
 );
 pass("First-action import cannot read or write another account");
+// Basecamp regression checks exercise real SQL commands and row ownership.
+await as(a);
+const bg = randomUUID(),
+  pending = randomUUID();
+await command(a, "goal", { ...payload, id: bg });
+await command(a, "first_move", {
+  goalId: bg,
+  id: pending,
+  action: "Write one sentence",
+  criterion: "One sentence",
+  result: "",
+  detail: "",
+  prevented: "",
+  adjustment: "",
+});
+let bs = await state();
+assert.equal(bs.commitments.find((c) => c.id === pending).state, "active");
+assert.equal(bs.evidence.filter((e) => e.goal_id === bg).length, 0);
+pass("Save-later retains pending first step without inventing Proof");
+await command(a, "outcome", {
+  id: randomUUID(),
+  goalId: bg,
+  commitmentId: pending,
+  version: 1,
+  result: "done",
+  detail: "Sentence written",
+});
+const queued = randomUUID();
+await command(a, "planned_step", {
+  goalId: bg,
+  id: queued,
+  milestoneId: payload.milestones[0].id,
+  action: "Edit opening",
+  criterion: "Opening edited",
+});
+const bc = {
+  ...c,
+  id: randomUUID(),
+  goalId: bg,
+  plannedStepId: queued,
+  localDate: "2030-10-01",
+};
+await command(a, "commitment", bc);
+bs = await state();
+const prior = bs.goals.find((g) => g.id === bg);
+const extra = {
+  ...payload.milestones[0],
+  id: randomUUID(),
+  title: "Submit essay",
+  localDate: "2030-12-15",
+};
+await command(a, "plan", {
+  ...payload,
+  id: undefined,
+  goalId: bg,
+  version: prior.version,
+  milestones: [...payload.milestones, extra],
+});
+bs = await state();
+assert.equal(bs.goals.find((g) => g.id === bg).milestones.length, 2);
+pass(
+  "Active challenge accepts appended milestones while retaining current step",
+);
+await rejected(
+  () =>
+    command(a, "plan", {
+      ...payload,
+      id: undefined,
+      goalId: bg,
+      version: bs.goals.find((g) => g.id === bg).version,
+      words: "Rewritten challenge",
+      milestones: [
+        ...payload.milestones,
+        extra,
+        { ...extra, id: randomUUID(), localDate: "2031-01-01" },
+      ],
+    }),
+  /unchanged|existing/i,
+);
+pass("Appending milestones cannot rewrite prior agreements");
+await command(a, "outcome", {
+  id: randomUUID(),
+  goalId: bg,
+  commitmentId: bc.id,
+  version: 1,
+  result: "done",
+  detail: "Edited opening",
+});
+await rejected(
+  () => command(a, "commitment", { ...bc, id: randomUUID() }),
+  /planned step/i,
+);
+pass("A queued step can become current only once");
+bs = await state();
+await command(a, "milestone", {
+  goalId: bg,
+  version: bs.goals.find((g) => g.id === bg).version,
+  milestoneId: payload.milestones[0].id,
+  result: "attempted",
+  detail: "Not ready yet; practice editing",
+});
+bs = await state();
+assert.equal(
+  bs.events.filter((e) => e.goal_id === bg && e.kind === "milestone").length,
+  0,
+);
+assert.equal(
+  bs.events.filter((e) => e.goal_id === bg && e.kind === "milestone_attempt")
+    .length,
+  1,
+);
+pass("Milestone attempt records reflection without advancing the path");
+await command(a, "milestone", {
+  goalId: bg,
+  version: bs.goals.find((g) => g.id === bg).version,
+  milestoneId: payload.milestones[0].id,
+  result: "done",
+  detail: "Draft ready",
+});
+await rejected(
+  () =>
+    command(a, "planned_step", {
+      goalId: bg,
+      id: randomUUID(),
+      milestoneId: payload.milestones[0].id,
+      action: "Late step",
+      criterion: "Done",
+    }),
+  /unfinished/i,
+);
+pass("Completed milestones reject new preparation steps");
+await as(b);
+await rejected(
+  () =>
+    command(b, "planned_step", {
+      goalId: bg,
+      id: randomUUID(),
+      milestoneId: extra.id,
+      action: "Other owner",
+      criterion: "Blocked",
+    }),
+  /unavailable/i,
+);
+assert.equal(
+  (await state()).events.some((e) => e.goal_id === bg),
+  false,
+);
+pass("Queued steps and attempt reflections remain account-private");
 await db.exec("RESET ROLE");
 await db.query("DELETE FROM auth.users WHERE id=$1", [a]);
 assert.equal(

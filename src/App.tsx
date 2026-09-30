@@ -1,3 +1,5 @@
+import { PlanStep } from "./experience/PlanStep";
+import { AddMilestone } from "./experience/AddMilestone";
 import {
   MoveEditor,
   ReportMove,
@@ -7,7 +9,8 @@ import {
 import { Ambition, ProofList, ProofEntry } from "./experience/Ambition";
 import { Calendar, Wallpaper, Settings } from "./experience/Carry";
 import { Preparation } from "./experience/Preparation";
-import { MemberHome } from "./experience/MemberHome";
+import { StepTimer } from "./experience/StepTimer";
+import { MemberHome, AppNavigation } from "./experience/MemberHome";
 import { Art, Page } from "./experience/ui";
 import { Onboarding } from "./experience/Onboarding";
 import {
@@ -86,6 +89,17 @@ export function App({ adapter }: { adapter: Adapter }) {
     [error, setError] = useState(""),
     [notice, setNotice] = useState(""),
     [saving, setSaving] = useState(false);
+  useEffect(() => {
+    if (
+      ![
+        "Saved to your account.",
+        "Saved on this device. Preview data only.",
+      ].includes(notice)
+    )
+      return;
+    const timer = window.setTimeout(() => setNotice(""), 5000);
+    return () => window.clearTimeout(timer);
+  }, [notice]);
   const resumeAfterRead = useRef<{ owner: string; run: () => void } | null>(
     null,
   );
@@ -330,7 +344,7 @@ export function App({ adapter }: { adapter: Adapter }) {
               }
             }}
           >
-            Begin a fresh ambition
+            Begin a fresh challenge
           </button>
         }
       >
@@ -484,22 +498,24 @@ export function App({ adapter }: { adapter: Adapter }) {
     const finish = () => {
       clearDraft();
       setDraft(loadDraft());
-      navigate("/plan/" + goal!.id);
+      navigate("/app");
     };
     screen =
       goal && goal.id === draft.id && canUseDraft(draft, user.id) ? (
         <main id="main" className="workspace narrow">
-          <h1>Keep your first Proof.</h1>
+          <h1>Keep your progress.</h1>
           <p>
-            {first?.detail || "Your ambition is saved. Continue preparing it."}
+            {first?.detail ||
+              "Your challenge is saved. Open Basecamp to continue."}
           </p>
           <button
             className="button"
             disabled={saving}
             onClick={() => {
               if (
-                !first?.result ||
-                snapshot.evidence.some((e) => e.id === first.id)
+                !first?.action.trim() ||
+                !first?.criterion.trim() ||
+                snapshot.commitments.some((e) => e.id === first.id)
               ) {
                 finish();
                 return;
@@ -511,7 +527,13 @@ export function App({ adapter }: { adapter: Adapter }) {
                   goalId: goal.id,
                   action: first.action,
                   criterion: first.criterion,
-                  result: first.result,
+                  result:
+                    first.result &&
+                    first.detail.trim() &&
+                    (first.result === "done" ||
+                      (first.prevented.trim() && first.adjustment.trim()))
+                      ? first.result
+                      : "",
                   detail: first.detail,
                   prevented: first.prevented,
                   adjustment: first.adjustment,
@@ -520,12 +542,37 @@ export function App({ adapter }: { adapter: Adapter }) {
               );
             }}
           >
-            {saving ? "Saving…" : "Save and prepare my ambition"}
+            {saving ? "Saving…" : "Save and open Basecamp"}
           </button>
         </main>
       ) : (
         <Unavailable navigate={navigate} />
       );
+  } else if (path.startsWith("/add-step/")) {
+    const goal = snapshot.goals.find((g) => g.id === path.split("/")[2]);
+    screen = goal ? (
+      <PlanStep
+        goal={goal}
+        snapshot={snapshot}
+        save={save}
+        saving={saving}
+        navigate={navigate}
+      />
+    ) : (
+      <Unavailable navigate={navigate} />
+    );
+  } else if (path.startsWith("/add-milestone/")) {
+    const goal = snapshot.goals.find((g) => g.id === path.split("/")[2]);
+    screen = goal ? (
+      <AddMilestone
+        goal={goal}
+        save={save}
+        saving={saving}
+        navigate={navigate}
+      />
+    ) : (
+      <Unavailable navigate={navigate} />
+    );
   } else if (path.startsWith("/plan/") || path.startsWith("/commitment/")) {
     const goal = snapshot.goals.find((g) => g.id === path.split("/")[2]);
     const Editor = path.startsWith("/plan/") ? Preparation : MoveEditor;
@@ -558,9 +605,14 @@ export function App({ adapter }: { adapter: Adapter }) {
     );
   } else if (path === "/proof")
     screen = <ProofList snapshot={snapshot} navigate={navigate} />;
-  else if (path === "/manage" && selected)
+  else if (path.startsWith("/manage") && selected)
     screen = (
-      <Ambition goal={selected} snapshot={snapshot} navigate={navigate} />
+      <Ambition
+        key={path}
+        goal={selected}
+        snapshot={snapshot}
+        navigate={navigate}
+      />
     );
   else if (path.startsWith("/milestone/") || path.startsWith("/decision/")) {
     const g = snapshot.goals.find((g) => g.id === path.split("/")[2]);
@@ -649,7 +701,10 @@ export function App({ adapter }: { adapter: Adapter }) {
         >
           <h2>{d.action}</h2>
           <p>Done means: {d.criterion}</p>
-          <Art kind="path" />
+          <StepTimer
+            key={c.id}
+            identity={`${g.owner_id}:${c.id}:${c.revision}`}
+          />
         </Page>
       ) : (
         <Unavailable navigate={navigate} />
@@ -705,7 +760,7 @@ export function App({ adapter }: { adapter: Adapter }) {
         {!selected ? (
           <>
             <p className="eyebrow">Your own starting point</p>
-            <h1 tabIndex={-1}>Your ambition belongs here.</h1>
+            <h1 tabIndex={-1}>Your challenge belongs here.</h1>
             <p className="intro">
               Choose something you want to work toward. Your Proof begins with
               what you actually do.
@@ -797,6 +852,10 @@ export function App({ adapter }: { adapter: Adapter }) {
       )}
       <div inert={saving} aria-busy={saving}>
         {screen}
+        {user &&
+          !["/", "/start", "/auth", "/auth/callback", "/new"].includes(
+            path,
+          ) && <AppNavigation path={path} navigate={navigate} />}
       </div>
     </>
   );
@@ -826,7 +885,7 @@ function Auth({
             ? "Check your inbox."
             : "Keep becoming."
       }
-      sub={user ? undefined : "Keep your ambition and Proof together."}
+      sub={user ? undefined : "Keep your challenge and Proof together."}
     >
       {user ? (
         <>

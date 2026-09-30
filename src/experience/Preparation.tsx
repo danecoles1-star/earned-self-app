@@ -51,6 +51,10 @@ export function Preparation({
           : 4;
   const [step, setStep] = useState(initial),
     [issue, setIssue] = useState("");
+  const sequence = Array.from(
+    { length: 10 - initial },
+    (_, i) => i + initial,
+  ).filter((i) => i !== 3 || !goal.meaning.trim());
   const fields = [
     [
       "vision",
@@ -58,7 +62,7 @@ export function Preparation({
       "Your future self",
       "I want to become someone who…",
     ],
-    ["words", "Name your ambition.", "My big vision", "I know I can be…"],
+    ["words", "Choose your challenge.", "My challenge", "I will…"],
     [
       "outcome",
       "Know the finish.",
@@ -73,8 +77,8 @@ export function Preparation({
     ],
     [
       "constraints",
-      "Make room for reality.",
-      "My constraints",
+      "What could get in your way?",
+      "What I need to plan for",
       "Time, energy, responsibilities…",
     ],
     [
@@ -119,7 +123,7 @@ export function Preparation({
         return;
       }
     }
-    setStep(step + 1);
+    setStep(sequence[sequence.indexOf(step) + 1]);
   };
   const outstanding = currentAction(snapshot, goal.id);
   if (outstanding || goal.status !== "draft")
@@ -139,14 +143,14 @@ export function Preparation({
               navigate(outstanding ? "/report/" + goal.id : "/manage")
             }
           >
-            {outstanding ? "Report what happened" : "View my ambition"}
+            {outstanding ? "Report what happened" : "View my challenge"}
           </button>
         }
       >
         <p>
           {outstanding
-            ? "Record what happened with your current move before changing your preparation."
-            : "Your earlier agreement stays in your history. Review your ambition to choose what comes next."}
+            ? "Record what happened with your current step before changing your preparation."
+            : "Your earlier agreement stays in your history. Review your challenge to choose what comes next."}
         </p>
         <p>Any preparation draft on this device has been kept.</p>
       </Page>
@@ -156,21 +160,25 @@ export function Preparation({
       title={
         field?.[1] ??
         (step === 7
-          ? "Plan for the hard part."
+          ? "How will you handle it?"
           : step === 8
             ? "Mark the turning points."
             : "Make this your commitment.")
       }
       sub={
         step === 8
-          ? "Name the milestones that will prepare you."
+          ? "Start with one milestone. Add more as your plan grows."
           : step === 9
             ? "Your direction. Your preparation. Your decision."
             : undefined
       }
       dark={step === 0 || step === 1 || step === 6}
-      back={() => (step > initial ? setStep(step - 1) : navigate("/app"))}
-      progress={[step + 1, 10]}
+      back={() =>
+        sequence.indexOf(step) > 0
+          ? setStep(sequence[sequence.indexOf(step) - 1])
+          : navigate("/app")
+      }
+      progress={[sequence.indexOf(step) + 1, sequence.length]}
       footer={
         <>
           {(error || issue) && <p role="alert">{error || issue}</p>}
@@ -273,7 +281,7 @@ export function Preparation({
           {snapshot.supportMode === "guided" && (
             <p className="small">
               {step === 4
-                ? "Consider the time and energy this ambition will need."
+                ? "Consider the time and energy this challenge will need."
                 : step === 5
                   ? "Start with your current ability, then name the gap."
                   : step === 6
@@ -285,7 +293,7 @@ export function Preparation({
             ambition={value.words}
             field={
               step === 4
-                ? "what constraint could prevent your next move, and what room can you realistically make?"
+                ? "what constraint could prevent your next step, and what room can you realistically make?"
                 : step === 5
                   ? "what would a person able to do this already know or practice? Which part do you still need?"
                   : step === 6

@@ -28,42 +28,32 @@ test("first visit through first action, failure recovery, accomplishment and nex
   assert(
     await p.getByRole("button", { name: "Continue", exact: true }).isDisabled(),
   );
-  await click("I am ready for more");
+  await click("I’m ready to take on more");
   await next();
   await fill("Your future self", "Become a confident published writer");
   await shot("03-identity-mobile");
   await next();
-  await click("Work & creation");
+  await fill("My challenge", "Publish a researched essay");
   await next();
-  await fill("My big vision", "Publish a researched essay");
+  await fill("Your reason", "Share a perspective I have kept to myself");
   await next();
-  await fill("My reason", "Share a perspective I have kept to myself");
-  await next();
-  await fill(
-    "I will know I have done it when…",
-    "My essay is published and available to read",
-  );
-  await fill(
-    "What makes this a stretch?",
-    "I have never shared my writing publicly",
-  );
-  await next();
-  await click("Confidence");
-  await next();
-  await fill("My first move", "Write one opening sentence");
-  await fill("Done means", "One sentence is on the page");
-  await click("Begin move");
-  await click("Start");
-  await click("I have tried it");
+  await fill("What will you do now?", "Write one opening sentence");
+  await fill("What will be done?", "One sentence is on the page");
+  await click("Do it now");
+  await click("Start step");
+  await click("Check in");
   await click("Done");
   await fill("What happened?", "I wrote one opening sentence");
   await click("Record what happened");
   await shot("12-first-proof-mobile");
-  await click("Keep going");
+  await click("Sign in to save");
   await click("Enter local preview");
-  await click("Save my first Proof");
-  await click("Save and prepare my ambition");
-  await fill("My constraints", "Thirty minutes after work");
+  await click("Open Basecamp");
+  await click("Save and open Basecamp");
+  await click("Continue preparation");
+  await fill("Done means", "My essay is published and available to read");
+  await next();
+  await fill("What I need to plan for", "Thirty minutes after work");
   await next();
   await fill("What I need to build", "Research and revise an argument");
   await next();
@@ -83,7 +73,7 @@ test("first visit through first action, failure recovery, accomplishment and nex
   await next();
   await p.getByRole("checkbox").check();
   await click("Keep my preparation");
-  await fill("My next move", "Draft the opening paragraph");
+  await fill("My next step", "Draft the opening paragraph");
   await fill("Done means", "A complete opening paragraph");
   await next();
   await fill("Action date", "2030-11-01");
@@ -91,7 +81,7 @@ test("first visit through first action, failure recovery, accomplishment and nex
   await fill("Action time zone", "America/Denver");
   await fill("Where?", "At my desk");
   await next();
-  await click("Commit to this ambition");
+  await click("Schedule this step");
   await shot("25-calendar-mobile");
   const download = p.waitForEvent("download");
   await click("Apple Calendar");
@@ -99,14 +89,17 @@ test("first visit through first action, failure recovery, accomplishment and nex
   assert.equal(dl.suggestedFilename(), "Earned_Self_Move.ics");
   await click("Continue without adding");
   await shot("30-now-mobile");
-  await click("Begin my move");
-  await click("Report what happened");
+  await click("Step check-in");
   await click("Partly");
   await fill("What happened?", "Wrote two sentences");
   assert(
     await p
       .getByRole("button", { name: "Save to Proof", exact: true })
       .isDisabled(),
+  );
+  await fill(
+    "What are you ready for next?",
+    "Gather my sources before drafting",
   );
   await fill("What prevented it?", "I did not have my sources");
   await fill("What will you change?", "Gather the sources first");
@@ -120,19 +113,20 @@ test("first visit through first action, failure recovery, accomplishment and nex
   await click("Save to Proof");
   await shot("35-proof-mobile");
   await click("Choose what comes next");
-  await click("Ambition");
+  await click("Plan");
   await click("Milestones · Finish the first draft");
+  await click("I’m ready");
   await fill(
-    "What shows it is complete?",
+    "What happened and what did you learn?",
     "The full essay draft is written and reviewed",
   );
-  await click("Mark milestone complete");
+  await click("Save milestone reflection");
   await p
     .getByRole("heading", { name: "You reached a turning point." })
     .waitFor();
   await shot("38-milestone-mobile");
   await click("See what comes next");
-  await click("Ambition");
+  await click("Plan");
   await click("Pause, return or complete");
   await click("I accomplished it");
   await fill("What actually happened?", "The essay has been published");
@@ -140,9 +134,11 @@ test("first visit through first action, failure recovery, accomplishment and nex
   await fill("What has changed?", "I can share my writing despite uncertainty");
   await fill("What will you carry forward?", "Make time to write every week");
   await click("Confirm accomplishment");
-  await p.getByRole("heading", { name: "You did the work." }).waitFor();
+  await p
+    .getByRole("heading", { name: "Publish a researched essay" })
+    .waitFor();
   await shot("45-accomplishment-mobile");
-  await click("Take this with me");
+  await click("Take your vision with you");
   await fill("Words to carry", "Keep writing.");
   await click("Preview lock screen");
   const wallpaper = p.waitForEvent("download");
@@ -154,8 +150,8 @@ test("first visit through first action, failure recovery, accomplishment and nex
   await shot("53-wallpaper-mobile");
   await click("Go back");
   await click("Go back");
-  await click("Choose my next ambition");
-  await click("Begin a fresh ambition");
+  await click("Choose my next challenge");
+  await click("Begin a fresh challenge");
   assert(
     await p.getByRole("button", { name: "Continue", exact: true }).isDisabled(),
   );
@@ -176,7 +172,7 @@ test("small screen keyboard entry, required answer and reload recovery", async (
     p.getByRole("button", { name: "Continue", exact: true }),
   ).toBeDisabled();
   await p
-    .getByRole("button", { name: "I am ready for more", exact: true })
+    .getByRole("button", { name: "I’m ready to take on more", exact: true })
     .click();
   await p.getByRole("button", { name: "Continue", exact: true }).click();
   await p.getByLabel("Your future self", { exact: true }).fill("   ");
@@ -229,7 +225,7 @@ test("phone preview works when HTTP does not provide randomUUID", async ({
   await page.goto("/");
   await page.getByRole("button", { name: "Begin", exact: true }).click();
   await page
-    .getByRole("button", { name: "I am ready for more", exact: true })
+    .getByRole("button", { name: "I’m ready to take on more", exact: true })
     .click();
   await page.getByRole("button", { name: "Continue", exact: true }).click();
   await page

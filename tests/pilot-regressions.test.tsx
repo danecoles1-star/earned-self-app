@@ -64,10 +64,10 @@ it("legacy draft with outstanding move routes to that move rather than preparati
   const s = state("draft", true),
     navigate = vi.fn();
   render(<MemberHome goal={s.goals[0]} snapshot={s} navigate={navigate} />);
-  await userEvent.click(screen.getByRole("button", { name: "Begin my move" }));
-  expect(navigate).toHaveBeenCalledWith("/focus/g");
+  await userEvent.click(screen.getByRole("button", { name: "Step check-in" }));
+  expect(navigate).toHaveBeenCalledWith("/report/g");
   expect(
-    screen.queryByRole("button", { name: "Prepare my ambition" }),
+    screen.queryByRole("button", { name: "Prepare my challenge" }),
   ).toBeNull();
   expect(
     screen.queryByRole("button", { name: "Add my move to a calendar" }),
@@ -110,7 +110,7 @@ it("active preparation cannot be reopened even after reporting", () => {
     />,
   );
   expect(
-    screen.getByRole("button", { name: "View my ambition" }),
+    screen.getByRole("button", { name: "View my challenge" }),
   ).toBeInTheDocument();
   expect(screen.queryByRole("textbox")).toBeNull();
 });
@@ -128,7 +128,7 @@ it.each(["changed_direction", "abandoned"] as const)(
       navigate = vi.fn();
     render(<MemberHome goal={s.goals[0]} snapshot={s} navigate={navigate} />);
     await userEvent.click(
-      screen.getByRole("button", { name: "Choose my next ambition" }),
+      screen.getByRole("button", { name: "Choose my next challenge" }),
     );
     expect(navigate).toHaveBeenCalledWith("/new");
   },
@@ -174,9 +174,9 @@ it("starting another ambition does not reuse a stale entry draft or erase saved 
   };
   render(<App adapter={adapter} />);
   await userEvent.click(
-    await screen.findByRole("button", { name: "Begin a fresh ambition" }),
+    await screen.findByRole("button", { name: "Begin a fresh challenge" }),
   );
-  await screen.findByRole("heading", { name: "What feels familiar?" });
+  await screen.findByRole("heading", { name: "What brings you here?" });
   expect(loadDraft().words).toBe("");
   expect(loadDraft().meaning).toBe("");
   expect(archivedDrafts(null)[0].words).toBe(old.words);

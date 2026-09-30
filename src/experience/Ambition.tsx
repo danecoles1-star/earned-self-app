@@ -1,3 +1,4 @@
+import { pendingSteps } from "./PlanStep";
 import { useState } from "react";
 import type { Goal, Snapshot } from "../data/types";
 import {
@@ -18,11 +19,13 @@ export function Ambition({
   snapshot: Snapshot;
   navigate: (p: string) => void;
 }) {
-  const [section, setSection] = useState("overview"),
+  const [section, setSection] = useState(
+      location.pathname === "/manage/why" ? "preparation" : "overview",
+    ),
     m = currentMilestone(s, g);
   return (
     <Page
-      title={section === "preparation" ? "Your preparation." : "Your ambition."}
+      title={section === "preparation" ? "Your preparation." : "Your plan."}
       sub={g.vision}
       dark={false}
       back={() =>
@@ -30,14 +33,74 @@ export function Ambition({
       }
       footer={
         <button className="button" onClick={() => navigate("/app")}>
-          Return to my next move
+          Return to Basecamp
         </button>
       }
     >
       <h2>{g.words}</h2>
-      <p>{g.outcome}</p>
+      <p>{g.outcome || "Define your finish during preparation."}</p>
+      {section === "overview" && (
+        <section className="plan-overview">
+          <h2>Milestones & steps</h2>
+          {!g.milestones.length && <p>No milestones planned yet.</p>}
+          {g.milestones.map((m) => (
+            <section key={m.id}>
+              <h3>{m.title}</h3>
+              <p>{m.criterion}</p>
+              <p className="small">
+                {m.localDate} · {m.localTime}
+              </p>
+              {pendingSteps(s, g)
+                .filter((e) => e.data.milestoneId === m.id)
+                .map((e) => (
+                  <div key={e.id}>
+                    <p>{e.data.action}</p>
+                    <button
+                      className="quiet"
+                      disabled={
+                        !!currentAction(s, g.id) ||
+                        m.id !== currentMilestone(s, g)?.id
+                      }
+                      onClick={() =>
+                        navigate("/commitment/" + g.id + "/" + e.data.stepId)
+                      }
+                    >
+                      Schedule this step
+                    </button>
+                  </div>
+                ))}
+              {s.commitments
+                .filter((c) => c.goal_id === g.id && c.milestone_id === m.id)
+                .map((c) => (
+                  <p key={c.id}>
+                    {definition(s, c.id, c.revision)?.action} ·{" "}
+                    {c.state === "active"
+                      ? "Current step"
+                      : "Check-in recorded"}
+                  </p>
+                ))}
+            </section>
+          ))}
+        </section>
+      )}
       {section === "overview" ? (
         <div className="member-rows">
+          <button
+            disabled={["completed", "changed_direction", "abandoned"].includes(
+              g.status,
+            )}
+            onClick={() => navigate("/add-milestone/" + g.id)}
+          >
+            Add milestone
+          </button>
+          <button
+            disabled={["completed", "changed_direction", "abandoned"].includes(
+              g.status,
+            )}
+            onClick={() => navigate("/add-step/" + g.id)}
+          >
+            Add step
+          </button>
           <button onClick={() => setSection("preparation")}>
             My preparation
           </button>
@@ -107,16 +170,16 @@ export function ProofList({
   return (
     <Page
       title="Your Proof stays."
-      sub="A record of what you have done and learned."
+      sub="What you have done, what you have learned, and who you are becoming."
       back={() => navigate("/app")}
     >
       <label>
         Show
         <select value={filter} onChange={(e) => setFilter(e.target.value)}>
-          <option value="all">All ambitions</option>
-          <option value="active">Current ambitions</option>
-          <option value="completed">Completed ambitions</option>
-          <option value="paused">Paused ambitions</option>
+          <option value="all">All challenges</option>
+          <option value="active">Current challenges</option>
+          <option value="completed">Completed challenges</option>
+          <option value="paused">Paused challenges</option>
           <option value="draft">Preparing</option>
         </select>
       </label>
@@ -124,6 +187,7 @@ export function ProofList({
       {goals.map((g) => (
         <section key={g.id}>
           <h2>{g.words}</h2>
+          <p className="small">Who I am becoming: {g.vision}</p>
           {s.evidence
             .filter((e) => e.goal_id === g.id)
             .map((e) => {
@@ -148,14 +212,19 @@ export function ProofList({
           {s.events
             .filter(
               (e) =>
-                e.goal_id === g.id && ["milestone", "status"].includes(e.kind),
+                e.goal_id === g.id &&
+                ["milestone", "milestone_attempt", "status"].includes(e.kind),
             )
             .map((e) => (
               <div className="first-proof" key={e.id}>
                 <p>{e.data.detail}</p>
                 <p className="small">
-                  {e.kind === "milestone" ? "Milestone" : e.data.to} ·{" "}
-                  {new Date(e.recorded_at).toLocaleDateString()}
+                  {e.kind === "milestone"
+                    ? "Milestone completed"
+                    : e.kind === "milestone_attempt"
+                      ? "Milestone attempted"
+                      : e.data.to}{" "}
+                  · {new Date(e.recorded_at).toLocaleDateString()}
                 </p>
               </div>
             ))}

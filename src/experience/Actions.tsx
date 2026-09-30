@@ -1,3 +1,4 @@
+import { pauseTimer } from "./StepTimer";
 import { useState } from "react";
 import type { Goal, Snapshot, Result } from "../data/types";
 import {
@@ -30,6 +31,12 @@ export function MoveEditor({
   saving,
   navigate,
 }: Props) {
+  const plannedStep = s.events.find(
+    (e) =>
+      e.goal_id === g.id &&
+      e.kind === "planned_step" &&
+      e.data.stepId === location.pathname.split("/")[3],
+  );
   const c = currentAction(s, g.id),
     d = c && definition(s, c.id, c.revision),
     time = c && currentSchedule(s, c.id),
@@ -37,15 +44,15 @@ export function MoveEditor({
   const priorEntry = s.evidence.filter((e) => e.goal_id === g.id).at(-1);
   const prior =
     priorEntry && currentReport(s, priorEntry.id, priorEntry.revision);
-  const key = `earned-self:move:${g.owner_id}:${g.id}:${c?.id || "new"}:${c?.revision || 0}`;
+  const key = `earned-self:move:${g.owner_id}:${g.id}:${c?.id || "new"}:${c?.revision || 0}:${plannedStep?.data.stepId || ""}`;
   const {
     value: v,
     change,
     error,
   } = useTextDraft(key, {
     id: crypto.randomUUID(),
-    action: d?.action || "",
-    criterion: d?.criterion || "",
+    action: d?.action || plannedStep?.data.action || "",
+    criterion: d?.criterion || plannedStep?.data.criterion || "",
     localDate: time?.local_date || "",
     localTime: time?.local_time?.slice(0, 5) || "",
     timeZone:
@@ -65,10 +72,10 @@ export function MoveEditor({
     blocked = (e as Error).message;
   }
   if (!blocked && (!m || !["draft", "active", "paused"].includes(g.status)))
-    blocked = "Review your ambition before choosing another move.";
+    blocked = "Review your challenge before choosing another step.";
   if (c && (g.status === "draft" || !c.milestone_id))
     blocked =
-      "Record what happened with your current move before preparing a scheduled action.";
+      "Record what happened with your current step before preparing a scheduled action.";
   if (c && isOverdue(s, c.id))
     blocked = "Report what happened before changing this overdue agreement.";
   const next = () => {
@@ -101,6 +108,7 @@ export function MoveEditor({
             ...base,
             id: v.id,
             milestoneId: m!.id,
+            ...(plannedStep ? { plannedStepId: plannedStep.data.stepId } : {}),
             decision: v.decision,
             reason: v.reason,
           },
@@ -116,14 +124,14 @@ export function MoveEditor({
         c
           ? "Revise the agreement."
           : step === 0
-            ? "Choose your next move."
+            ? "Choose your next step."
             : step === 1
               ? "Give it a place."
               : "Make it a commitment."
       }
       sub={
         step === 0
-          ? "One action that moves your ambition forward."
+          ? "One preparation step toward your current milestone."
           : step === 1
             ? "When and where will you do it?"
             : "Review the agreement you are making."
@@ -174,7 +182,7 @@ export function MoveEditor({
                   : c
                     ? "Save revised agreement"
                     : g.status === "draft"
-                      ? "Commit to this ambition"
+                      ? "Schedule this step"
                       : "Commit to this move"}
             </button>
           </>
@@ -189,7 +197,7 @@ export function MoveEditor({
             <>
               <p className="small">{m?.title}</p>
               <Input
-                label="My next move"
+                label="My next step"
                 value={v.action}
                 onChange={(v) => set("action", v)}
                 placeholder="I will…"
@@ -280,26 +288,29 @@ export function ReportMove({
     detail: "",
     prevented: "",
     adjustment: "",
+    reflection: "",
   });
   const set = (field: string, value: string) =>
     change({ ...v, [field]: value });
   const valid =
     v.result &&
     v.detail.trim() &&
+    (!c.milestone_id || !!v.reflection?.trim()) &&
     (v.result === "done" || (v.prevented.trim() && v.adjustment.trim()));
   return (
     <Page
-      title="What actually happened?"
+      title="Step check-in."
       sub="Be honest. Keep what you learned."
       dark={false}
-      back={() => navigate("/focus/" + g.id)}
+      back={() => navigate("/app")}
       footer={
         <>
           {error && <p role="alert">{error}</p>}
           <button
             className="button"
             disabled={saving || !valid}
-            onClick={() =>
+            onClick={() => {
+              pauseTimer(`${g.owner_id}:${c.id}:${c.revision}`);
               void save(
                 "outcome",
                 {
@@ -313,8 +324,8 @@ export function ReportMove({
                   localStorage.removeItem(key);
                   navigate("/proof/" + r.id);
                 },
-              )
-            }
+              );
+            }}
           >
             {saving ? "Saving…" : "Save to Proof"}
           </button>
@@ -344,6 +355,14 @@ export function ReportMove({
         onChange={(v) => set("detail", v)}
         placeholder="Write a short, factual account…"
       />
+      {c.milestone_id && (
+        <Input
+          label="What are you ready for next?"
+          value={v.reflection || ""}
+          onChange={(v) => set("reflection", v)}
+          placeholder="What feels ready, and what needs more preparation?"
+        />
+      )}
       {v.result && v.result !== "done" && (
         <>
           <Input
@@ -374,6 +393,8 @@ export function MilestoneComplete({
     { detail: "" },
   );
   const [completed, setCompleted] = useState(false);
+  const [readyToAttempt, setReadyToAttempt] = useState(false);
+  const [milestoneResult, setMilestoneResult] = useState("done");
   if (!m && !completed) {
     const hasMilestones = g.milestones.length > 0;
     const canPrepare = g.status === "draft" && !currentAction(s, g.id);
@@ -385,7 +406,7 @@ export function MilestoneComplete({
         children={null}
         sub={
           hasMilestones
-            ? "Return to your ambition to decide what comes next."
+            ? "Return to your challenge to decide what comes next."
             : "Milestones mark the turning points in your preparation."
         }
         dark={false}
@@ -395,12 +416,44 @@ export function MilestoneComplete({
             className="button"
             onClick={() => navigate(canPrepare ? "/plan/" + g.id : "/manage")}
           >
-            {canPrepare ? "Prepare my ambition" : "Return to my ambition"}
+            {canPrepare ? "Prepare my challenge" : "Return to my challenge"}
           </button>
         }
       />
     );
   }
+  if (m && !readyToAttempt)
+    return (
+      <Page
+        title="Ready to attempt this milestone?"
+        sub="Review your preparation before you begin."
+        dark={false}
+        back={() => navigate("/app")}
+        footer={
+          <>
+            <button
+              className="button"
+              disabled={g.status !== "active" || !!currentAction(s, g.id)}
+              onClick={() => setReadyToAttempt(true)}
+            >
+              I’m ready
+            </button>
+            <button className="quiet" onClick={() => navigate("/app")}>
+              Not yet · Return to Basecamp
+            </button>
+          </>
+        }
+      >
+        <h2>{m.title}</h2>
+        <p>{m.criterion}</p>
+        {currentAction(s, g.id) && (
+          <p>Check in on your current step before attempting the milestone.</p>
+        )}
+        {g.status !== "active" && (
+          <p>Complete your preparation and schedule a step first.</p>
+        )}
+      </Page>
+    );
   return (
     <Page
       title={completed ? "You reached a turning point." : "Did you reach it?"}
@@ -435,17 +488,22 @@ export function MilestoneComplete({
                     version: g.version,
                     milestoneId: m!.id,
                     detail: value.detail,
+                    result: milestoneResult,
                   },
                   () => {
                     localStorage.removeItem(
                       `earned-self:milestone:${g.owner_id}:${m!.id}`,
                     );
-                    navigate("/milestone-done/" + g.id);
+                    navigate(
+                      milestoneResult === "done"
+                        ? "/milestone-done/" + g.id
+                        : "/proof",
+                    );
                   },
                 )
               }
             >
-              Mark milestone complete
+              Save milestone reflection
             </button>
             <button className="quiet" onClick={() => navigate("/app")}>
               Keep working
@@ -462,15 +520,27 @@ export function MilestoneComplete({
           <p>{m?.criterion}</p>
           {g.status !== "active" && (
             <p>
-              Return to your ambition and schedule a move before completing a
+              Return to your challenge and schedule a move before completing a
               milestone.
             </p>
           )}
           {currentAction(s, g.id) && (
-            <p>Report your current move before completing the milestone.</p>
+            <p>Report your current step before completing the milestone.</p>
           )}
+          <label>
+            What happened?
+            <select
+              value={milestoneResult}
+              onChange={(e) => setMilestoneResult(e.target.value)}
+            >
+              <option value="done">I accomplished it</option>
+              <option value="attempted">
+                I attempted it and need another try
+              </option>
+            </select>
+          </label>
           <Input
-            label="What shows it is complete?"
+            label="What happened and what did you learn?"
             value={value.detail}
             onChange={(detail) => change({ detail })}
             placeholder="Describe the evidence…"
@@ -511,11 +581,11 @@ export function Decision({ goal: g, snapshot, save, saving, navigate }: Props) {
   const blocked = ended
     ? "This ambition has ended. Its record stays in Proof."
     : completed && outstanding
-      ? "Report your current move before completing this ambition."
+      ? "Report your current step before completing this challenge."
       : completed && !prepared
         ? "Complete your preparation before recording this accomplishment."
         : status === "active" && (!scheduled || !prepared)
-          ? "Schedule your next move before returning to active preparation."
+          ? "Schedule your next step before returning to active preparation."
           : "";
   const valid =
     !!v.detail.trim() &&
@@ -565,8 +635,8 @@ export function Decision({ goal: g, snapshot, save, saving, navigate }: Props) {
               : outstanding
                 ? "Report what happened"
                 : g.status === "draft"
-                  ? "Prepare my ambition"
-                  : "Schedule my next move"}
+                  ? "Prepare my challenge"
+                  : "Schedule my next step"}
           </button>
         ) : status ? (
           <>

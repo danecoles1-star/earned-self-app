@@ -42,10 +42,7 @@ it("reports a partial result, retains required explanation and offers deliberate
   };
   const u = userEvent.setup();
   render(<App adapter={adapter} />);
-  await u.click(await screen.findByRole("button", { name: "Begin my move" }));
-  await u.click(
-    await screen.findByRole("button", { name: "Report what happened" }),
-  );
+  await u.click(await screen.findByRole("button", { name: "Step check-in" }));
   await u.click(
     await screen.findByRole("button", { name: "Partly", exact: true }),
   );
@@ -53,6 +50,7 @@ it("reports a partial result, retains required explanation and offers deliberate
     screen.getByLabelText("What happened?"),
     "I completed half the planned practice.",
   );
+  await u.type(screen.getByLabelText("What are you ready for next?"), "One more rehearsal before the milestone.");
   await u.type(screen.getByLabelText("What prevented it?"), "Shift ran late");
   await u.type(screen.getByLabelText("What will you change?"), "Protect lunch");
   await u.click(screen.getByRole("button", { name: "Save to Proof" }));
@@ -63,10 +61,10 @@ it("reports a partial result, retains required explanation and offers deliberate
   expect(data.snapshot.goals[0].status).toBe("active");
   await u.click(screen.getByRole("button", { name: "Choose what comes next" }));
   await u.click(
-    await screen.findByRole("button", { name: "Choose my next move" }),
+    await screen.findByRole("button", { name: "Add a step" }),
   );
-  await screen.findByRole("heading", { name: "Choose your next move." });
-  await u.type(screen.getByLabelText("My next move"), "Finish the practice");
+  await screen.findByRole("heading", { name: "Choose your next step." });
+  await u.type(screen.getByLabelText("My next step"), "Finish the practice");
   await u.type(screen.getByLabelText("Done means"), "Full rehearsal");
   await u.click(screen.getByRole("button", { name: "Continue" }));
   expect(screen.getByLabelText("Action time")).toBeRequired();

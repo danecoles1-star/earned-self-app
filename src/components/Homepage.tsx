@@ -11,8 +11,8 @@ export function Homepage({
   return (
     <Page
       layout="welcome"
-      title="Become You."
-      sub="The real you will be earned."
+      title="Become You"
+      sub="Who you become starts with what you dare to do."
       footer={
         <>
           <button className="button" onClick={() => start("vision")}>

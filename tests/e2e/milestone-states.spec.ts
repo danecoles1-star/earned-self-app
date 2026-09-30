@@ -60,11 +60,14 @@ for (const width of [390, 1440]) {
         .click();
       await expect(page).toHaveURL(new RegExp(`/milestone/${g}$`));
       if (mode === "pending") {
+        await page
+          .getByRole("button", { name: "I’m ready", exact: true })
+          .click();
         await expect(
           page.getByRole("heading", { name: "Did you reach it?" }),
         ).toBeVisible();
         await expect(
-          page.getByRole("button", { name: "Mark milestone complete" }),
+          page.getByRole("button", { name: "Save milestone reflection" }),
         ).toBeVisible();
       } else {
         await expect(
@@ -77,7 +80,7 @@ for (const width of [390, 1440]) {
         ).toBeVisible();
         await expect(page.getByRole("textbox")).toHaveCount(0);
         await expect(
-          page.getByRole("button", { name: "Mark milestone complete" }),
+          page.getByRole("button", { name: "Save milestone reflection" }),
         ).toHaveCount(0);
       }
       expect(
@@ -91,13 +94,13 @@ for (const width of [390, 1440]) {
       });
       if (mode === "empty") {
         await page
-          .getByRole("button", { name: "Prepare my ambition", exact: true })
+          .getByRole("button", { name: "Prepare my challenge", exact: true })
           .click();
         await expect(page).toHaveURL(new RegExp(`/plan/${g}$`));
       }
       if (mode === "complete") {
         await page
-          .getByRole("button", { name: "Return to my ambition", exact: true })
+          .getByRole("button", { name: "Return to my challenge", exact: true })
           .click();
         await expect(page).toHaveURL(/\/manage$/);
       }

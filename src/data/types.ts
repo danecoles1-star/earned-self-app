@@ -101,6 +101,8 @@ export interface PursuitEvent {
   id: string;
   goal_id: string;
   kind:
+    | "planned_step"
+    | "milestone_attempt"
     | "reschedule"
     | "milestone_schedule"
     | "milestone"
@@ -125,6 +127,7 @@ export interface Command {
   operationId: string;
   actorId: string;
   kind:
+    | "planned_step"
     | "first_move"
     | "goal"
     | "plan"

@@ -83,7 +83,7 @@ it("shows loading and failure honestly, disables navigation while saving, and re
       exact: true,
     }),
   );
-  await u.click(screen.getByRole("button", { name: "Save my first Proof" }));
+  await u.click(screen.getByRole("button", { name: "Open Basecamp" }));
   expect(screen.getByRole("button", { name: "Saving…" })).toBeDisabled();
 
   expect(screen.queryByText("Saved to your account.")).not.toBeInTheDocument();
@@ -93,7 +93,7 @@ it("shows loading and failure honestly, disables navigation while saving, and re
   await screen.findByRole("alert");
   expect(loadDraft().words).toBe("Finish my own draft.");
   expect(screen.queryByText("Saved to your account.")).not.toBeInTheDocument();
-  await u.click(screen.getByRole("button", { name: "Save my first Proof" }));
+  await u.click(screen.getByRole("button", { name: "Open Basecamp" }));
   await waitFor(() => expect(attempted).toHaveLength(2));
   expect(attempted[1]).toBe(attempted[0]);
   await screen.findByText("Saved to your account.");

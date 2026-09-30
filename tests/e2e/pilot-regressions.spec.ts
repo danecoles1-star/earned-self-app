@@ -72,10 +72,10 @@ test("legacy draft with an outstanding move can report, then finish preparation 
     await page.setViewportSize({ width, height: 900 });
     await page.goto("/app");
     await expect(
-      page.getByRole("button", { name: "Begin my move", exact: true }),
+      page.getByRole("button", { name: "Step check-in", exact: true }),
     ).toBeVisible();
     await expect(
-      page.getByRole("button", { name: "Prepare my ambition" }),
+      page.getByRole("button", { name: "Continue preparation" }),
     ).toHaveCount(0);
     await expect(
       page.getByRole("button", { name: "Add my move to a calendar" }),
@@ -105,7 +105,7 @@ test("legacy draft with an outstanding move can report, then finish preparation 
   await expect(page).toHaveURL(/\/proof\//);
   await page.goto("/app");
   await page
-    .getByRole("button", { name: "Prepare my ambition", exact: true })
+    .getByRole("button", { name: "Continue preparation", exact: true })
     .click();
   await expect(page.getByRole("textbox")).toHaveCount(1);
   await expect(page.getByRole("alert")).toHaveCount(0);

@@ -1,3 +1,4 @@
+import { StepTimer, pauseTimer } from "./StepTimer";
 import { firstMoveExample } from "./guidance";
 import { useState } from "react";
 import type { EntryDraft } from "../data/drafts";
@@ -14,6 +15,7 @@ export interface FirstMove {
 }
 export interface EntryExperience {
   step: number;
+  flowVersion?: number;
   pain: string;
   domain: string;
   stretch: string;
@@ -22,6 +24,7 @@ export interface EntryExperience {
 }
 export const newEntryExperience = (): EntryExperience => ({
   step: 0,
+  flowVersion: 2,
   pain: "",
   domain: "",
   stretch: "",
@@ -74,33 +77,35 @@ export function Onboarding({
         ...v,
       },
     });
-  const step = x.step;
-  const go = (step: number) => patch({ step });
+  // Keep legacy numeric step identities so saved drafts never change meaning.
+  const sequence = [0, 1, 3, 4, 7, 8, 9, 10];
+  const step = sequence.includes(x.step) ? x.step : x.step === 2 ? 3 : 7;
+  const go = (step: number) => patch({ step, flowVersion: 2 });
   const titles = [
-    "What feels familiar?",
+    "What brings you here?",
     "Who will you become?",
     "Where will you stretch?",
-    "Name your ambition.",
-    "Why does it matter?",
+    "Choose your challenge.",
+    "Why this challenge?",
     "Make the stretch real.",
     "What gets in the way?",
-    "Make your first move.",
+    "What can you do now?",
     "Give it your attention.",
-    "What actually happened?",
-    "You made a start.",
+    "How did it go?",
+    "Keep what you’ve started.",
   ];
   const subs = [
-    "Choose what brings you here.",
-    "Think beyond what you already know you can do.",
+    "Choose what fits best right now.",
+    "Picture yourself doing something difficult that matters to you. Who do you want to be in that moment?",
     "Choose a place to begin.",
-    "What big vision do you have for yourself?",
-    "Give this ambition a reason worth returning to.",
+    "What big accomplishment would help you become that person?",
+    "Why does it matter to you, and how will it help you grow?",
     "Name the finish. See what it asks of you.",
     "Be honest about what could hold you back.",
-    "Choose one useful action you can take now.",
-    "Take the move you chose. Return when you have tried.",
+    "Choose one useful preparation step you can finish in a minute or two.",
+    "Do the action you chose. Come back and tell us how it went.",
     "Your honest account is the beginning of Proof.",
-    "One real move. Something to build on.",
+    "One real step. Something to build on.",
   ];
   const required = [
     x.pain,
@@ -134,7 +139,7 @@ export function Onboarding({
         required={false}
         value={values.includes(x[key]) ? "" : x[key]}
         onChange={(v) => patch({ [key]: v })}
-        placeholder="Tell us what matters to you..."
+        placeholder="Tell us what brings you here..."
       />
     </div>
   );
@@ -159,15 +164,15 @@ export function Onboarding({
       onFinish();
       return;
     }
-    go(step + 1);
+    go(sequence[sequence.indexOf(step) + 1]);
   };
   return (
     <Page
       title={titles[step] ?? titles[0]}
       sub={subs[step]}
       dark={[1, 3, 8, 10].includes(step)}
-      progress={step < 8 ? [step + 1, 8] : undefined}
-      back={() => (step ? go(step - 1) : back())}
+      progress={step < 8 ? [sequence.indexOf(step) + 1, 5] : undefined}
+      back={() => (step ? go(sequence[sequence.indexOf(step) - 1]) : back())}
       footer={
         <>
           {error && <p role="alert">{error}</p>}
@@ -176,14 +181,15 @@ export function Onboarding({
               <button
                 className="button"
                 disabled={saving}
-                onClick={() =>
-                  x.first.started ? go(9) : first({ started: true })
-                }
+                onClick={() => {
+                  pauseTimer(`entry:${draft.id}:${x.first.id}`);
+                  go(9);
+                }}
               >
-                {x.first.started ? "I have tried it" : "Start"}
+                Check in
               </button>
               <button className="quiet" onClick={() => go(7)}>
-                I need a different move
+                Choose a different step
               </button>
             </>
           ) : (
@@ -201,13 +207,27 @@ export function Onboarding({
                 ? "Saving…"
                 : step === 10
                   ? signedIn
-                    ? "Save my first Proof"
-                    : "Keep going"
+                    ? "Open Basecamp"
+                    : "Sign in to save"
                   : step === 9
                     ? "Record what happened"
                     : step === 7
-                      ? "Begin move"
+                      ? "Do it now"
                       : "Continue"}
+            </button>
+          )}
+          {step >= 7 && (
+            <button
+              className="quiet"
+              disabled={
+                saving ||
+                !draft.words.trim() ||
+                !draft.vision.trim() ||
+                !draft.meaning.trim()
+              }
+              onClick={onFinish}
+            >
+              Save and finish later
             </button>
           )}
           <button
@@ -229,10 +249,12 @@ export function Onboarding({
     >
       {step === 0 &&
         pick("pain", [
-          "I keep putting it off",
-          "I doubt myself",
-          "I keep starting over",
-          "I am ready for more",
+          "I’m ready to take on more",
+          "I want to believe in myself",
+          "I keep putting off something big",
+          "I want to finish what I start",
+          "I want to make time for myself",
+          "I’m looking for direction",
         ])}
       {step === 1 && (
         <>
@@ -252,7 +274,7 @@ export function Onboarding({
         ])}
       {step === 3 && (
         <>
-          {input("words", "My big vision", "I know I can be…")}
+          {input("words", "My challenge", "I will…")}
           <Help
             ambition={draft.vision}
             field="what accomplishment would give you real evidence of that change? Name what you would do or make."
@@ -260,7 +282,7 @@ export function Onboarding({
         </>
       )}
       {step === 4 &&
-        input("meaning", "My reason", "This matters to me because…")}
+        input("meaning", "Your reason", "This matters to me because…")}
       {step === 5 && (
         <>
           {input(
@@ -287,27 +309,28 @@ export function Onboarding({
       {step === 7 && (
         <>
           <Input
-            label="My first move"
+            label="What will you do now?"
             value={x.first.action}
             onChange={(v) => first({ action: v })}
-            placeholder="The move I can make now…"
+            placeholder="My first action is..."
           />
           <Input
-            label="Done means"
+            label="What will be done?"
             value={x.first.criterion}
             onChange={(v) => first({ criterion: v })}
-            placeholder="I will know it is done when…"
+            placeholder="I’ll have finished this action when..."
           />
           <Help
             ambition={draft.words}
             example={firstMoveExample(draft.words)}
-            field={`what short action would reduce the barrier you named: “${x.barrier}”? Pick something you can actually try now.`}
+            field="what useful preparation can you finish in one or two minutes? Keep it specific and achievable now."
           />
         </>
       )}
       {step === 8 && (
         <div className="focus-move">
           <h2>{x.first.action}</h2>
+          <StepTimer identity={`entry:${draft.id}:${x.first.id}`} />
           <p>Done means: {x.first.criterion}</p>
           {x.first.started && (
             <p role="status">
