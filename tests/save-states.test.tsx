@@ -14,6 +14,7 @@ import {
 
 beforeEach(() => {
   localStorage.clear();
+  sessionStorage.clear();
   history.replaceState({}, "", "/app");
 });
 it("shows loading and failure honestly, disables navigation while saving, and retries the same operation", async () => {
@@ -61,7 +62,7 @@ it("shows loading and failure honestly, disables navigation while saving, and re
   x.step = 10;
   x.first = {
     ...x.first,
-    action: "Practice",
+    action: "",
     criterion: "Once",
     result: "done",
     detail: "Practiced once",
@@ -84,7 +85,9 @@ it("shows loading and failure honestly, disables navigation while saving, and re
     }),
   );
   await u.click(screen.getByRole("button", { name: "Open Basecamp" }));
-  expect(screen.getByRole("button", { name: "Saving…" })).toBeDisabled();
+  await screen.findByText("Keeping your progress.");
+  expect(screen.queryByRole("navigation")).not.toBeInTheDocument();
+  await waitFor(() => expect(attempted).toHaveLength(1));
 
   expect(screen.queryByText("Saved to your account.")).not.toBeInTheDocument();
   await act(async () =>
@@ -93,7 +96,7 @@ it("shows loading and failure honestly, disables navigation while saving, and re
   await screen.findByRole("alert");
   expect(loadDraft().words).toBe("Finish my own draft.");
   expect(screen.queryByText("Saved to your account.")).not.toBeInTheDocument();
-  await u.click(screen.getByRole("button", { name: "Open Basecamp" }));
+  await u.click(screen.getByRole("button", { name: "Retry save" }));
   await waitFor(() => expect(attempted).toHaveLength(2));
   expect(attempted[1]).toBe(attempted[0]);
   await screen.findByText("Saved to your account.");

@@ -1,3 +1,5 @@
+import { Auth } from "./experience/Auth";
+import { ResumeEntry } from "./experience/ResumeEntry";
 import { PlanStep } from "./experience/PlanStep";
 import { AddMilestone } from "./experience/AddMilestone";
 import {
@@ -131,7 +133,6 @@ export function App({ adapter }: { adapter: Adapter }) {
       if (owner.current !== (u?.id ?? null)) resumeAfterRead.current = null;
       owner.current = u?.id ?? null;
       setUser(u);
-      setBoot(false);
     };
     const unsubscribe = adapter.subscribe((u) => {
       observed = true;
@@ -141,6 +142,7 @@ export function App({ adapter }: { adapter: Adapter }) {
       .getUser()
       .then((u) => {
         if (!observed) set(u);
+        if (alive) setBoot(false);
       })
       .catch((e) => {
         if (alive) {
@@ -183,20 +185,26 @@ export function App({ adapter }: { adapter: Adapter }) {
   }, [user?.id, refresh]);
   useEffect(() => {
     if (boot) return;
+    if (path === "/" && user) {
+      history.replaceState({}, "", "/app");
+      setPath("/app");
+    }
     if (path === "/auth/callback") {
       const q = new URLSearchParams(location.search),
         h = new URLSearchParams(location.hash.slice(1));
       const failed = q.get("error") || h.get("error");
-      const destination = user
-        ? (draft.words || draft.vision) && canUseDraft(draft, user.id)
-          ? "/start"
-          : "/app"
-        : "/auth";
+      const destination =
+        user && !failed
+          ? sessionStorage.getItem("earned-self:save-after-auth") ===
+              draft.id && canUseDraft(draft, user.id)
+            ? "/resume-entry"
+            : "/app"
+          : "/auth";
       history.replaceState({}, "", destination);
       setPath(destination);
       if (failed || !user)
         setError(
-          "This sign-in link could not be used. Request a new email and open it in the same browser.",
+          "This sign-in link could not be used. Log in below or choose Email me a code.",
         );
     }
   }, [boot, user, path]);
@@ -405,43 +413,15 @@ export function App({ adapter }: { adapter: Adapter }) {
           error={draftError || error}
           back={() => navigate(user ? "/app" : "/")}
           onFinish={() => {
-            if (!user) {
-              navigate("/auth");
-              return;
-            }
-            const bound = { ...draft, boundOwner: user.id };
             try {
-              saveDraft(bound);
-              setDraft(bound);
+              saveDraft(draft);
+              sessionStorage.setItem("earned-self:save-after-auth", draft.id);
+              navigate(user ? "/resume-entry" : "/auth");
             } catch {
               setError(
                 "Your draft could not be kept on this device. Keep this page open.",
               );
-              return;
             }
-            const existing = snapshot.goals.find((g) => g.id === draft.id);
-            if (existing) {
-              navigate("/import-first/" + existing.id);
-              return;
-            }
-            void save(
-              "goal",
-              Object.fromEntries(
-                [
-                  "id",
-                  "words",
-                  "vision",
-                  "outcome",
-                  "meaning",
-                  "constraints",
-                  "capabilities",
-                  "unknowns",
-                  "affirmed",
-                  "milestones",
-                ].map((k) => [k, bound[k as keyof EntryDraft]]),
-              ),
-              (r) => navigate("/import-first/" + r.id),
-            );
           }}
         />
       );
@@ -450,16 +430,26 @@ export function App({ adapter }: { adapter: Adapter }) {
       <Auth
         adapter={adapter}
         user={user}
-        draft={draft}
-        onContinue={() =>
-          navigate(
-            (draft.words || draft.vision) &&
-              (!user || canUseDraft(draft, user.id))
-              ? "/start"
-              : "/app",
-          )
-        }
-        onError={setError}
+        onContinue={() => {
+          void adapter
+            .getUser()
+            .then((u) => {
+              if (!u) {
+                setError("Sign-in did not finish. Please try again.");
+                return;
+              }
+              owner.current = u.id;
+              setUser(u);
+              setError("");
+              navigate(
+                sessionStorage.getItem("earned-self:save-after-auth") ===
+                  draft.id && canUseDraft(draft, u.id)
+                  ? "/resume-entry"
+                  : "/app",
+              );
+            })
+            .catch((e) => setError(message(e)));
+        }}
       />
     );
   else if (loading || loadError)
@@ -491,6 +481,33 @@ export function App({ adapter }: { adapter: Adapter }) {
           </>
         )}
       </main>
+    );
+  else if (path === "/resume-entry")
+    screen = (
+      <ResumeEntry
+        adapter={adapter}
+        draft={draft}
+        onBack={() => navigate("/start")}
+        onSaved={(state) => {
+          if (
+            !state.goals.some(
+              (g) => g.id === draft.id && g.owner_id === owner.current,
+            )
+          )
+            return;
+          setSnapshot(state);
+          const currentDraft = loadDraft();
+          if (
+            currentDraft.id === draft.id &&
+            currentDraft.operationId === draft.operationId
+          )
+            clearDraft();
+          sessionStorage.removeItem("earned-self:save-after-auth");
+          setDraft(loadDraft());
+          setNotice("Saved to your account.");
+          navigate("/app");
+        }}
+      />
     );
   else if (path.startsWith("/import-first/")) {
     const goal = snapshot.goals.find((g) => g.id === path.split("/")[2]);
@@ -853,133 +870,16 @@ export function App({ adapter }: { adapter: Adapter }) {
       <div inert={saving} aria-busy={saving}>
         {screen}
         {user &&
-          !["/", "/start", "/auth", "/auth/callback", "/new"].includes(
-            path,
-          ) && <AppNavigation path={path} navigate={navigate} />}
+          ![
+            "/",
+            "/start",
+            "/auth",
+            "/auth/callback",
+            "/new",
+            "/resume-entry",
+          ].includes(path) && <AppNavigation path={path} navigate={navigate} />}
       </div>
     </>
-  );
-}
-function Auth({
-  adapter,
-  user,
-  draft,
-  onContinue,
-  onError,
-}: {
-  adapter: Adapter;
-  user: User | null;
-  draft: EntryDraft;
-  onContinue: () => void;
-  onError: (e: string) => void;
-}) {
-  const [email, setEmail] = useState(""),
-    [sent, setSent] = useState(false),
-    [busy, setBusy] = useState(false);
-  return (
-    <Page
-      title={
-        user
-          ? "You are signed in."
-          : sent
-            ? "Check your inbox."
-            : "Keep becoming."
-      }
-      sub={user ? undefined : "Keep your challenge and Proof together."}
-    >
-      {user ? (
-        <>
-          <p>
-            Signed in as {user.email}.{" "}
-            {(draft.words || draft.vision) && canUseDraft(draft, user.id)
-              ? "Your draft is ready to review. It has not been saved to your account yet."
-              : "Open your own saved work."}
-          </p>
-          <button className="button" onClick={onContinue}>
-            {(draft.words || draft.vision) && canUseDraft(draft, user.id)
-              ? "Review my draft"
-              : "Open my pursuit"}
-          </button>
-        </>
-      ) : __LOCAL_PREVIEW__ ? (
-        <>
-          <p>
-            This is local preview. No email is sent and no real account is
-            created. Personal entries stay in this browser, separate from Maya’s
-            example.
-          </p>
-          <button
-            className="button"
-            onClick={() =>
-              void adapter
-                .enterPreview?.()
-                .then(onContinue)
-                .catch((e) => onError(message(e)))
-            }
-          >
-            Enter local preview
-          </button>
-        </>
-      ) : (
-        <>
-          <p>
-            We will email you a sign-in link. Open it in this browser to
-            continue. Your pursuit draft stays here while you sign in.
-          </p>
-          {!adapter.configured && (
-            <p className="notice">
-              Account saving is not connected yet. Your draft remains on this
-              device.
-            </p>
-          )}
-          <form
-            className="auth-form"
-            onSubmit={async (e) => {
-              e.preventDefault();
-              if (busy) return;
-              setBusy(true);
-              onError("");
-              try {
-                await adapter.signIn(email);
-                setSent(true);
-              } catch (e) {
-                onError(message(e));
-              } finally {
-                setBusy(false);
-              }
-            }}
-          >
-            <label htmlFor="email">Email address</label>
-            <input
-              id="email"
-              type="email"
-              autoComplete="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={busy}
-            />
-            <div className="actions">
-              <button className="button" disabled={busy || !adapter.configured}>
-                {busy
-                  ? "Sending…"
-                  : sent
-                    ? "Send another sign-in link"
-                    : "Email me a sign-in link"}
-              </button>
-            </div>
-            {sent && (
-              <p className="notice success" role="status">
-                Check your email. The link signs you in; it does not save or
-                import your draft automatically. Wait a minute before requesting
-                another.
-              </p>
-            )}
-          </form>
-        </>
-      )}
-      <Privacy />
-    </Page>
   );
 }
 function Unavailable({ navigate }: { navigate: (p: string) => void }) {

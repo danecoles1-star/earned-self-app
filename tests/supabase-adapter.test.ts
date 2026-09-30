@@ -1,6 +1,12 @@
 import { afterEach, it, expect, vi } from "vitest";
 const mock = vi.hoisted(() => ({
   rpc: vi.fn(),
+  signInWithPassword: vi.fn(),
+  signUp: vi.fn(),
+  verifyOtp: vi.fn(),
+  resend: vi.fn(),
+  resetPasswordForEmail: vi.fn(),
+  updateUser: vi.fn(),
   getSession: vi.fn(),
   signInWithOtp: vi.fn(),
   signOut: vi.fn(),
@@ -10,6 +16,7 @@ vi.mock("@supabase/supabase-js", () => ({
   createClient: vi.fn(() => ({
     rpc: mock.rpc,
     auth: {
+      ...mock,
       getSession: mock.getSession,
       signInWithOtp: mock.signInWithOtp,
       signOut: mock.signOut,
@@ -48,7 +55,7 @@ it("uses PKCE and an exact same-origin email callback", async () => {
     email: "tester@example.invalid",
     options: {
       emailRedirectTo: location.origin + "/auth/callback",
-      shouldCreateUser: true,
+      shouldCreateUser: false,
     },
   });
   expect(createClient).toHaveBeenCalledWith(
@@ -114,4 +121,73 @@ it("rejects secret credentials and unsafe endpoint origins", () => {
   vi.stubEnv("VITE_SUPABASE_URL", "https://untrusted.example");
   vi.stubEnv("VITE_SUPABASE_PUBLISHABLE_KEY", "sb_publishable_test");
   expect(() => createSupabaseAdapter()).toThrow();
+});
+
+it("uses password login and signup without putting passwords in callbacks", async () => {
+  const a = configured();
+  mock.signInWithPassword.mockResolvedValue({ error: null });
+  mock.signUp.mockResolvedValue({ error: null });
+  await a.passwordSignIn!("member@example.invalid", "synthetic-password");
+  await a.signUp!("member@example.invalid", "synthetic-password");
+  expect(mock.signInWithPassword).toHaveBeenCalledWith({
+    email: "member@example.invalid",
+    password: "synthetic-password",
+  });
+  expect(mock.signUp).toHaveBeenCalledWith({
+    email: "member@example.invalid",
+    password: "synthetic-password",
+  });
+});
+it("verifies each code type and rejects a missing session", async () => {
+  const a = configured();
+  mock.verifyOtp.mockResolvedValue({
+    data: { session: { user: { id: "a" } } },
+    error: null,
+  });
+  for (const type of ["email", "signup", "recovery"] as const) {
+    await a.verifyCode!("member@example.invalid", "12345678", type);
+    expect(mock.verifyOtp).toHaveBeenLastCalledWith({
+      email: "member@example.invalid",
+      token: "12345678",
+      type,
+    });
+  }
+  mock.verifyOtp.mockResolvedValue({ data: { session: null }, error: null });
+  await expect(
+    a.verifyCode!("member@example.invalid", "12345678", "email"),
+  ).rejects.toThrow("did not create a session");
+});
+it("supports recovery, signup resend and password update", async () => {
+  const a = configured();
+  for (const fn of [mock.resetPasswordForEmail, mock.resend, mock.updateUser])
+    fn.mockResolvedValue({ error: null });
+  await a.recoverPassword!("member@example.invalid");
+  await a.resendSignup!("member@example.invalid");
+  await a.updatePassword!("new-synthetic-password");
+  expect(mock.resetPasswordForEmail).toHaveBeenCalledWith(
+    "member@example.invalid",
+  );
+  expect(mock.resend).toHaveBeenCalledWith({
+    type: "signup",
+    email: "member@example.invalid",
+  });
+  expect(mock.updateUser).toHaveBeenCalledWith({
+    password: "new-synthetic-password",
+  });
+});
+it("reports email rate limits and invalid credentials without raw service errors", async () => {
+  const a = configured();
+  mock.signInWithOtp.mockResolvedValue({
+    error: { code: "over_email_send_rate_limit", status: 429 },
+  });
+  await expect(a.signIn("member@example.invalid")).rejects.toThrow(/email/i);
+  mock.signInWithPassword.mockResolvedValue({
+    error: {
+      code: "invalid_credentials",
+      message: "sensitive internal detail",
+    },
+  });
+  await expect(
+    a.passwordSignIn!("member@example.invalid", "bad"),
+  ).rejects.toThrow(/incorrect/i);
 });

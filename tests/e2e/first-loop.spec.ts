@@ -48,8 +48,9 @@ test("first visit through first action, failure recovery, accomplishment and nex
   await shot("12-first-proof-mobile");
   await click("Sign in to save");
   await click("Enter local preview");
-  await click("Open Basecamp");
-  await click("Save and open Basecamp");
+  await expect(
+    p.getByText("Saved to your account.", { exact: true }),
+  ).toBeVisible();
   await click("Continue preparation");
   await fill("Done means", "My essay is published and available to read");
   await next();

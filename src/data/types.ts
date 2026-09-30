@@ -152,6 +152,16 @@ export interface Adapter {
   getUser(): Promise<User | null>;
   subscribe(cb: (user: User | null) => void): () => void;
   signIn(email: string): Promise<void>;
+  passwordSignIn?(email: string, password: string): Promise<void>;
+  signUp?(email: string, password: string): Promise<void>;
+  verifyCode?(
+    email: string,
+    token: string,
+    type: "email" | "signup" | "recovery",
+  ): Promise<void>;
+  resendSignup?(email: string): Promise<void>;
+  recoverPassword?(email: string): Promise<void>;
+  updatePassword?(password: string): Promise<void>;
   signOut(): Promise<void>;
   read(): Promise<Snapshot>;
   execute(command: Command): Promise<Receipt>;
