@@ -62,6 +62,7 @@ export function Auth({
   }, []);
   const wait = Math.max(0, Math.ceil((until - now) / 1000));
   const change = (next: Mode) => {
+    if (next !== "code" && next !== "password") clearPending();
     setMode(next);
     setError("");
     setPassword("");
@@ -162,7 +163,7 @@ export function Auth({
       title={title}
       sub={
         mode === "code"
-          ? `Enter the code sent to ${email}.`
+          ? `Use the newest code for ${email.trim()}.`
           : "Your progress stays with you."
       }
     >
@@ -198,6 +199,18 @@ export function Auth({
                 void run(submit);
               }}
             >
+              {mode === "signup" && (
+                <p>
+                  Already started an account? Choose Log in below to keep your
+                  progress.
+                </p>
+              )}
+              {mode === "email" && (
+                <p>
+                  Sign in to your existing account with a code. No password
+                  needed.
+                </p>
+              )}
               {mode !== "code" && mode !== "password" && (
                 <>
                   <label htmlFor="auth-email">Email address</label>
@@ -215,8 +228,11 @@ export function Auth({
               {mode === "code" && (
                 <>
                   <p>
-                    If an account is eligible, you’ll receive a code. Keep this
-                    page open and enter it here.
+                    {type === "signup"
+                      ? "New account? Check your inbox for a confirmation code. Already have an account? Use a sign-in code below instead."
+                      : type === "recovery"
+                        ? "If this email matches an account, you’ll receive a password reset code. Enter it here to choose a new password."
+                        : "If this email matches an account, you’ll receive a sign-in code. Enter it here to continue."}
                   </p>
                   <label htmlFor="auth-code">Verification code</label>
                   <input
@@ -293,6 +309,17 @@ export function Auth({
           )}
           {!busy && (
             <div className="auth-options">
+              {(mode === "signup" ||
+                (mode === "code" && type === "signup")) && (
+                <>
+                  <button className="quiet" onClick={() => change("email")}>
+                    Sign in with an email code
+                  </button>
+                  <button className="quiet" onClick={() => change("login")}>
+                    Already have an account? Log in
+                  </button>
+                </>
+              )}
               {mode === "login" && (
                 <>
                   <button className="quiet" onClick={() => change("signup")}>

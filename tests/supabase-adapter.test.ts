@@ -191,3 +191,15 @@ it("reports email rate limits and invalid credentials without raw service errors
     a.passwordSignIn!("member@example.invalid", "bad"),
   ).rejects.toThrow(/incorrect/i);
 });
+
+it("offers sign-in for explicit duplicate-signup errors without raw service details", async () => {
+  const a = configured();
+  for (const code of ["user_already_exists", "email_exists"]) {
+    mock.signUp.mockResolvedValue({
+      error: { code, message: "sensitive internal detail" },
+    });
+    await expect(
+      a.signUp!("member@example.invalid", "synthetic-password"),
+    ).rejects.toThrow("choose Log in or Sign in with an email code");
+  }
+});

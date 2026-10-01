@@ -3,6 +3,8 @@ export function authMessage(error: {
   status?: number;
   message?: string;
 }): string {
+  if (error.code === "user_already_exists" || error.code === "email_exists")
+    return "Unable to create an account with these details. If you already have an account, choose Log in or Sign in with an email code.";
   if (error.code === "over_email_send_rate_limit")
     return "Email sending is temporarily limited. Your draft is safe on this device. Please try again later.";
   if (error.status === 429 || error.code === "over_request_rate_limit")
