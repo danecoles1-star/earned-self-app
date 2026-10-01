@@ -112,7 +112,7 @@ export function App({ adapter }: { adapter: Adapter }) {
     [draftError, setDraftError] = useState("");
   const navigate = useCallback((next: string) => {
     history.pushState({}, "", next);
-    setPath(next);
+    setPath(new URL(next, location.origin).pathname);
     setError("");
     window.scrollTo(0, 0);
   }, []);
@@ -590,7 +590,11 @@ export function App({ adapter }: { adapter: Adapter }) {
     ) : (
       <Unavailable navigate={navigate} />
     );
-  } else if (path.startsWith("/plan/") || path.startsWith("/commitment/")) {
+  } else if (
+    path.startsWith("/plan/") ||
+    path.startsWith("/commitment/") ||
+    path.startsWith("/revise/")
+  ) {
     const goal = snapshot.goals.find((g) => g.id === path.split("/")[2]);
     const Editor = path.startsWith("/plan/") ? Preparation : MoveEditor;
     screen = goal ? (
@@ -625,6 +629,8 @@ export function App({ adapter }: { adapter: Adapter }) {
   else if (path.startsWith("/manage") && selected)
     screen = (
       <Ambition
+        save={save}
+        saving={saving}
         key={path}
         goal={selected}
         snapshot={snapshot}

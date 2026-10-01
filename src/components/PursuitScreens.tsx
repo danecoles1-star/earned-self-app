@@ -1,3 +1,5 @@
+import { LocalDateTimeInput } from "./LocalDateTime";
+import { displaySchedule } from "../data/time";
 import { useEffect, useState } from "react";
 import {
   currentAction,
@@ -66,7 +68,10 @@ export function Field({
 export function useTextDraft<T>(key: string, initial: T) {
   const [value, setValue] = useState<T>(() => {
       try {
-        return JSON.parse(localStorage.getItem(key) || "null") ?? initial;
+        const stored = JSON.parse(localStorage.getItem(key) || "null");
+        return stored && typeof stored === "object"
+          ? { ...initial, ...stored }
+          : initial;
       } catch {
         return initial;
       }
@@ -164,12 +169,12 @@ export function ScheduleFields({
             <label htmlFor={prefix + k}>
               {prefix} {label}
             </label>
-            <input
+            <LocalDateTimeInput
               id={prefix + k}
-              type={type}
+              kind={type}
               required={required}
               value={value[k]}
-              onChange={(e) => change({ ...value, [k]: e.target.value })}
+              onChange={(v) => change({ ...value, [k]: v })}
             />
           </div>
         ))}
@@ -182,7 +187,9 @@ export function ScheduleFields({
         onChange={(e) => change({ ...value, timeZone: e.target.value })}
       />
       <p className="muted">
-        Your time zone keeps this commitment at the right local time.
+        {value.localDate && value.localTime
+          ? displaySchedule(value.localDate, value.localTime, value.timeZone)
+          : "Choose a date and time. Your schedule stays in this time zone."}
       </p>
     </div>
   );
@@ -193,7 +200,7 @@ const when = (s: {
   time_zone: string | null;
 }) =>
   s.local_date
-    ? `${s.local_date} at ${s.local_time?.slice(0, 5) ?? "unspecified time"} · ${s.time_zone ?? "unspecified zone"}`
+    ? displaySchedule(s.local_date, s.local_time, s.time_zone)
     : "Earlier agreement had no schedule";
 const milestoneWhen = (m: Goal["milestones"][number]) =>
   when({

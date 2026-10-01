@@ -223,7 +223,7 @@ it("acknowledged save with failed refresh stays on recovery screen and does not 
   await userEvent.click(
     screen.getByRole("button", { name: "Reload saved work" }),
   );
-  await waitFor(() => expect(location.pathname).toBe("/proof/proof"));
+  await waitFor(() => expect(location.pathname).toBe("/app"));
   expect(adapter.execute).toHaveBeenCalledTimes(1);
 });
 

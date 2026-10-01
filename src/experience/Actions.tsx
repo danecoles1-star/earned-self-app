@@ -1,3 +1,4 @@
+import { LocalDateTimeInput } from "../components/LocalDateTime";
 import { pauseTimer } from "./StepTimer";
 import { useState } from "react";
 import type { Goal, Snapshot, Result } from "../data/types";
@@ -16,7 +17,8 @@ import {
   type Save,
 } from "../components/PursuitScreens";
 import { Art, Page, Input, Choice, Help } from "./ui";
-import { scheduledInstant } from "../data/time";
+import { checkRecurrence, repeatLabel } from "../data/recurrence";
+import { displaySchedule, scheduledInstant } from "../data/time";
 type Props = {
   goal: Goal;
   snapshot: Snapshot;
@@ -37,13 +39,13 @@ export function MoveEditor({
       e.kind === "planned_step" &&
       e.data.stepId === location.pathname.split("/")[3],
   );
-  const c = currentAction(s, g.id),
+  const c = location.pathname.startsWith("/revise/")
+      ? currentAction(s, g.id)
+      : undefined,
     d = c && definition(s, c.id, c.revision),
     time = c && currentSchedule(s, c.id),
     m = currentMilestone(s, g);
-  const priorEntry = s.evidence.filter((e) => e.goal_id === g.id).at(-1);
-  const prior =
-    priorEntry && currentReport(s, priorEntry.id, priorEntry.revision);
+
   const key = `earned-self:move:${g.owner_id}:${g.id}:${c?.id || "new"}:${c?.revision || 0}:${plannedStep?.data.stepId || ""}`;
   const {
     value: v,
@@ -59,7 +61,15 @@ export function MoveEditor({
       time?.time_zone || Intl.DateTimeFormat().resolvedOptions().timeZone,
     location: time?.location || "",
     reason: "",
-    decision: prior && prior.result !== "done" ? "recommit" : "continue",
+    decision: "continue",
+    milestoneId:
+      new URLSearchParams(location.search).get("milestone") ||
+      plannedStep?.data.milestoneId ||
+      m?.id ||
+      "",
+    repeat: !!c?.recurrence,
+    days: c?.recurrence?.days || [0, 1, 2, 3, 4, 5, 6],
+    until: c?.recurrence?.until || "",
   });
   const [step, setStep] = useState(0),
     [issue, setIssue] = useState("");
@@ -83,6 +93,10 @@ export function MoveEditor({
     if (step === 1) {
       try {
         scheduledInstant(v.localDate, v.localTime, v.timeZone);
+        checkRecurrence(
+          v.repeat ? { days: v.days, until: v.until } : null,
+          v.localDate,
+        );
       } catch (e) {
         setIssue((e as Error).message);
         return;
@@ -107,14 +121,15 @@ export function MoveEditor({
         : {
             ...base,
             id: v.id,
-            milestoneId: m!.id,
+            milestoneId: v.milestoneId,
+            recurrence: v.repeat ? { days: v.days, until: v.until } : null,
             ...(plannedStep ? { plannedStepId: plannedStep.data.stepId } : {}),
             decision: v.decision,
             reason: v.reason,
           },
       () => {
         localStorage.removeItem(key);
-        navigate("/calendar/" + g.id);
+        navigate("/app");
       },
     );
   };
@@ -126,7 +141,7 @@ export function MoveEditor({
           : step === 0
             ? "Choose your next step."
             : step === 1
-              ? "Give it a place."
+              ? "Make time for it."
               : "Make it a commitment."
       }
       sub={
@@ -181,9 +196,7 @@ export function MoveEditor({
                   ? "Continue"
                   : c
                     ? "Save revised agreement"
-                    : g.status === "draft"
-                      ? "Schedule this step"
-                      : "Commit to this move"}
+                    : "Save step"}
             </button>
           </>
         )
@@ -195,7 +208,29 @@ export function MoveEditor({
         <>
           {step === 0 && (
             <>
-              <p className="small">{m?.title}</p>
+              <label>
+                Milestone
+                <select
+                  value={v.milestoneId}
+                  onChange={(e) => set("milestoneId", e.target.value)}
+                >
+                  {g.milestones
+                    .filter(
+                      (m) =>
+                        !s.events.some(
+                          (e) =>
+                            e.goal_id === g.id &&
+                            e.kind === "milestone" &&
+                            e.data.milestoneId === m.id,
+                        ),
+                    )
+                    .map((m) => (
+                      <option key={m.id} value={m.id}>
+                        {m.title}
+                      </option>
+                    ))}
+                </select>
+              </label>
               <Input
                 label="My next step"
                 value={v.action}
@@ -203,11 +238,34 @@ export function MoveEditor({
                 placeholder="I will…"
               />
               <Input
-                label="Done means"
+                label={v.repeat ? "Each session is done when" : "Done means"}
                 value={v.criterion}
                 onChange={(v) => set("criterion", v)}
                 placeholder="Describe the observable finish…"
               />
+              {!c && (
+                <fieldset className="repeat-controls">
+                  <legend>How often?</legend>
+                  <div className="choices">
+                    <Choice
+                      selected={!v.repeat}
+                      onClick={() => change({ ...v, repeat: false })}
+                    >
+                      One-time
+                    </Choice>
+                    <Choice
+                      selected={v.repeat}
+                      onClick={() => change({ ...v, repeat: true })}
+                    >
+                      Repeat
+                    </Choice>
+                  </div>
+                </fieldset>
+              )}
+              <p className="small">
+                Describe the action you can complete. Your milestone tracks the
+                progress it builds.
+              </p>
               <Help
                 ambition={g.words}
                 field={`what action would give you evidence toward “${m?.criterion}”?`}
@@ -220,6 +278,50 @@ export function MoveEditor({
                 value={v}
                 change={(patch) => change({ ...v, ...patch })}
               />
+              {v.repeat && (
+                <fieldset className="repeat-controls">
+                  <legend>Repeat on</legend>
+                  <div className="weekday-options">
+                    {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(
+                      (day, n) => (
+                        <button
+                          type="button"
+                          key={day}
+                          aria-pressed={v.days.includes(n)}
+                          onClick={() =>
+                            change({
+                              ...v,
+                              days: v.days.includes(n)
+                                ? v.days.filter((d) => d !== n)
+                                : [...v.days, n].sort(),
+                            })
+                          }
+                        >
+                          {day}
+                        </button>
+                      ),
+                    )}
+                  </div>
+                  <label>
+                    End date (leave blank to repeat until stopped)
+                    <LocalDateTimeInput
+                      id="repeat-end"
+                      kind="date"
+                      required={false}
+                      value={v.until}
+                      onChange={(v) => set("until", v)}
+                    />
+                  </label>
+                </fieldset>
+              )}
+              <p className="small">
+                {repeatLabel(
+                  v.repeat ? { days: v.days, until: v.until } : null,
+                )}
+              </p>
+              {(!v.localDate || !v.localTime) && (
+                <p>Choose a date and time to continue.</p>
+              )}
               <Input
                 label="Where?"
                 value={v.location}
@@ -232,29 +334,15 @@ export function MoveEditor({
             <>
               <h2>{v.action}</h2>
               <p>Done means: {v.criterion}</p>
-              <p>
-                {v.localDate} · {v.localTime} · {v.timeZone}
-              </p>
+              <p>{displaySchedule(v.localDate, v.localTime, v.timeZone)}</p>
               <p>{v.location}</p>
-              {c ? (
+              <p>
+                {repeatLabel(
+                  v.repeat ? { days: v.days, until: v.until } : null,
+                )}
+              </p>
+              {c && (
                 <p className="small">The earlier agreement stays in Proof.</p>
-              ) : (
-                <label>
-                  Your next decision
-                  <select
-                    value={v.decision}
-                    onChange={(e) => set("decision", e.target.value)}
-                  >
-                    {(!prior || prior.result === "done") && (
-                      <option value="continue">Continue preparation</option>
-                    )}
-                    <option value="recommit">
-                      Recommit with a revised plan
-                    </option>
-                    <option value="change_approach">Change the approach</option>
-                    <option value="address_blocker">Address a blocker</option>
-                  </select>
-                </label>
               )}
               {(c || v.decision !== "continue") && (
                 <Input
@@ -295,12 +383,13 @@ export function ReportMove({
   const valid =
     v.result &&
     v.detail.trim() &&
-    (!c.milestone_id || !!v.reflection?.trim()) &&
+    (!c.milestone_id ||
+      (!!v.reflection?.trim() && !!currentSchedule(s, c.id)?.starts_at)) &&
     (v.result === "done" || (v.prevented.trim() && v.adjustment.trim()));
   return (
     <Page
       title="Step check-in."
-      sub="Be honest. Keep what you learned."
+      sub="What did this step teach you?"
       dark={false}
       back={() => navigate("/app")}
       footer={
@@ -322,7 +411,11 @@ export function ReportMove({
                 },
                 (r) => {
                   localStorage.removeItem(key);
-                  navigate("/proof/" + r.id);
+                  navigate(
+                    v.reflection === "Ready to review my milestone"
+                      ? "/milestone/" + g.id
+                      : "/app",
+                  );
                 },
               );
             }}
@@ -332,6 +425,14 @@ export function ReportMove({
         </>
       }
     >
+      <h2>{definition(s, c.id, c.revision)?.action}</h2>
+      <p className="small">
+        {displaySchedule(
+          currentSchedule(s, c.id)?.local_date,
+          currentSchedule(s, c.id)?.local_time,
+          currentSchedule(s, c.id)?.time_zone,
+        )}
+      </p>
       <div className="choices">
         {(
           [
@@ -356,12 +457,18 @@ export function ReportMove({
         placeholder="Write a short, factual account…"
       />
       {c.milestone_id && (
-        <Input
-          label="What are you ready for next?"
-          value={v.reflection || ""}
-          onChange={(v) => set("reflection", v)}
-          placeholder="What feels ready, and what needs more preparation?"
-        />
+        <fieldset>
+          <legend>How does your preparation feel?</legend>
+          {["Keep preparing", "Ready to review my milestone"].map((label) => (
+            <Choice
+              key={label}
+              selected={v.reflection === label}
+              onClick={() => set("reflection", label)}
+            >
+              {label}
+            </Choice>
+          ))}
+        </fieldset>
       )}
       {v.result && v.result !== "done" && (
         <>
@@ -393,6 +500,11 @@ export function MilestoneComplete({
     { detail: "" },
   );
   const [completed, setCompleted] = useState(false);
+  const [remaining, setRemaining] = useState("");
+  const remainingSteps = s.commitments.filter(
+    (c) =>
+      c.goal_id === g.id && c.milestone_id === m?.id && c.state === "active",
+  );
   const [readyToAttempt, setReadyToAttempt] = useState(false);
   const [milestoneResult, setMilestoneResult] = useState("done");
   if (!m && !completed) {
@@ -433,7 +545,7 @@ export function MilestoneComplete({
           <>
             <button
               className="button"
-              disabled={g.status !== "active" || !!currentAction(s, g.id)}
+              disabled={g.status !== "active"}
               onClick={() => setReadyToAttempt(true)}
             >
               I’m ready
@@ -447,7 +559,10 @@ export function MilestoneComplete({
         <h2>{m.title}</h2>
         <p>{m.criterion}</p>
         {currentAction(s, g.id) && (
-          <p>Check in on your current step before attempting the milestone.</p>
+          <p>
+            You can attempt this milestone when you feel ready. Review any
+            unfinished steps before advancing.
+          </p>
         )}
         {g.status !== "active" && (
           <p>Complete your preparation and schedule a step first.</p>
@@ -478,7 +593,9 @@ export function MilestoneComplete({
                 g.status !== "active" ||
                 !m ||
                 !value.detail.trim() ||
-                !!currentAction(s, g.id)
+                (milestoneResult === "done" &&
+                  remainingSteps.length > 0 &&
+                  !remaining)
               }
               onClick={() =>
                 void save(
@@ -489,6 +606,7 @@ export function MilestoneComplete({
                     milestoneId: m!.id,
                     detail: value.detail,
                     result: milestoneResult,
+                    remaining,
                   },
                   () => {
                     localStorage.removeItem(
@@ -525,7 +643,10 @@ export function MilestoneComplete({
             </p>
           )}
           {currentAction(s, g.id) && (
-            <p>Report your current step before completing the milestone.</p>
+            <p>
+              Your unfinished preparation stays visible until you decide what to
+              carry forward.
+            </p>
           )}
           <label>
             What happened?
@@ -539,6 +660,29 @@ export function MilestoneComplete({
               </option>
             </select>
           </label>
+          {milestoneResult === "done" && remainingSteps.length > 0 && (
+            <label>
+              Remaining steps and routines
+              <select
+                value={remaining}
+                onChange={(e) => setRemaining(e.target.value)}
+              >
+                <option value="">Choose what happens next</option>
+                <option value="stop">
+                  End remaining steps and repetitions
+                </option>
+                {g.milestones.indexOf(m!) < g.milestones.length - 1 && (
+                  <option value="carry">
+                    Carry them into my next milestone
+                  </option>
+                )}
+              </select>
+              <p className="small">
+                Previous check-ins stay in Proof. Ending future work does not
+                mark it completed.
+              </p>
+            </label>
+          )}
           <Input
             label="What happened and what did you learn?"
             value={value.detail}

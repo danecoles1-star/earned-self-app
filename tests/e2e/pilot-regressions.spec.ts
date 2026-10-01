@@ -102,7 +102,7 @@ test("legacy draft with an outstanding move can report, then finish preparation 
   await page
     .getByRole("button", { name: "Save to Proof", exact: true })
     .click();
-  await expect(page).toHaveURL(/\/proof\//);
+  await expect(page).toHaveURL(/\/app$/);
   await page.goto("/app");
   await page
     .getByRole("button", { name: "Continue preparation", exact: true })

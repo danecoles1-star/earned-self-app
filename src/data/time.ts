@@ -58,3 +58,23 @@ export function scheduledInstant(
     );
   return new Date(matches[0]).toISOString();
 }
+
+export function displayDate(day?: string | null) {
+  if (!day) return "";
+  const [y, m, d] = day.slice(0, 10).split("-");
+  return `${m}/${d}/${y}`;
+}
+export function displayTime(time?: string | null) {
+  if (!time) return "";
+  const [h, m] = time.split(":");
+  return `${Number(h) % 12 || 12}:${m} ${Number(h) < 12 ? "AM" : "PM"}`;
+}
+export function displaySchedule(
+  day?: string | null,
+  time?: string | null,
+  zone?: string | null,
+) {
+  return [displayDate(day), displayTime(time), zone?.replaceAll("_", " ")]
+    .filter(Boolean)
+    .join(" · ");
+}

@@ -1,3 +1,6 @@
+import { displaySchedule, displayDate } from "../data/time";
+import { currentSchedule } from "../data/domain";
+import { repeatLabel } from "../data/recurrence";
 import { pendingSteps } from "./PlanStep";
 import { useState } from "react";
 import type { Goal, Snapshot } from "../data/types";
@@ -14,11 +17,17 @@ export function Ambition({
   goal: g,
   snapshot: s,
   navigate,
+  save,
+  saving,
 }: {
+  save: Save;
+  saving: boolean;
   goal: Goal;
   snapshot: Snapshot;
   navigate: (p: string) => void;
 }) {
+  const [editingVision, setEditingVision] = useState(false);
+  const [vision, setVision] = useState(g.vision);
   const [section, setSection] = useState(
       location.pathname === "/manage/why" ? "preparation" : "overview",
     ),
@@ -37,18 +46,102 @@ export function Ambition({
         </button>
       }
     >
-      <h2>{g.words}</h2>
-      <p>{g.outcome || "Define your finish during preparation."}</p>
+      {editingVision ? (
+        <section className="vision-editor">
+          <Input
+            label="Who I am becoming"
+            value={vision}
+            onChange={setVision}
+          />
+          <p className="small">
+            Your challenge and Proof stay unchanged. Earlier wording remains in
+            history.
+          </p>
+          <button
+            className="button"
+            disabled={saving || !vision.trim()}
+            onClick={() =>
+              void save(
+                "vision",
+                { goalId: g.id, version: g.version, vision },
+                () => setEditingVision(false),
+              )
+            }
+          >
+            Save vision
+          </button>
+          <button
+            className="button secondary"
+            onClick={() => setEditingVision(false)}
+          >
+            Cancel
+          </button>
+          <details>
+            <summary>Earlier wording</summary>
+            {s.goalHistory
+              .filter((h) => h.goal_id === g.id && h.vision?.trim())
+              .map((h) => (
+                <button
+                  key={h.revision}
+                  className="experience-choice"
+                  onClick={() => setVision(h.vision)}
+                >
+                  {h.vision}
+                </button>
+              ))}
+          </details>
+        </section>
+      ) : (
+        <button
+          className="button secondary"
+          onClick={() => {
+            setVision(g.vision);
+            setEditingVision(true);
+          }}
+        >
+          Edit vision
+        </button>
+      )}
+      <section className="challenge-heading">
+        <span className="section-label">Your challenge</span>
+        <h2>{g.words}</h2>
+        <p>{g.outcome || "Define your finish during preparation."}</p>
+      </section>
       {section === "overview" && (
         <section className="plan-overview">
           <h2>Milestones & steps</h2>
           {!g.milestones.length && <p>No milestones planned yet.</p>}
-          {g.milestones.map((m) => (
-            <section key={m.id}>
-              <h3>{m.title}</h3>
+          {g.milestones.map((m, i) => (
+            <details
+              className={
+                m.id === currentMilestone(s, g)?.id
+                  ? "plan-stage current"
+                  : "plan-stage"
+              }
+              key={m.id}
+              open={m.id === currentMilestone(s, g)?.id}
+            >
+              <summary>
+                <span className="stage-number">{i + 1}</span>
+                <span>
+                  <small>
+                    {s.events.some(
+                      (e) =>
+                        e.goal_id === g.id &&
+                        e.kind === "milestone" &&
+                        e.data.milestoneId === m.id,
+                    )
+                      ? "Completed"
+                      : m.id === currentMilestone(s, g)?.id
+                        ? "Current milestone"
+                        : "Upcoming"}
+                  </small>
+                  <strong>{m.title}</strong>
+                </span>
+              </summary>
               <p>{m.criterion}</p>
               <p className="small">
-                {m.localDate} · {m.localTime}
+                {displaySchedule(m.localDate, m.localTime)}
               </p>
               {pendingSteps(s, g)
                 .filter((e) => e.data.milestoneId === m.id)
@@ -57,10 +150,6 @@ export function Ambition({
                     <p>{e.data.action}</p>
                     <button
                       className="quiet"
-                      disabled={
-                        !!currentAction(s, g.id) ||
-                        m.id !== currentMilestone(s, g)?.id
-                      }
                       onClick={() =>
                         navigate("/commitment/" + g.id + "/" + e.data.stepId)
                       }
@@ -70,16 +159,75 @@ export function Ambition({
                   </div>
                 ))}
               {s.commitments
-                .filter((c) => c.goal_id === g.id && c.milestone_id === m.id)
+                .filter(
+                  (c) =>
+                    c.goal_id === g.id &&
+                    c.milestone_id === m.id &&
+                    c.state === "active",
+                )
                 .map((c) => (
-                  <p key={c.id}>
+                  <div className="plan-step-row" key={c.id}>
                     {definition(s, c.id, c.revision)?.action} ·{" "}
                     {c.state === "active"
-                      ? "Current step"
-                      : "Check-in recorded"}
-                  </p>
+                      ? "Scheduled"
+                      : c.state === "cancelled"
+                        ? "Ended without a check-in"
+                        : "Check-in recorded"}
+                    <small className="step-metadata">
+                      {displaySchedule(
+                        currentSchedule(s, c.id)?.local_date,
+                        currentSchedule(s, c.id)?.local_time,
+                      )}{" "}
+                      · {repeatLabel(c.recurrence)}
+                    </small>
+                    {c.state === "active" && c.recurrence && (
+                      <button
+                        className="button secondary"
+                        disabled={saving}
+                        onClick={() =>
+                          void save(
+                            "stop_repeat",
+                            {
+                              goalId: g.id,
+                              commitmentId: c.id,
+                              version: c.version,
+                            },
+                            () => {},
+                          )
+                        }
+                      >
+                        Stop future repetitions
+                      </button>
+                    )}
+                  </div>
                 ))}
-            </section>
+              <p className="small">
+                {
+                  s.commitments.filter(
+                    (c) =>
+                      c.goal_id === g.id &&
+                      c.milestone_id === m.id &&
+                      c.state === "reported",
+                  ).length
+                }{" "}
+                check-ins recorded in Proof
+              </p>
+              {!s.events.some(
+                (e) =>
+                  e.goal_id === g.id &&
+                  e.kind === "milestone" &&
+                  e.data.milestoneId === m.id,
+              ) && (
+                <button
+                  className="button secondary"
+                  onClick={() =>
+                    navigate("/add-step/" + g.id + "?milestone=" + m.id)
+                  }
+                >
+                  Add step
+                </button>
+              )}
+            </details>
           ))}
         </section>
       )}
@@ -123,9 +271,9 @@ export function Ambition({
             </button>
           )}
           <button onClick={() => navigate("/wallpaper/" + g.id)}>
-            Take it with me
+            Create wallpaper
           </button>
-          <button onClick={() => navigate("/proof")}>See my Proof</button>
+
           {g.status !== "draft" && (
             <button onClick={() => navigate("/history")}>
               Agreements and revisions
@@ -149,7 +297,7 @@ export function Ambition({
               <h3>{m.title}</h3>
               <p>{m.criterion}</p>
               <p className="small">
-                {m.localDate} · {m.localTime} · {m.timeZone}
+                {displaySchedule(m.localDate, m.localTime)} · {m.timeZone}
               </p>
             </div>
           ))}
@@ -169,8 +317,8 @@ export function ProofList({
   const goals = s.goals.filter((g) => filter === "all" || g.status === filter);
   return (
     <Page
-      title="Your Proof stays."
-      sub="What you have done, what you have learned, and who you are becoming."
+      title="Your Proof."
+      sub="What you’ve done. What you’re becoming."
       back={() => navigate("/app")}
     >
       <label>
@@ -185,25 +333,29 @@ export function ProofList({
       </label>
       {!s.evidence.length && <p>No Proof yet.</p>}
       {goals.map((g) => (
-        <section key={g.id}>
+        <section className="proof-group" key={g.id}>
           <h2>{g.words}</h2>
-          <p className="small">Who I am becoming: {g.vision}</p>
+          {g.vision && <p className="small">Who I am becoming: {g.vision}</p>}
           {s.evidence
             .filter((e) => e.goal_id === g.id)
+            .sort((a, b) => b.recorded_at.localeCompare(a.recorded_at))
             .map((e) => {
               const r = currentReport(s, e.id, e.revision),
                 d = definition(s, e.commitment_id, e.commitment_revision);
               return (
                 <button
-                  className="experience-choice"
+                  className="experience-choice proof-card"
                   key={e.id}
                   onClick={() => navigate("/proof/" + e.id)}
                 >
                   <span>
-                    {d?.action}
+                    <small className="section-label">Step check-in</small>
+                    <strong>{d?.action}</strong>
                     <small style={{ display: "block" }}>
-                      {r && resultLabel[r.result]} ·{" "}
-                      {new Date(e.recorded_at).toLocaleDateString()}
+                      <span className={"result-badge result-" + r?.result}>
+                        {r && resultLabel[r.result]}
+                      </span>{" "}
+                      · {displayDate(e.recorded_at)}
                     </small>
                   </span>
                 </button>
@@ -224,7 +376,7 @@ export function ProofList({
                     : e.kind === "milestone_attempt"
                       ? "Milestone attempted"
                       : e.data.to}{" "}
-                  · {new Date(e.recorded_at).toLocaleDateString()}
+                  · {displayDate(e.recorded_at)}
                 </p>
               </div>
             ))}
@@ -263,8 +415,12 @@ export function ProofEntry({
   });
   return (
     <Page
-      title={editing ? "Keep the record honest." : "What you did matters."}
-      sub={resultLabel[r.result]}
+      title={editing ? "Keep the record honest." : d.action}
+      sub={
+        resultLabel[r.result] +
+        " · " +
+        displayDate(r.occurred_on || e.recorded_at)
+      }
       dark={false}
       back={() => (editing ? setEditing(false) : navigate("/proof"))}
       footer={
@@ -296,17 +452,32 @@ export function ProofEntry({
         ) : (
           <>
             <button className="button" onClick={() => navigate("/app")}>
-              Choose what comes next
+              Return to Basecamp
             </button>
-            <button className="quiet" onClick={() => setEditing(true)}>
-              Add reflection or correct this entry
+            <button
+              className="button secondary"
+              onClick={() => setEditing(true)}
+            >
+              Update this entry
             </button>
           </>
         )
       }
     >
-      <h2>{d.action}</h2>
-      <p>Done means: {d.criterion}</p>
+      <p className="small">{g.words}</p>
+      <p className="small">
+        {
+          g.milestones.find(
+            (m) =>
+              m.id ===
+              s.commitments.find((c) => c.id === e.commitment_id)?.milestone_id,
+          )?.title
+        }
+      </p>
+      <details>
+        <summary>Session completion criterion</summary>
+        <p>{d.criterion}</p>
+      </details>
       {editing ? (
         <>
           <Input
@@ -329,6 +500,7 @@ export function ProofEntry({
         </>
       ) : (
         <>
+          <h2>What happened</h2>
           <p className="first-proof">{r.detail}</p>
           {r.reflection && (
             <>
@@ -339,7 +511,7 @@ export function ProofEntry({
           {r.prevented && <p>What prevented it: {r.prevented}</p>}
           {r.adjustment && <p>What will change: {r.adjustment}</p>}
           <button
-            className="quiet"
+            className="button secondary"
             onClick={() => setHistory(!history)}
             aria-expanded={history}
           >

@@ -43,7 +43,13 @@ export interface GoalRevision extends Foundation {
   revision: number;
   recorded_at: string;
 }
+export interface Recurrence {
+  days: number[];
+  until: string;
+}
 export interface Commitment {
+  recurrence?: Recurrence | null;
+  series_id?: string | null;
   id: string;
   owner_id: string;
   goal_id: string;
@@ -51,7 +57,7 @@ export interface Commitment {
   plan_revision: number | null;
   revision: number;
   version: number;
-  state: "active" | "reported";
+  state: "active" | "reported" | "cancelled";
   created_at: string;
 }
 export interface Definition {
@@ -101,6 +107,8 @@ export interface PursuitEvent {
   id: string;
   goal_id: string;
   kind:
+    | "vision"
+    | "stop_repeat"
     | "planned_step"
     | "milestone_attempt"
     | "reschedule"
@@ -127,6 +135,8 @@ export interface Command {
   operationId: string;
   actorId: string;
   kind:
+    | "vision"
+    | "stop_repeat"
     | "planned_step"
     | "first_move"
     | "goal"

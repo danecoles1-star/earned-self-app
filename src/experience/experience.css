@@ -1164,3 +1164,288 @@ body:has(.app-tabs) .workspace {
 .auth-options button {
   min-height: 44px;
 }
+/* Pilot review: clearer hierarchy and comfortable mobile controls. */
+.challenge-heading {
+  background: #dbe5e6;
+  border: 1px solid #b4c6cb;
+  border-left: 3px solid #c28d56;
+  border-radius: 18px;
+  padding: 20px;
+}
+.basecamp .section-label {
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.basecamp .section-label .quiet,
+.basecamp .current-step .section-label .quiet,
+.basecamp .milestone-summary .section-label .quiet {
+  min-height: 44px;
+  padding: 9px 13px;
+  border: 1px solid #53788966;
+  border-radius: 10px;
+  text-decoration: none;
+  font-size: 13px;
+}
+.basecamp .current-step .section-label .quiet {
+  border-color: #adc4cb80;
+}
+.current-step .button.secondary {
+  margin-top: 12px;
+  color: #172329;
+  background: #f1f3f1;
+}
+.wallpaper-card {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 16px;
+  margin-top: 22px;
+  width: 100%;
+  background: #172329;
+  color: #f1f3f1;
+  border: 1px solid #537889;
+  border-radius: 16px;
+  text-align: left;
+  cursor: pointer;
+}
+.wallpaper-card img {
+  width: 72px;
+  height: 108px;
+  object-fit: cover;
+  border-radius: 12px;
+}
+.wallpaper-card strong,
+.wallpaper-card small {
+  display: block;
+}
+.wallpaper-card small {
+  margin-top: 10px;
+  color: #bfd0d5;
+}
+.plan-stage {
+  border: 1px solid #b8c7ca;
+  border-radius: 16px;
+  padding: 18px;
+  margin: 16px 0;
+  background: #ffffff75;
+}
+.plan-stage.current {
+  border: 2px solid #537889;
+  background: #e0e9e9;
+}
+.plan-stage summary {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+  min-height: 48px;
+}
+.plan-stage summary strong,
+.plan-stage summary small {
+  display: block;
+}
+.plan-stage summary strong {
+  font-size: 21px;
+  margin-top: 5px;
+}
+.plan-stage summary small {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.stage-number {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  background: #172329;
+  color: white;
+  border-radius: 50%;
+}
+.step-metadata {
+  display: block;
+  font-size: 13px;
+  margin-top: 6px;
+  color: #42616e;
+}
+.member-rows {
+  display: grid;
+  gap: 10px;
+}
+.member-rows button {
+  padding: 16px;
+  border: 1px solid #9baeb4;
+  border-radius: 12px;
+  min-height: 52px;
+  background: #fff9;
+  text-align: left;
+}
+.repeat-controls {
+  border: 0;
+  padding: 0;
+  margin: 20px 0;
+}
+.weekday-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.weekday-options button {
+  min-width: 44px;
+  min-height: 44px;
+  border: 1px solid #537889;
+  border-radius: 10px;
+  background: transparent;
+  color: inherit;
+}
+.weekday-options button[aria-pressed="true"] {
+  background: #172329;
+  color: white;
+}
+.schedule-fields {
+  border: 1px solid #9baeb4;
+  border-radius: 14px;
+  padding: 16px;
+}
+.schedule-fields input {
+  min-height: 48px;
+  font-size: 16px;
+  min-width: 0;
+  width: 100%;
+}
+.schedule-fields .fields-row {
+  gap: 12px;
+}
+.schedule-fields .fields-row > div {
+  min-width: 0;
+}
+.proof-group {
+  margin: 24px 0 34px;
+}
+.proof-group h2 {
+  font-size: 25px;
+  line-height: 1.25;
+}
+.proof-card strong {
+  display: block;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.4;
+  margin: 8px 0 12px;
+}
+.proof-card .section-label {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+}
+.result-badge {
+  display: inline-block;
+  border: 1px solid #95b4bf;
+  padding: 3px 7px;
+  border-radius: 6px;
+}
+.result-done {
+  background: #42636a;
+  color: white;
+}
+.wallpaper-styles {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  border: 0;
+  padding: 0;
+  margin: 24px 0;
+}
+.wallpaper-swatch {
+  height: 114px;
+  position: relative;
+  overflow: hidden;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  background: #172329;
+  color: white;
+  padding: 6px;
+  cursor: pointer;
+}
+.wallpaper-swatch[aria-pressed="true"] {
+  outline: 2px solid #c28d56;
+  outline-offset: 2px;
+}
+.wallpaper-swatch img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.wallpaper-swatch span {
+  position: relative;
+  font-size: 12px;
+  background: #172329aa;
+  border-radius: 4px;
+  padding: 3px;
+}
+.wallpaper-swatch.mineral {
+  background: #537889;
+}
+.wallpaper-swatch.light {
+  background: #ece9df;
+}
+.wallpaper-toggle {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  min-height: 44px;
+  margin: 4px 0;
+}
+.wallpaper-toggle input {
+  width: 20px;
+  height: 20px;
+}
+.wallpaper-image {
+  max-width: 250px;
+  width: 75%;
+  display: block;
+  margin: 24px auto;
+  border-radius: 22px;
+  box-shadow: 0 10px 40px #0003;
+}
+.image-save-options {
+  display: grid;
+  gap: 10px;
+}
+.image-save-options p {
+  font-size: 14px;
+}
+@media (max-width: 600px) {
+  .experience:has(.proof-group) .experience-heading h1,
+  .experience:has(.plan-overview) .experience-heading h1 {
+    font-size: 36px;
+  }
+  .experience:has(.proof-group) .experience-sub {
+    font-size: 18px;
+  }
+  .challenge-heading h2 {
+    font-size: 26px;
+  }
+  .plan-overview h2 {
+    font-size: 24px;
+  }
+  .experience:has(.plan-overview) .experience-content {
+    gap: 16px;
+  }
+}
+
+/* Secondary actions stay clear without competing with the ember primary CTA. */
+.experience .button.secondary {
+  border-color: #8ba5b0;
+  background: transparent;
+  color: inherit;
+}
+.experience .button.secondary:hover { background: #7895a11a; }
+.wallpaper-image {
+  width: auto;
+  max-width: 75%;
+  max-height: 38vh;
+  object-fit: contain;
+}

@@ -9,6 +9,7 @@ import {
   type Goal,
   type PursuitState,
 } from "./types";
+import { checkRecurrence, nextOccurrence } from "./recurrence";
 import { scheduledInstant } from "./time";
 export { emptySnapshot };
 export function required(value: unknown, label: string, max = 10000): string {
@@ -22,6 +23,8 @@ export function required(value: unknown, label: string, max = 10000): string {
 }
 export const foundationKeys = Object.keys(emptyFoundation());
 const allowed: Record<Command["kind"], string[]> = {
+  vision: ["goalId", "version", "vision"],
+  stop_repeat: ["goalId", "commitmentId", "version"],
   planned_step: ["goalId", "id", "milestoneId", "action", "criterion"],
   first_move: [
     "id",
@@ -40,6 +43,7 @@ const allowed: Record<Command["kind"], string[]> = {
     "goalId",
     "milestoneId",
     "plannedStepId",
+    "recurrence",
     "action",
     "criterion",
     "localDate",
@@ -70,7 +74,14 @@ const allowed: Record<Command["kind"], string[]> = {
     "timeZone",
     "reason",
   ],
-  milestone: ["goalId", "version", "milestoneId", "detail", "result"],
+  milestone: [
+    "goalId",
+    "version",
+    "milestoneId",
+    "detail",
+    "result",
+    "remaining",
+  ],
   status: ["goalId", "version", "status", "detail", "reflection", "next"],
   outcome: [
     "id",
@@ -89,9 +100,30 @@ const allowed: Record<Command["kind"], string[]> = {
   support: ["mode"],
 };
 export function currentAction(s: Snapshot, goalId: string) {
-  return s.commitments.find(
-    (c) => c.goal_id === goalId && c.state === "active",
-  );
+  const queue = s.commitments
+    .filter((c) => c.goal_id === goalId && c.state === "active")
+    .sort(
+      (a, b) =>
+        (currentSchedule(s, a.id)?.starts_at || "").localeCompare(
+          currentSchedule(s, b.id)?.starts_at || "",
+        ) ||
+        a.created_at.localeCompare(b.created_at) ||
+        a.id.localeCompare(b.id),
+    );
+  // An in-progress session stays selected on this device when another step is added.
+  const pinned = queue.find((c) => {
+    try {
+      const t = JSON.parse(
+        localStorage.getItem(
+          `earned-self:timer:${c.owner_id}:${c.id}:${c.revision}`,
+        ) || "null",
+      );
+      return t && (t.started !== null || t.elapsed > 0);
+    } catch {
+      return false;
+    }
+  });
+  return pinned || queue[0];
 }
 export function currentMilestone(s: Snapshot, g: Goal) {
   return g.milestones.find(
@@ -207,6 +239,8 @@ export function validateCommand(c: Command) {
     required(p.action, "Action");
     required(p.criterion, "Done criterion");
     scheduledInstant(p.localDate, p.localTime, p.timeZone);
+    if (c.kind === "commitment")
+      checkRecurrence(p.recurrence, String(p.localDate));
   }
   if (c.kind === "reschedule") required(p.reason, "What will change");
   if (c.kind === "planned_step") {
@@ -317,7 +351,34 @@ export function applyLocal(
       if (g.version !== p.version)
         throw new Error("This pursuit changed. Reload before saving.");
     };
-    if (c.kind === "planned_step") {
+    if (c.kind === "vision") {
+      version();
+      g.vision = required(p.vision, "Your vision");
+      g.version++;
+      g.revision++;
+      s.goalHistory.push({
+        ...structuredClone(g),
+        goal_id: g.id,
+        revision: g.revision,
+        recorded_at: now,
+      });
+      receipt = { id: g.id, version: g.version };
+    } else if (c.kind === "stop_repeat") {
+      const step = s.commitments.find(
+        (c) =>
+          c.goal_id === g.id && c.id === p.commitmentId && c.state === "active",
+      );
+      if (!step || step.version !== p.version)
+        throw new Error("This step changed. Reload before saving.");
+      step.recurrence = null;
+      step.version++;
+      receipt = { id: step.id, version: step.version };
+      event(g.id, "stop_repeat", {
+        commitmentId: step.id,
+        detail:
+          "Future repetitions stopped; current session remains to check in.",
+      });
+    } else if (c.kind === "planned_step") {
       if (
         !["draft", "active", "paused"].includes(g.status) ||
         !g.milestones.some((m) => m.id === p.milestoneId) ||
@@ -474,25 +535,22 @@ export function applyLocal(
         throw new Error(
           "This pursuit has ended. Start a new pursuit for a new direction.",
         );
-      if (current)
-        throw new Error(
-          "Report the current commitment before choosing another.",
-        );
+
       ready(g);
-      if (!milestone || milestone.id !== p.milestoneId)
+      const selectedMilestone = g.milestones.find(
+        (m) =>
+          m.id === p.milestoneId &&
+          !s.events.some(
+            (e) =>
+              e.goal_id === g.id &&
+              e.kind === "milestone" &&
+              e.data.milestoneId === m.id,
+          ),
+      );
+      if (!selectedMilestone)
         throw new Error("Choose the current preparation milestone.");
       const instant = scheduledInstant(p.localDate, p.localTime, p.timeZone);
-      if (
-        instant >
-        scheduledInstant(
-          milestone.localDate,
-          milestone.localTime,
-          milestone.timeZone,
-        )
-      )
-        throw new Error(
-          "Schedule this action on or before its milestone deadline.",
-        );
+
       if (
         ![
           "continue",
@@ -504,12 +562,7 @@ export function applyLocal(
         throw new Error("Choose your next decision.");
       const last = s.evidence.filter((e) => e.goal_id === g.id).at(-1),
         lastReport = last && currentReport(s, last.id, last.revision);
-      if (
-        lastReport &&
-        lastReport.result !== "done" &&
-        p.decision === "continue"
-      )
-        throw new Error("Choose how you will respond to the earlier result.");
+
       if (p.decision !== "continue") required(p.reason, "Revised plan");
       if (
         p.plannedStepId &&
@@ -534,7 +587,9 @@ export function applyLocal(
         id,
         owner_id: owner,
         goal_id: g.id,
-        milestone_id: milestone.id,
+        milestone_id: selectedMilestone.id,
+        recurrence: checkRecurrence(p.recurrence, String(p.localDate)),
+        series_id: p.recurrence ? id : null,
         plan_revision: g.revision,
         revision: 1,
         version: 1,
@@ -590,10 +645,7 @@ export function applyLocal(
       const m = g.milestones.find((m) => m.id === current.milestone_id);
       if (!m) throw new Error("Preparation milestone unavailable.");
       const instant = scheduledInstant(p.localDate, p.localTime, p.timeZone);
-      if (instant > scheduledInstant(m.localDate, m.localTime, m.timeZone))
-        throw new Error(
-          "Schedule this action on or before its milestone deadline.",
-        );
+
       const old = currentSchedule(s, current.id);
       if (old) old.state = "superseded";
       current.revision++;
@@ -629,6 +681,7 @@ export function applyLocal(
         (v) => v.id === p.commitmentId && v.goal_id === g.id,
       );
       if (!commit) throw new Error("Commitment unavailable.");
+      if (commit.state === "cancelled") throw new Error("This step has ended.");
       if (s.evidence.some((e) => e.commitment_id === commit.id))
         throw new Error(
           "This commitment already has a result. Open its Proof entry.",
@@ -636,6 +689,8 @@ export function applyLocal(
       if (commit.version !== p.version)
         throw new Error("This commitment changed. Reload its current version.");
       const schedule = currentSchedule(s, commit.id);
+      if (commit.milestone_id && !schedule?.starts_at)
+        throw new Error("Choose a session time before checking in.");
       s.evidence.push({
         id,
         goal_id: g.id,
@@ -660,6 +715,40 @@ export function applyLocal(
       });
       commit.state = "reported";
       commit.version++;
+      if (commit.recurrence && schedule?.local_date) {
+        const day = nextOccurrence(schedule.local_date, commit.recurrence);
+        if (day) {
+          const nextId = crypto.randomUUID();
+          const d = definition(s, commit.id, commit.revision)!;
+          s.commitments.push({
+            ...commit,
+            id: nextId,
+            state: "active",
+            revision: 1,
+            version: 1,
+            created_at: now,
+          });
+          s.definitions.push({ ...d, commitment_id: nextId, revision: 1 });
+          let startsAt: string | null = null;
+          try {
+            startsAt = scheduledInstant(
+              day,
+              schedule.local_time?.slice(0, 5),
+              schedule.time_zone,
+            );
+          } catch {}
+          s.schedules.push({
+            ...schedule,
+            id: crypto.randomUUID(),
+            commitment_id: nextId,
+            commitment_revision: 1,
+            local_date: day,
+            local_time: startsAt ? schedule.local_time : null,
+            starts_at: startsAt,
+            created_at: now,
+          });
+        }
+      }
     } else if (c.kind === "detail") {
       const e = s.evidence.find(
         (e) => e.id === p.evidenceId && e.goal_id === g.id,
@@ -680,16 +769,37 @@ export function applyLocal(
       receipt = { id: e.id, version: e.version };
     } else if (c.kind === "milestone") {
       version();
-      if (
-        g.status !== "active" ||
-        current ||
-        !milestone ||
-        milestone.id !== p.milestoneId
-      )
+      if (g.status !== "active" || !milestone || milestone.id !== p.milestoneId)
         throw new Error(
           "Report current work before completing the current milestone.",
         );
       required(p.detail, "What completed this milestone");
+      const remaining = s.commitments.filter(
+        (c) =>
+          c.goal_id === g.id &&
+          c.milestone_id === milestone.id &&
+          c.state === "active",
+      );
+      if (p.result !== "attempted" && remaining.length) {
+        if (!["stop", "carry"].includes(String(p.remaining)))
+          throw new Error("Choose what happens to remaining steps.");
+        const next =
+          g.milestones[
+            g.milestones.findIndex((m) => m.id === milestone.id) + 1
+          ];
+        if (p.remaining === "carry" && !next)
+          throw new Error(
+            "Add the next milestone before carrying steps forward.",
+          );
+        for (const c of remaining) {
+          if (p.remaining === "carry") c.milestone_id = next.id;
+          else {
+            c.state = "cancelled";
+            c.recurrence = null;
+          }
+          c.version++;
+        }
+      }
       event(
         g.id,
         p.result === "attempted" ? "milestone_attempt" : "milestone",

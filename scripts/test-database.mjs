@@ -133,11 +133,21 @@ assert.equal(s.commitments.length, 1);
 assert.equal(s.evidence.length, 0);
 assert.ok(s.schedules[0].starts_at);
 pass("One commitment; past due remains unreported");
-await rejected(
-  () => command(a, "commitment", { ...c, id: randomUUID() }),
-  /current commitment/,
+const queuedId = randomUUID();
+await command(a, "commitment", { ...c, id: queuedId, localDate: "2030-10-02" });
+assert.equal(
+  (await state()).commitments.filter((c) => c.state === "active").length,
+  2,
 );
-pass("Second current commitment rejected");
+await command(a, "outcome", {
+  id: queuedId,
+  goalId: goal,
+  commitmentId: queuedId,
+  version: 1,
+  result: "done",
+  detail: "Queue test",
+});
+pass("Multiple scheduled steps coexist without changing the first");
 const evidence = cid,
   outcomeOp = randomUUID(),
   outcome = {
@@ -152,9 +162,12 @@ const evidence = cid,
 await command(a, "outcome", outcome, outcomeOp);
 await command(a, "outcome", outcome, outcomeOp);
 s = await state();
-assert.equal(s.evidence.length, 1);
+assert.equal(s.evidence.length, 2);
 assert.equal(s.commitments[0].state, "reported");
-assert.equal(s.reports[0].occurred_on, null);
+assert.equal(
+  s.reports.find((r) => r.evidence_id === evidence).occurred_on,
+  null,
+);
 pass(
   "Atomic miss and replay preserve one evidence identity; unknown occurrence",
 );
@@ -170,8 +183,11 @@ await command(a, "commitment", {
   location: "",
 });
 s = await state();
-assert.equal(s.evidence.length, 1);
-assert.equal(s.reports[0].result, "did_not_happen");
+assert.equal(s.evidence.length, 2);
+assert.equal(
+  s.reports.find((r) => r.evidence_id === evidence).result,
+  "did_not_happen",
+);
 assert.equal(s.commitments.filter((c) => c.state === "active").length, 1);
 pass("Miss remains after return commitment");
 await command(a, "detail", {
@@ -182,9 +198,9 @@ await command(a, "detail", {
   reflection: "I want to try after lunch.",
 });
 s = await state();
-assert.equal(s.evidence.length, 1);
-assert.equal(s.reports.length, 2);
-assert.equal(s.evidence[0].revision, 2);
+assert.equal(s.evidence.length, 2);
+assert.equal(s.reports.length, 3);
+assert.equal(s.evidence.find((e) => e.id === evidence).revision, 2);
 await rejected(
   () =>
     command(a, "detail", {
@@ -672,6 +688,165 @@ assert.equal(
   false,
 );
 pass("Queued steps and attempt reflections remain account-private");
+// Queue / recurring-session regression: real SQL under authenticated RLS.
+await as(a);
+const qg = randomUUID(),
+  qs = randomUUID();
+await command(a, "goal", { ...payload, id: qg });
+await command(a, "commitment", {
+  ...c,
+  id: qs,
+  goalId: qg,
+  localDate: "2030-11-02",
+  localTime: "06:00",
+  recurrence: { days: [0, 1, 2, 3, 4, 5, 6], until: "2030-11-04" },
+});
+const qo = randomUUID(),
+  qp = {
+    id: qs,
+    goalId: qg,
+    commitmentId: qs,
+    version: 1,
+    result: "done",
+    detail: "Session completed",
+  };
+await command(a, "outcome", qp, qo);
+await command(a, "outcome", qp, qo);
+let queue = (await state()).commitments.filter(
+  (c) => c.goal_id === qg && c.state === "active",
+);
+assert.equal(queue.length, 1);
+assert.equal(
+  (await state()).evidence.filter((e) => e.goal_id === qg).length,
+  1,
+);
+assert.equal(
+  new Date(
+    (await state()).schedules.find(
+      (s) => s.commitment_id === queue[0].id,
+    ).starts_at,
+  ).toISOString(),
+  "2030-11-03T13:00:00.000Z",
+);
+pass(
+  "Recurring check-in is atomic and idempotent across DST; next local time remains 6 AM",
+);
+await as(b);
+await rejected(
+  () =>
+    command(b, "stop_repeat", {
+      goalId: qg,
+      commitmentId: queue[0].id,
+      version: 1,
+    }),
+  /unavailable/,
+);
+await as(a);
+await command(a, "stop_repeat", {
+  goalId: qg,
+  commitmentId: queue[0].id,
+  version: 1,
+});
+await command(a, "outcome", {
+  ...qp,
+  id: queue[0].id,
+  commitmentId: queue[0].id,
+  version: 2,
+});
+assert.equal(
+  (await state()).commitments.filter(
+    (c) => c.goal_id === qg && c.state === "active",
+  ).length,
+  0,
+);
+pass(
+  "Stop repetition is owner scoped and preserves current session and previous Proof",
+);
+
+for (const [day, time] of [
+  ["2026-03-07", "02:30"],
+  ["2026-10-31", "01:30"],
+]) {
+  const dg = randomUUID(),
+    ds = randomUUID();
+  await command(a, "goal", { ...payload, id: dg });
+  await command(a, "commitment", {
+    ...c,
+    id: ds,
+    goalId: dg,
+    localDate: day,
+    localTime: time,
+    recurrence: { days: [0, 1, 2, 3, 4, 5, 6], until: "" },
+  });
+  await command(a, "outcome", {
+    id: ds,
+    goalId: dg,
+    commitmentId: ds,
+    version: 1,
+    result: "done",
+    detail: "Done",
+  });
+  const snap = await state(),
+    next = snap.commitments.find(
+      (x) => x.goal_id === dg && x.state === "active",
+    );
+  assert.equal(snap.evidence.filter((x) => x.goal_id === dg).length, 1);
+  assert.equal(
+    snap.schedules.find((x) => x.commitment_id === next.id).starts_at,
+    null,
+  );
+  await rejected(
+    () =>
+      command(a, "outcome", {
+        id: next.id,
+        goalId: dg,
+        commitmentId: next.id,
+        version: 1,
+        result: "done",
+        detail: "Done",
+      }),
+    /time|schedule/i,
+  );
+  pass(
+    "Clock-change gap/fold saves completed Proof and requires a time for the next session",
+  );
+}
+const beforeVision = (await state()).goals.find((x) => x.id === qg);
+await command(a, "vision", {
+  goalId: qg,
+  version: beforeVision.version,
+  vision: "Healthy enough to climb mountains into my 70s",
+});
+assert.equal(
+  (await state()).goals.find((x) => x.id === qg).words,
+  beforeVision.words,
+);
+assert.equal(
+  (await state()).goals.find((x) => x.id === qg).vision,
+  "Healthy enough to climb mountains into my 70s",
+);
+await rejected(
+  () =>
+    command(a, "vision", {
+      goalId: qg,
+      version: beforeVision.version,
+      vision: "Stale",
+    }),
+  /changed/,
+);
+await as(b);
+await rejected(
+  () =>
+    command(b, "vision", {
+      goalId: qg,
+      version: beforeVision.version + 1,
+      vision: "Foreign",
+    }),
+  /unavailable/,
+);
+await as(a);
+pass("Vision edits preserve challenge and enforce owner and version checks");
+
 await db.exec("RESET ROLE");
 await db.query("DELETE FROM auth.users WHERE id=$1", [a]);
 assert.equal(

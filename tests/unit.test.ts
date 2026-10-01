@@ -88,9 +88,8 @@ describe("structured pursuit contract", () => {
     expect(() =>
       t.run({ ...c, payload: { ...action, action: "Other" } }),
     ).toThrow(/changed/);
-    expect(() => t.run(command("commitment", { ...action, id: "x" }))).toThrow(
-      /current commitment/,
-    );
+    t.run(command("commitment", { ...action, id: "x" }));
+    expect(t.get().commitments).toHaveLength(2);
     expect(() => t.run({ ...c, actorId: "b" })).toThrow(/account changed/);
   });
   it("requires milestone ownership and deadline ordering", () => {
@@ -100,7 +99,7 @@ describe("structured pursuit contract", () => {
     ).toThrow(/milestone/);
     expect(() =>
       t.run(command("commitment", { ...action, localDate: "2031-01-01" })),
-    ).toThrow(/deadline/);
+    ).not.toThrow();
   });
   it("past due is unreported and cannot be hidden by rescheduling", () => {
     const t = setup();
@@ -143,11 +142,11 @@ describe("structured pursuit contract", () => {
     );
     expect(() =>
       t.run(command("commitment", { ...action, id: "next" })),
-    ).toThrow(/earlier result/);
+    ).not.toThrow();
     t.run(
       command("commitment", {
         ...action,
-        id: "next",
+        id: "recommit",
         decision: "address_blocker",
         reason: "Protect lunch",
       }),

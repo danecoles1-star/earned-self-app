@@ -1,3 +1,4 @@
+import { displaySchedule, displayDate } from "../data/time";
 import { useEffect, useState } from "react";
 import type { Goal, Snapshot } from "../data/types";
 import { currentAction, currentSchedule, definition } from "../data/domain";
@@ -16,7 +17,11 @@ export function Calendar({
   const [minutes, setMinutes] = useState(30),
     [notice, setNotice] = useState("");
   const c = currentAction(snapshot, goal.id),
-    s = c && currentSchedule(snapshot, c.id),
+    originalSchedule = c && currentSchedule(snapshot, c.id),
+    s =
+      originalSchedule && c?.recurrence && c.series_id
+        ? { ...originalSchedule, commitment_id: c.series_id }
+        : originalSchedule,
     d = c && definition(snapshot, c.id, c.revision);
   return (
     <Page
@@ -25,17 +30,15 @@ export function Calendar({
       dark={false}
       back={() => navigate("/app")}
       footer={
-        <button className="quiet" onClick={() => navigate("/app")}>
-          Continue without adding
+        <button className="button" onClick={() => navigate("/app")}>
+          Return to Basecamp
         </button>
       }
     >
       {s?.starts_at && d ? (
         <>
           <h2>{d.action}</h2>
-          <p>
-            {s.local_date} · {s.local_time?.slice(0, 5)} · {s.time_zone}
-          </p>
+          <p>{displaySchedule(s.local_date, s.local_time, s.time_zone)}</p>
           <label>
             Duration
             <select
@@ -51,7 +54,13 @@ export function Calendar({
           </label>
           <a
             className="experience-choice"
-            href={googleCalendarUrl(d, s, minutes, location.origin)}
+            href={googleCalendarUrl(
+              d,
+              s,
+              minutes,
+              location.origin,
+              c?.recurrence,
+            )}
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -61,9 +70,20 @@ export function Calendar({
             className="experience-choice"
             onClick={() => {
               download(
-                new Blob([calendarContent(d, s, minutes, location.origin)], {
-                  type: "text/calendar;charset=utf-8",
-                }),
+                new Blob(
+                  [
+                    calendarContent(
+                      d,
+                      s,
+                      minutes,
+                      location.origin,
+                      c?.recurrence,
+                    ),
+                  ],
+                  {
+                    type: "text/calendar;charset=utf-8",
+                  },
+                ),
                 "Earned_Self_Move.ics",
               );
               setNotice(
@@ -97,10 +117,11 @@ export function Wallpaper({
     [reason, setReason] = useState(false),
     [date, setDate] = useState(false),
     [brand, setBrand] = useState(true),
-    [light, setLight] = useState(false),
+    [style, setStyle] = useState("mountain"),
     [error, setError] = useState(""),
     [saved, setSaved] = useState(false),
     [busy, setBusy] = useState(false);
+  const light = style === "light";
   const [previewUrl, setPreviewUrl] = useState("");
   const [imageBlob, setImageBlob] = useState<Blob | null>(null);
   useEffect(() => {
@@ -117,16 +138,49 @@ export function Wallpaper({
         canvas.width = 1170;
         canvas.height = 2532;
         const ctx = canvas.getContext("2d")!;
-        ctx.fillStyle = light ? "#f1f3f1" : "#172329";
+        ctx.fillStyle = light
+          ? "#ece9df"
+          : style === "mineral"
+            ? "#537889"
+            : "#172329";
         ctx.fillRect(0, 0, 1170, 2532);
-        const image = new Image();
-        image.src = artwork.steps;
-        await image.decode();
-        ctx.drawImage(image, 0, 1400, 1170, 780);
+        if (style === "mountain") {
+          const image = new Image();
+          image.src = artwork.mountain;
+          await image.decode();
+          const layer = document.createElement("canvas");
+          layer.width = 1170;
+          layer.height = 1000;
+          const lc = layer.getContext("2d")!;
+          const artHeight = (1170 * image.naturalHeight) / image.naturalWidth;
+          lc.drawImage(image, 0, (1000 - artHeight) / 2, 1170, artHeight);
+          lc.globalCompositeOperation = "destination-in";
+          const mask = lc.createLinearGradient(0, 0, 0, 1000);
+          mask.addColorStop(0, "transparent");
+          mask.addColorStop(0.2, "black");
+          mask.addColorStop(0.8, "black");
+          mask.addColorStop(1, "transparent");
+          lc.fillStyle = mask;
+          lc.fillRect(0, 0, 1170, 1000);
+          ctx.drawImage(layer, 0, 1250);
+        } else {
+          // Deterministic fine grain: preview and exported pixels are identical.
+          for (let i = 0; i < 22000; i++) {
+            const x = (i * 491) % 1170,
+              y = (i * 911) % 2532;
+            ctx.fillStyle = i % 2 ? "#ffffff08" : "#00000006";
+            ctx.fillRect(x, y, 2, 2);
+          }
+          const glow = ctx.createRadialGradient(200, 1300, 10, 200, 1300, 1600);
+          glow.addColorStop(0, "#ffffff18");
+          glow.addColorStop(1, "#ffffff00");
+          ctx.fillStyle = glow;
+          ctx.fillRect(0, 0, 1170, 2532);
+        }
         ctx.fillStyle = light ? "#172329" : "#f1f3f1";
-        ctx.font = "66px Georgia";
+        ctx.font = "78px Georgia";
         ctx.textAlign = "center";
-        let y = 940;
+        let y = 850;
         const lines: string[] = [];
         let line = "";
         for (const word of words.split(/\s+/)) {
@@ -144,20 +198,37 @@ export function Wallpaper({
           throw new Error("Shorten the wording so it fits your lock screen.");
         for (const l of lines) {
           ctx.fillText(l, 585, y);
-          y += 86;
+          y += 100;
         }
         if (reason) {
           ctx.font = "32px Arial";
-          const text = goal.meaning;
-          if (ctx.measureText(text).width > 970)
+          const words = goal.meaning.split(/\s+/);
+          const lines: string[] = [];
+          let line = "";
+          for (const w of words) {
+            const next = (line + " " + w).trim();
+            if (ctx.measureText(next).width > 920) {
+              lines.push(line);
+              line = w;
+            } else line = next;
+          }
+          if (line) lines.push(line);
+          if (
+            lines.length > 5 ||
+            lines.some((l) => ctx.measureText(l).width > 920)
+          )
             throw new Error(
-              "Your reason is too long for one line. Turn it off or use shorter display wording.",
+              "Your reason needs more space. Turn it off or shorten your display words.",
             );
-          ctx.fillText(text, 585, y + 50);
+          lines.forEach((l, i) => ctx.fillText(l, 585, y + 45 + i * 44));
         }
         if (date) {
           ctx.font = "28px Arial";
-          ctx.fillText(new Date().toLocaleDateString(), 585, 2220);
+          ctx.fillText(
+            displayDate(new Date().toLocaleDateString("en-CA")),
+            585,
+            2220,
+          );
         }
         if (brand) {
           const logo = new Image();
@@ -197,12 +268,25 @@ export function Wallpaper({
       alive = false;
       if (url) URL.revokeObjectURL(url);
     };
-  }, [words, reason, date, brand, light, goal.meaning]);
-  function save() {
-    if (imageBlob) {
-      download(imageBlob, "Earned_Self_Lock_Screen.png");
-      setSaved(true);
-    }
+  }, [words, reason, date, brand, style, goal.meaning]);
+  async function save() {
+    if (!imageBlob) return;
+    const file = new File([imageBlob], "Earned_Self_Lock_Screen.png", {
+      type: "image/png",
+    });
+    if (navigator.canShare?.({ files: [file] }) && navigator.share) {
+      try {
+        await navigator.share({
+          files: [file],
+          title: "My Earned Self vision",
+        });
+      } catch (e) {
+        if ((e as Error).name !== "AbortError")
+          setError(
+            "Sharing is unavailable. Open the full-size image below to save it.",
+          );
+      }
+    } else setSaved(true);
   }
   return (
     <Page
@@ -225,7 +309,7 @@ export function Wallpaper({
             {busy
               ? "Creating image…"
               : step
-                ? "Save image"
+                ? "Save to phone"
                 : "Preview lock screen"}
           </button>
           {step === 1 && (
@@ -233,9 +317,35 @@ export function Wallpaper({
               Edit words
             </button>
           )}
+          {previewUrl && step === 1 && (
+            <div className="image-save-options">
+              <p>On supported phones, choose Save Image in the share sheet.</p>
+              <a
+                className="button secondary"
+                href={previewUrl}
+                target="_blank"
+                rel="noopener"
+              >
+                Open full-size image
+              </a>
+              <button
+                className="button secondary"
+                onClick={() =>
+                  imageBlob &&
+                  download(imageBlob, "Earned_Self_Lock_Screen.png")
+                }
+              >
+                Download image
+              </button>
+              <button className="quiet" onClick={() => navigate("/app")}>
+                Return to Basecamp
+              </button>
+            </div>
+          )}
           {saved && (
             <p role="status">
-              Image downloaded. Choose it in your phone’s wallpaper settings.
+              Open the full-size image, then touch and hold it to see your
+              browser’s image-saving options.
             </p>
           )}
         </>
@@ -252,13 +362,26 @@ export function Wallpaper({
           <button className="quiet" onClick={() => setWords(goal.vision)}>
             Use my own vision
           </button>
+          <fieldset className="wallpaper-styles">
+            <legend>Choose a style</legend>
+            {["mountain", "ink", "mineral", "light"].map((name) => (
+              <button
+                key={name}
+                className={"wallpaper-swatch " + name}
+                aria-pressed={style === name}
+                onClick={() => setStyle(name)}
+              >
+                {name === "mountain" && <img src={artwork.mountain} alt="" />}
+                <span>{name[0].toUpperCase() + name.slice(1)}</span>
+              </button>
+            ))}
+          </fieldset>
           {[
             ["Add my reason", reason, setReason],
             ["Show date", date, setDate],
             ["Show Earned Self", brand, setBrand],
-            ["Mineral background", light, setLight],
           ].map(([name, value, set]) => (
-            <label className="experience-choice" key={String(name)}>
+            <label className="wallpaper-toggle" key={String(name)}>
               <input
                 type="checkbox"
                 checked={Boolean(value)}

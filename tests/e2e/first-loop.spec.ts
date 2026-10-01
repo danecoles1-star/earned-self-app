@@ -12,7 +12,17 @@ test("first visit through first action, failure recovery, accomplishment and nex
   const click = async (n: string) =>
     p.getByRole("button", { name: n, exact: true }).click();
   const fill = async (n: string, v: string) =>
-    p.getByLabel(n, { exact: true }).fill(v);
+    p
+      .getByLabel(n, { exact: true })
+      .fill(
+        /date$/.test(n)
+          ? v.slice(5, 7) + "/" + v.slice(8) + "/" + v.slice(0, 4)
+          : /time$/.test(n)
+            ? String(Number(v.slice(0, 2)) % 12 || 12) +
+              v.slice(2) +
+              (Number(v.slice(0, 2)) < 12 ? " AM" : " PM")
+            : v,
+      );
   const next = async () => click("Continue");
   const output = process.env.ES_SCREENSHOTS_DIR || "test-results/screenshots";
   fs.mkdirSync(output, { recursive: true });
@@ -82,13 +92,14 @@ test("first visit through first action, failure recovery, accomplishment and nex
   await fill("Action time zone", "America/Denver");
   await fill("Where?", "At my desk");
   await next();
-  await click("Schedule this step");
+  await click("Save step");
+  await p.getByRole("button", { name: /Add to calendar/ }).click();
   await shot("25-calendar-mobile");
   const download = p.waitForEvent("download");
   await click("Apple Calendar");
   const dl = await download;
   assert.equal(dl.suggestedFilename(), "Earned_Self_Move.ics");
-  await click("Continue without adding");
+  await click("Return to Basecamp");
   await shot("30-now-mobile");
   await click("Step check-in");
   await click("Partly");
@@ -98,10 +109,7 @@ test("first visit through first action, failure recovery, accomplishment and nex
       .getByRole("button", { name: "Save to Proof", exact: true })
       .isDisabled(),
   );
-  await fill(
-    "What are you ready for next?",
-    "Gather my sources before drafting",
-  );
+  await click("Keep preparing");
   await fill("What prevented it?", "I did not have my sources");
   await fill("What will you change?", "Gather the sources first");
   await click("Test next save failure");
@@ -113,7 +121,7 @@ test("first visit through first action, failure recovery, accomplishment and nex
   );
   await click("Save to Proof");
   await shot("35-proof-mobile");
-  await click("Choose what comes next");
+
   await click("Plan");
   await click("Milestones · Finish the first draft");
   await click("I’m ready");
@@ -139,11 +147,11 @@ test("first visit through first action, failure recovery, accomplishment and nex
     .getByRole("heading", { name: "Publish a researched essay" })
     .waitFor();
   await shot("45-accomplishment-mobile");
-  await click("Take your vision with you");
+  await p.getByRole("button", { name: /Take your vision with you/ }).click();
   await fill("Words to carry", "Keep writing.");
   await click("Preview lock screen");
   const wallpaper = p.waitForEvent("download");
-  await click("Save image");
+  await click("Download image");
   assert.equal(
     (await wallpaper).suggestedFilename(),
     "Earned_Self_Lock_Screen.png",

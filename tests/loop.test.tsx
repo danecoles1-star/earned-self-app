@@ -50,19 +50,14 @@ it("reports a partial result, retains required explanation and offers deliberate
     screen.getByLabelText("What happened?"),
     "I completed half the planned practice.",
   );
-  await u.type(screen.getByLabelText("What are you ready for next?"), "One more rehearsal before the milestone.");
+  await u.click(screen.getByRole("button", { name: "Keep preparing" }));
   await u.type(screen.getByLabelText("What prevented it?"), "Shift ran late");
   await u.type(screen.getByLabelText("What will you change?"), "Protect lunch");
   await u.click(screen.getByRole("button", { name: "Save to Proof" }));
-  await screen.findByRole("heading", {
-    name: "What you did matters.",
-  });
   expect(data.snapshot.reports[0].result).toBe("partly");
   expect(data.snapshot.goals[0].status).toBe("active");
-  await u.click(screen.getByRole("button", { name: "Choose what comes next" }));
-  await u.click(
-    await screen.findByRole("button", { name: "Add a step" }),
-  );
+
+  await u.click(await screen.findByRole("button", { name: "Add a step" }));
   await screen.findByRole("heading", { name: "Choose your next step." });
   await u.type(screen.getByLabelText("My next step"), "Finish the practice");
   await u.type(screen.getByLabelText("Done means"), "Full rehearsal");

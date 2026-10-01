@@ -1,3 +1,6 @@
+import { displaySchedule } from "../data/time";
+import { repeatLabel } from "../data/recurrence";
+import { artwork } from "./ui";
 import homeIcon from "../assets/icons/house.svg";
 import planIcon from "../assets/icons/list.svg";
 import proofIcon from "../assets/icons/chart-no-axes-column.svg";
@@ -54,8 +57,12 @@ export function MemberHome({
             </button>
           </div>
           <h1 tabIndex={-1}>{goal.words}</h1>
-          <span className="section-label">Who I am becoming</span>
-          <p className="vision">{goal.vision}</p>
+          {goal.vision && (
+            <>
+              <span className="section-label">Who I am becoming</span>
+              <p className="vision">{goal.vision}</p>
+            </>
+          )}
           {ended && (
             <p>
               {goal.status === "completed"
@@ -92,8 +99,11 @@ export function MemberHome({
           </h2>
           {milestone && (
             <p className="small">
-              {milestone.localDate} · {milestone.localTime} ·{" "}
-              {milestone.timeZone}
+              {displaySchedule(
+                milestone.localDate,
+                milestone.localTime,
+                milestone.timeZone,
+              )}
             </p>
           )}
         </section>
@@ -126,17 +136,41 @@ export function MemberHome({
               className="schedule-link"
               onClick={() => navigate("/calendar/" + goal.id)}
             >
-              {time.local_date} · {time.local_time?.slice(0, 5)} ·{" "}
-              {time.time_zone}
+              {displaySchedule(
+                time.local_date,
+                time.local_time,
+                time.time_zone,
+              )}
               <small>Add to calendar</small>
             </button>
           )}
+          {c && time && !time.local_time && (
+            <p role="status">
+              This session needs a time because the clock changes.{" "}
+              <button
+                className="button"
+                onClick={() => navigate("/revise/" + goal.id)}
+              >
+                Choose session time
+              </button>
+            </p>
+          )}
           {c && d ? (
             <>
+              <p className="small">{repeatLabel(c.recurrence)}</p>
               <StepTimer
                 key={c.id}
                 identity={`${goal.owner_id}:${c.id}:${c.revision}`}
               />
+              <button
+                className="button secondary"
+                onClick={() => {
+                  pauseTimer(`${goal.owner_id}:${c.id}:${c.revision}`);
+                  navigate("/report/" + goal.id);
+                }}
+              >
+                Finish session
+              </button>
             </>
           ) : (
             <>
@@ -173,8 +207,23 @@ export function MemberHome({
             <p>Your milestones will appear here as you plan them.</p>
           )}
           <p className="small">
-            {pendingSteps(snapshot, goal).length}{" "}
-            {pendingSteps(snapshot, goal).length === 1 ? "step" : "steps"}{" "}
+            {pendingSteps(snapshot, goal).length +
+              snapshot.commitments.filter(
+                (step) =>
+                  step.goal_id === goal.id &&
+                  step.state === "active" &&
+                  step.id !== c?.id,
+              ).length}{" "}
+            {pendingSteps(snapshot, goal).length +
+              snapshot.commitments.filter(
+                (step) =>
+                  step.goal_id === goal.id &&
+                  step.state === "active" &&
+                  step.id !== c?.id,
+              ).length ===
+            1
+              ? "step"
+              : "steps"}{" "}
             planned ahead
           </p>
           <ol>
@@ -216,10 +265,14 @@ export function MemberHome({
             </button>
           )}
           <button
-            className="quiet"
+            className="wallpaper-card"
             onClick={() => navigate("/wallpaper/" + goal.id)}
           >
-            Take your vision with you
+            <img src={artwork.mountain} alt="" />
+            <span>
+              <strong>Take your vision with you</strong>
+              <small>Create wallpaper →</small>
+            </span>
           </button>
         </section>
       </main>
