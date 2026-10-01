@@ -1488,3 +1488,8 @@ body:has(.app-tabs) .workspace {
   outline: 2px solid #537889;
   outline-offset: 3px;
 }
+
+/* Separate the Vision editor action from the Plan's challenge summary. */
+.experience-content > .challenge-heading {
+  margin-top: 20px;
+}
