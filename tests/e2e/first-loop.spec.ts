@@ -12,17 +12,7 @@ test("first visit through first action, failure recovery, accomplishment and nex
   const click = async (n: string) =>
     p.getByRole("button", { name: n, exact: true }).click();
   const fill = async (n: string, v: string) =>
-    p
-      .getByLabel(n, { exact: true })
-      .fill(
-        /date$/.test(n)
-          ? v.slice(5, 7) + "/" + v.slice(8) + "/" + v.slice(0, 4)
-          : /time$/.test(n)
-            ? String(Number(v.slice(0, 2)) % 12 || 12) +
-              v.slice(2) +
-              (Number(v.slice(0, 2)) < 12 ? " AM" : " PM")
-            : v,
-      );
+    p.getByLabel(n, { exact: true }).fill(v);
   const next = async () => click("Continue");
   const output = process.env.ES_SCREENSHOTS_DIR || "test-results/screenshots";
   fs.mkdirSync(output, { recursive: true });

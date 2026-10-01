@@ -1,5 +1,6 @@
-import { useEffect, useState, useRef } from "react";
 import { displayDate, displayTime } from "../data/time";
+
+/** Keep the native control as the actual tap target while formatting the visible value. */
 export function LocalDateTimeInput({
   id,
   kind,
@@ -13,53 +14,50 @@ export function LocalDateTimeInput({
   onChange: (s: string) => void;
   required: boolean;
 }) {
-  const format = kind === "date" ? displayDate : displayTime;
-  const [text, setText] = useState(format(value));
-  const emitted = useRef(value);
-  useEffect(() => {
-    if (value !== emitted.current) {
-      emitted.current = value;
-      setText(format(value));
-    }
-  }, [value]);
+  const formatted = (kind === "date" ? displayDate : displayTime)(value);
   return (
-    <input
-      id={id}
-      type="text"
-      required={required}
-      value={text}
-      placeholder={kind === "date" ? "MM/DD/YYYY" : "hh:mm AM/PM"}
-      autoComplete="off"
-      onChange={(e) => {
-        const raw = e.target.value;
-        setText(raw);
-        let next = "";
-        if (kind === "date") {
-          const m = raw.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-          if (m) {
-            const iso = `${m[3]}-${m[1]}-${m[2]}`;
-            const date = new Date(iso + "T12:00:00Z");
-            if (
-              Number.isFinite(+date) &&
-              date.toISOString().slice(0, 10) === iso
-            )
-              next = iso;
+    <span className="local-datetime-control">
+      <span
+        className={"local-datetime-value" + (value ? "" : " empty")}
+        aria-hidden="true"
+      >
+        {formatted || (kind === "date" ? "MM/DD/YYYY" : "hh:mm AM/PM")}
+      </span>
+      <svg
+        aria-hidden="true"
+        className="local-datetime-icon"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+      >
+        {kind === "date" ? (
+          <>
+            <rect x="3" y="5" width="18" height="16" rx="2" />
+            <path d="M7 3v4m10-4v4M3 10h18m-13 4h2m3 0h2m-7 4h2" />
+          </>
+        ) : (
+          <>
+            <circle cx="12" cy="12" r="9" />
+            <path d="M12 7v5l3 2" />
+          </>
+        )}
+      </svg>
+      <input
+        id={id}
+        type={kind}
+        required={required}
+        value={value}
+        lang="en-US"
+        onChange={(e) => onChange(e.target.value)}
+        onClick={(e) => {
+          try {
+            e.currentTarget.showPicker?.();
+          } catch {
+            /* Native tap/focus remains available. */
           }
-        } else {
-          const m = raw.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
-          if (m && +m[1] >= 1 && +m[1] <= 12 && +m[2] < 60)
-            next =
-              String(
-                (+m[1] % 12) + (m[3].toUpperCase() === "PM" ? 12 : 0),
-              ).padStart(2, "0") +
-              ":" +
-              m[2];
-        }
-        if (next !== value) {
-          emitted.current = next;
-          onChange(next);
-        }
-      }}
-    />
+        }}
+      />
+    </span>
   );
 }

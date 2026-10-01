@@ -40,12 +40,31 @@ for (const width of [390, 1440])
       .fill("Complete ten minutes and note how I feel");
     await p.getByRole("button", { name: "Repeat", exact: true }).click();
     await p.getByRole("button", { name: "Continue", exact: true }).click();
-    await p.getByLabel("Action date", { exact: true }).fill("11/02/2030");
-    await p.getByLabel("Action time", { exact: true }).fill("6:00 AM");
+    await expect(p.getByLabel("Action date", { exact: true })).toHaveAttribute(
+      "type",
+      "date",
+    );
+    await expect(p.getByLabel("Action time", { exact: true })).toHaveAttribute(
+      "type",
+      "time",
+    );
+    await expect(p.locator('input[type="date"]')).toHaveCount(2);
+    await p.getByLabel("Action date", { exact: true }).click();
+    await p.keyboard.press("Escape");
+    await p.getByLabel("Action date", { exact: true }).fill("2030-11-02");
+    await p.getByLabel("Action time", { exact: true }).fill("06:00");
     await p
       .getByLabel("Action time zone", { exact: true })
       .fill("America/Denver");
     await p.getByLabel("Where?", { exact: true }).fill("Bedroom");
+    await expect(
+      p.locator(".local-datetime-value").filter({ hasText: "11/02/2030" }),
+    ).toBeVisible();
+    await p.screenshot({
+      path: `/tmp/picker-fields-${width}.png`,
+      fullPage: true,
+    });
+
     await p.getByRole("button", { name: "Continue", exact: true }).click();
     await expect(
       p.getByText("11/02/2030 · 6:00 AM · America/Denver"),
@@ -70,6 +89,10 @@ for (const width of [390, 1440])
     await expect(
       p.getByText("11/03/2030 · 6:00 AM · America/Denver", { exact: false }),
     ).toBeVisible();
+    const padding = await p
+      .getByRole("button", { name: "Why & obstacles", exact: true })
+      .evaluate((el) => Number.parseFloat(getComputedStyle(el).paddingLeft));
+    expect(padding).toBeGreaterThanOrEqual(14);
     await p.screenshot({
       path: `/tmp/pilot-basecamp-${width}.png`,
       fullPage: true,
@@ -83,7 +106,9 @@ for (const width of [390, 1440])
       .getByLabel("Who I am becoming", { exact: true })
       .fill("Healthy enough to climb mountains into my 70s");
     await p.getByRole("button", { name: "Save vision", exact: true }).click();
-    await expect(p.getByRole("button",{name:"Edit vision",exact:true})).toBeVisible();
+    await expect(
+      p.getByRole("button", { name: "Edit vision", exact: true }),
+    ).toBeVisible();
     await p.reload();
     await expect(
       p.getByText("Healthy enough to climb mountains into my 70s", {
