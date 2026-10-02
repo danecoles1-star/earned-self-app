@@ -12,6 +12,7 @@ export default defineConfig(({ command, mode }) => {
     );
   return {
     plugins: [react()],
+    server: { allowedHosts: ["terminal.local"] },
     define: {
       __LOCAL_PREVIEW__: JSON.stringify(
         command === "serve" && mode === "preview-local",

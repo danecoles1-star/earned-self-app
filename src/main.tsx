@@ -5,9 +5,12 @@ import type { Adapter } from "./data/types";
 import "./styles.css";
 import "./marketing.css";
 import "./logo.css";
+import "./experience/experience.css";
 async function start() {
   let adapter: Adapter;
   if (__LOCAL_PREVIEW__) {
+    const { enablePhonePreview } = await import("./preview/phone");
+    enablePhonePreview();
     const { createPreviewAdapter } = await import("./preview/adapter");
     adapter = createPreviewAdapter();
   } else {

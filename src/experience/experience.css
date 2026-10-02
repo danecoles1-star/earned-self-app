@@ -1,0 +1,1592 @@
+:root {
+  --ink: #172329;
+  --mineral: #f1f3f1;
+  --blue: #537889;
+  --pale: #b9cbd0;
+  --ember: #e45d3d;
+  color-scheme: dark;
+}
+body {
+  background: var(--ink);
+}
+.experience {
+  --fg: var(--mineral);
+  --muted: var(--pale);
+  --rule: #ffffff2b;
+  min-height: calc(100svh - var(--preview-height, 0px));
+  background: var(--ink);
+  color: var(--fg);
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  margin: auto;
+  padding: 0 max(24px, calc((100vw - 540px) / 2));
+}
+.experience.mineral {
+  background: var(--mineral);
+  --fg: var(--ink);
+  --muted: #466775;
+  --rule: #17232930;
+  color-scheme: light;
+}
+.experience-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  min-height: 100px;
+  padding: 24px 0 20px;
+}
+.experience .brand-lockup,
+.app-header .brand-lockup {
+  gap: 12px;
+  width: auto;
+}
+.experience .brand-symbol,
+.app-header .brand-symbol {
+  width: 30px;
+  height: 31px;
+  min-width: 30px;
+  padding: 0;
+  background: none;
+  border: 0;
+  box-shadow: none;
+}
+.experience .brand-symbol img,
+.app-header .brand-symbol img {
+  width: 30px;
+  height: 31px;
+  object-fit: contain;
+}
+.experience .brand-wordmark,
+.app-header .brand-wordmark {
+  width: 145px;
+  height: auto;
+  max-height: 26px;
+  object-fit: contain;
+}
+.experience-main {
+  padding: 18px 0 24px;
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+}
+.experience h1 {
+  font-family: Georgia, serif;
+  font-size: clamp(34px, 7.7vw, 46px);
+  font-weight: 500;
+  line-height: 1.06;
+  letter-spacing: -0.045em;
+  margin: 0 0 18px;
+  text-wrap: balance;
+  outline: none;
+}
+.experience-sub {
+  font-size: 19px;
+  line-height: 1.45;
+  margin: 0 0 32px;
+  max-width: 34ch;
+  letter-spacing: -0.02em;
+}
+.experience h2 {
+  font-family: Georgia, serif;
+  font-size: 28px;
+  font-weight: 400;
+  line-height: 1.2;
+  margin: 24px 0 14px;
+  text-wrap: balance;
+}
+.welcome-copy {
+  font-size: 17px;
+  line-height: 1.5;
+  max-width: 33ch;
+  margin: 0 0 12px;
+}
+.experience-art {
+  display: block;
+  width: calc(100% + 48px);
+  max-width: none;
+  margin: 20px -24px 0;
+  aspect-ratio: 3/2;
+  object-fit: contain;
+  mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    #000 10%,
+    #000 90%,
+    transparent
+  );
+}
+.experience-footer {
+  padding: 12px 0 max(22px, env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+.experience button,
+.workspace button {
+  min-height: 46px;
+}
+.experience .button,
+.workspace .button {
+  display: block;
+  background: #fff;
+  color: #172329;
+  border: 1px solid var(--ember);
+  border-radius: 7px;
+  min-height: 50px;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.4;
+  padding: 12px 20px;
+  box-shadow: none;
+  letter-spacing: 0;
+  width: 100%;
+}
+.experience .button:hover:not(:disabled),
+.workspace .button:hover:not(:disabled) {
+  background: #f6eae3;
+  transform: translateY(-1px);
+}
+.experience .button:disabled,
+.workspace .button:disabled {
+  opacity: 0.55;
+  background: #8a969b;
+  color: #fff;
+  border-color: transparent;
+  transform: none;
+  cursor: not-allowed;
+}
+.experience .quiet {
+  border: 0;
+  background: none;
+  color: var(--fg);
+  font-size: 14px;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  padding: 10px 0;
+  min-height: 44px;
+  box-shadow: none;
+}
+.open-input {
+  display: block;
+  margin: 26px 0;
+  color: var(--fg);
+  font-size: 15px;
+  font-weight: 400;
+}
+.open-input span {
+  display: block;
+  margin: 0 0 8px;
+}
+.experience textarea {
+  width: 100%;
+  min-height: 90px;
+  border: 0;
+  border-bottom: 1px solid var(--muted);
+  border-radius: 0;
+  background: transparent;
+  color: var(--fg);
+  padding: 10px 0;
+  font-size: 20px;
+  line-height: 1.4;
+  resize: vertical;
+  box-shadow: none;
+}
+.experience textarea::placeholder {
+  color: var(--muted);
+  opacity: 0.85;
+}
+.experience :focus-visible {
+  outline: 2px solid var(--muted);
+  outline-offset: 5px;
+}
+.experience-choice {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px;
+  text-align: left;
+  color: var(--fg);
+  background: transparent;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  width: 100%;
+  margin: 10px 0;
+  font-size: 16px;
+  box-shadow: none;
+}
+.experience-choice[aria-pressed="true"] {
+  background: var(--ink);
+  color: var(--mineral);
+  border-color: var(--blue);
+}
+.ink .experience-choice[aria-pressed="true"] {
+  background: #314751;
+}
+.choice-dot {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  border: 1px solid var(--muted);
+  border-radius: 50%;
+}
+[aria-pressed="true"] > .choice-dot {
+  background: var(--pale);
+  box-shadow: inset 0 0 0 3px var(--ink);
+}
+.context-help {
+  margin: 20px 0;
+}
+.context-help > div {
+  border-left: 2px solid var(--blue);
+  padding: 1px 18px;
+  font-size: 15px;
+  line-height: 1.6;
+}
+.journey-progress {
+  height: 3px;
+  background: var(--rule);
+  margin: 0 0 30px;
+  border-radius: 3px;
+}
+.journey-progress span {
+  display: block;
+  height: 100%;
+  background: var(--blue);
+  transition: width 0.25s;
+}
+.focus-move {
+  margin: 50px 0 35px;
+  padding: 24px 0;
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+}
+.experience .small {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.first-proof {
+  border-left: 2px solid var(--blue);
+  padding-left: 18px;
+  font-size: 18px;
+}
+.app-header {
+  max-width: 640px;
+  margin: auto;
+  padding: 24px;
+  flex-wrap: wrap;
+  border: 0;
+  background: none;
+}
+.app-header nav {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.app-header nav button {
+  font-size: 13px;
+  padding: 8px 0;
+  background: transparent;
+  border: 0;
+  min-height: 40px;
+}
+.workspace {
+  max-width: 600px;
+  margin: auto;
+  padding: 28px 24px 90px;
+}
+.workspace.narrow {
+  max-width: 550px;
+}
+.workspace h1 {
+  font:
+    400 clamp(32px, 7vw, 44px) / 1.12 Georgia,
+    serif;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+.workspace .intro {
+  font-size: 18px;
+  line-height: 1.5;
+}
+.workspace textarea,
+.workspace input:not([type="checkbox"]),
+.workspace select {
+  border: 0;
+  border-bottom: 1px solid #b9cbd070;
+  border-radius: 0;
+  background: transparent;
+  padding: 13px 0;
+  color: var(--mineral);
+  box-shadow: none;
+}
+.workspace select option {
+  background: var(--ink);
+}
+.workspace .field {
+  margin: 22px 0;
+}
+.workspace .eyebrow {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: var(--pale);
+}
+.global-status {
+  max-width: 600px;
+  margin: auto;
+  padding: 0 24px;
+}
+.global-status:has(.live-status:empty):not(:has(.error)) {
+  display: none;
+}
+.test-banner {
+  font-size: 11px;
+  padding: 4px 16px;
+  min-height: 0;
+}
+.privacy {
+  font-size: 12px;
+  margin-top: 36px;
+}
+.pursuit-grid {
+  display: block;
+}
+.workspace .secondary {
+  background: transparent;
+  color: var(--mineral);
+  border: 1px solid #b9cbd070;
+  border-radius: 7px;
+  box-shadow: none;
+}
+.workspace .actions {
+  gap: 12px;
+}
+.member-tabs {
+  display: flex;
+  gap: 8px;
+  margin: 24px 0;
+}
+.member-tabs button {
+  flex: 1;
+}
+.member-panel {
+  animation: arrive 0.2s ease;
+}
+.wallpaper-preview {
+  width: 230px;
+  max-width: 100%;
+  aspect-ratio: 9/19.5;
+  background: #172329;
+  border: 1px solid #b9cbd070;
+  border-radius: 22px;
+  overflow: hidden;
+  margin: 28px auto;
+  padding: 90px 18px 18px;
+  color: #f1f3f1;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+.wallpaper-preview p {
+  font:
+    24px/1.25 Georgia,
+    serif;
+  overflow-wrap: anywhere;
+}
+.wallpaper-preview img {
+  width: 100%;
+}
+@keyframes arrive {
+  from {
+    opacity: 0.4;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
+.experience input:not([type="checkbox"]),
+.experience select {
+  width: 100%;
+  min-height: 48px;
+  padding: 10px 0;
+  color: var(--fg);
+  border: 0;
+  border-bottom: 1px solid var(--muted);
+  border-radius: 0;
+  background: transparent;
+}
+.experience select option {
+  color: #172329;
+  background: #f1f3f1;
+}
+.experience input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--blue);
+}
+.bottom-navigation {
+  display: flex;
+  justify-content: space-between;
+  border-top: 1px solid var(--rule);
+  padding-top: 10px;
+}
+.member-rows {
+  margin: 26px 0;
+}
+.member-rows button {
+  display: block;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--rule);
+  color: var(--fg);
+  text-align: left;
+  width: 100%;
+  padding: 18px 0;
+  min-height: 76px;
+}
+.member-rows span {
+  display: block;
+  color: var(--muted);
+  font-size: 13px;
+}
+.member-rows strong {
+  display: block;
+  font-size: 17px;
+  font-weight: 400;
+  margin-top: 6px;
+  overflow-wrap: anywhere;
+}
+.milestone-edit {
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 24px;
+  margin-bottom: 28px;
+}
+
+.experience h1:focus-visible {
+  outline: none;
+}
+.experience p,
+.experience h2,
+.experience h3 {
+  overflow-wrap: anywhere;
+}
+.experience .auth-form {
+  margin: 36px 0;
+}
+.experience .auth-form input {
+  font-size: 20px;
+  margin-bottom: 24px;
+}
+.experience .auth-form .actions {
+  display: block;
+}
+.experience .privacy {
+  border-top: 1px solid var(--rule);
+  padding-top: 20px;
+  color: var(--muted);
+}
+.experience .brand-symbol.on-ink,
+.app-header .brand-symbol.on-ink {
+  background: var(--mineral);
+  border-radius: 50%;
+  padding: 3px;
+  --mark-size: 32px;
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  flex-basis: 32px;
+}
+.experience .welcome-copy {
+  font-size: 17px;
+  line-height: 1.5;
+}
+
+.wallpaper-image {
+  display: block;
+  width: 230px;
+  max-width: 100%;
+  height: auto;
+  margin: 28px auto;
+  border: 1px solid var(--rule);
+  border-radius: 22px;
+}
+
+/* Shared app shell: one flowing column on phones, a deliberate split on desktop. */
+body:has(.test-banner) {
+  --preview-height: 34px;
+}
+.test-banner {
+  height: 34px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  font-size: 10px;
+  line-height: 1.2;
+  background: #22343b;
+  color: #d2dfe2;
+}
+.test-banner button {
+  margin: 0;
+  padding: 4px;
+  font-size: 10px;
+  color: #d2dfe2;
+  min-height: 28px;
+}
+.experience {
+  overflow-wrap: break-word;
+}
+.experience-header {
+  min-height: 94px;
+}
+.experience-heading,
+.experience-content {
+  min-width: 0;
+}
+.experience h1 {
+  font-size: clamp(38px, 10vw, 46px);
+  letter-spacing: -0.045em;
+}
+.experience .brand-wordmark {
+  width: 132px;
+}
+.experience .experience-sub {
+  font-size: 18px;
+  line-height: 1.45;
+}
+.experience-welcome .experience-main {
+  display: flex;
+  flex-direction: column;
+}
+.experience-welcome h1 {
+  font-size: clamp(42px, 11.5vw, 58px);
+  margin-bottom: 10px;
+}
+.experience-welcome .experience-sub {
+  font:
+    400 clamp(21px, 5.6vw, 27px) / 1.2 Georgia,
+    serif;
+  margin-bottom: 24px;
+}
+.experience-welcome .experience-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.experience-welcome .experience-art {
+  flex: 0 0 auto;
+  height: auto;
+  min-height: 200px;
+  max-height: 360px;
+  margin-block: auto;
+  object-fit: contain;
+}
+.experience .welcome-copy {
+  font-size: 16px;
+  line-height: 1.5;
+  max-width: 32ch;
+}
+.experience-footer {
+  padding-bottom: max(18px, env(safe-area-inset-bottom));
+}
+.experience input,
+.experience textarea,
+.experience select {
+  font-size: max(16px, 1em);
+}
+.experience textarea {
+  font-size: 20px;
+}
+.experience .open-input label {
+  display: block;
+  margin-bottom: 8px;
+}
+.experience .focus-move {
+  margin-top: 28px;
+}
+@media (min-width: 1000px) {
+  .experience {
+    padding: 0 max(64px, calc((100vw - 1200px) / 2));
+  }
+  .experience-header {
+    min-height: 116px;
+  }
+  .experience-main,
+  .experience-welcome .experience-main {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 64px;
+    align-content: start;
+    padding-top: clamp(32px, 7vh, 80px);
+    padding-bottom: 40px;
+  }
+  .experience-heading {
+    max-width: 490px;
+  }
+  .experience-content {
+    max-width: 560px;
+  }
+  .experience h1 {
+    font-size: clamp(46px, 4.6vw, 66px);
+  }
+  .experience .experience-sub {
+    font-size: 21px;
+    max-width: 32ch;
+  }
+  .experience-content > :first-child {
+    margin-top: 0;
+  }
+  .experience-footer {
+    width: calc((100% - 64px) / 2);
+    margin-left: auto;
+    padding-bottom: 36px;
+  }
+  .experience-welcome .experience-main {
+    column-gap: 32px;
+    row-gap: 0;
+    grid-template-rows: min-content 1fr;
+  }
+  .experience-welcome .experience-heading {
+    grid-column: 1;
+    grid-row: 1;
+    align-self: end;
+  }
+  .experience-welcome .experience-content {
+    display: contents;
+  }
+  .experience-welcome h1 {
+    font-size: clamp(64px, 6vw, 88px);
+    white-space: nowrap;
+  }
+  .experience-welcome .experience-sub {
+    font:
+      400 clamp(24px, 2.6vw, 34px) / 1.25 Georgia,
+      serif;
+    margin-bottom: 30px;
+  }
+  .experience-welcome .welcome-copy {
+    grid-column: 1;
+    grid-row: 2;
+    font-size: 19px;
+    max-width: 32ch;
+  }
+  .experience-welcome .experience-art {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    width: calc(100% + 32px);
+    margin: -30px -16px 0;
+    min-height: 360px;
+    max-height: 520px;
+    height: min(50vh, 520px);
+    align-self: center;
+  }
+  .experience-welcome .experience-footer {
+    margin-left: 0;
+    max-width: 400px;
+  }
+  .experience .journey-progress {
+    max-width: 220px;
+  }
+}
+@media (max-width: 390px) {
+  .experience {
+    padding-inline: 24px;
+  }
+  .experience-header {
+    min-height: 82px;
+  }
+  .experience-welcome .experience-art {
+    min-height: 170px;
+  }
+}
+
+@media (min-width: 1000px) {
+  .experience-welcome .experience-art {
+    height: auto;
+    min-height: 0;
+    aspect-ratio: 3/2;
+  }
+}
+
+.experience h1 {
+  text-wrap: pretty;
+}
+.experience-art {
+  mask-image:
+    linear-gradient(to bottom, transparent, #000 12%, #000 83%, transparent),
+    linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
+  mask-composite: intersect;
+  -webkit-mask-composite: source-in;
+}
+.experience-welcome h1 {
+  text-wrap: nowrap;
+}
+.experience-welcome .experience-heading {
+  max-width: none;
+}
+
+.member-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  margin-top: 24px;
+}
+.member-tools .quiet {
+  min-height: 44px;
+}
+
+/* Basecamp: mineral canvas, ink focus surface, one primary action. */
+.basecamp {
+  background: #f1f3f1;
+  color: #172329;
+  min-height: 100svh;
+  color-scheme: light;
+  padding: 0 22px 110px;
+}
+.basecamp-header {
+  max-width: 1120px;
+  margin: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 86px;
+  gap: 20px;
+}
+.basecamp-header .brand-lockup {
+  width: 180px;
+}
+.basecamp-header .brand-symbol {
+  width: 28px;
+  min-width: 28px;
+  height: 28px;
+}
+.basecamp-header .brand-symbol img {
+  width: 28px;
+  height: 28px;
+}
+.basecamp-header .brand-wordmark {
+  width: 132px;
+}
+.basecamp-main {
+  max-width: 1120px;
+  margin: 0 auto;
+  display: grid;
+  gap: 28px;
+}
+.basecamp h1 {
+  font:
+    400 clamp(30px, 4vw, 48px) / 1.12 Georgia,
+    serif;
+  margin: 14px 0 24px;
+  overflow-wrap: anywhere;
+}
+.basecamp h2 {
+  font:
+    400 27px/1.2 Georgia,
+    serif;
+  margin: 12px 0;
+  overflow-wrap: anywhere;
+}
+.basecamp .section-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 12px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+.basecamp .section-label button {
+  font-size: 13px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.basecamp .vision {
+  font:
+    400 21px/1.4 Georgia,
+    serif;
+  color: #466775;
+}
+.basecamp .quiet {
+  color: inherit;
+}
+.preparation-link {
+  border: 0;
+  background: transparent;
+  color: #466775;
+  padding: 12px 0;
+  text-align: left;
+  text-decoration: underline;
+}
+.milestone-summary {
+  border-top: 1px solid #17232926;
+  padding-top: 22px;
+}
+.current-step {
+  background: #172329;
+  color: #f1f3f1;
+  padding: 26px;
+  border-radius: 22px;
+}
+.current-step .small {
+  color: #b9cbd0;
+}
+.step-timer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 26px 0 16px;
+}
+.step-timer output {
+  font-size: clamp(38px, 7vw, 56px);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+}
+.step-timer .button {
+  margin-top: 12px;
+  width: 100%;
+}
+.current-step .button {
+  background: #f1f3f1;
+  color: #172329;
+  border: 1px solid #e45d3d;
+  min-height: 48px;
+  width: 100%;
+}
+.schedule-link {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 16px 0;
+  color: inherit;
+  background: none;
+  border: 0;
+  border-bottom: 1px solid #ffffff35;
+}
+.schedule-link small {
+  display: block;
+  margin-top: 6px;
+  text-decoration: underline;
+}
+.basecamp-path ol {
+  list-style: none;
+  padding: 0 0 0 12px;
+  margin: 20px 0;
+  border-left: 2px solid #b9cbd0;
+}
+.basecamp-path li {
+  padding: 8px 0 14px 10px;
+}
+.basecamp-path li button {
+  border: 0;
+  background: none;
+  color: inherit;
+  text-align: left;
+  padding: 8px;
+}
+.basecamp-path li.current {
+  border-left: 3px solid #b99359;
+  margin-left: -14px;
+  padding-left: 21px;
+}
+.basecamp-path li strong {
+  font:
+    400 21px/1.3 Georgia,
+    serif;
+}
+.basecamp-path li small {
+  display: block;
+  color: #466775;
+  margin-top: 5px;
+}
+.path-step {
+  padding-left: 22px;
+  font-size: 14px;
+}
+.basecamp .secondary {
+  background: transparent;
+  color: #172329;
+  border: 1px solid #537889;
+  width: 100%;
+}
+.app-tabs {
+  position: fixed;
+  z-index: 20;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  background: #f1f3f1;
+  color: #172329;
+  border-top: 1px solid #17232925;
+  padding: 10px 16px max(12px, env(safe-area-inset-bottom));
+  gap: 12px;
+}
+.app-tabs button {
+  flex: 1;
+  max-width: 180px;
+  border: 0;
+  min-height: 44px;
+  background: none;
+  color: #466775;
+}
+.app-tabs button[aria-current="page"] {
+  color: #172329;
+  font-weight: 700;
+  border-bottom: 2px solid #b99359;
+}
+body:has(.app-tabs) .experience {
+  padding-bottom: 100px;
+}
+@media (min-width: 900px) {
+  .basecamp-main {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+    column-gap: 64px;
+  }
+  .challenge-heading {
+    grid-column: 1 / -1;
+    max-width: 850px;
+  }
+  .current-step {
+    grid-column: 2;
+    grid-row: 2 / span 2;
+    align-self: start;
+  }
+  .basecamp-path {
+    grid-column: 1;
+  }
+  .basecamp {
+    padding: 0 48px 110px;
+  }
+}
+
+/* Basecamp shares the app controls, with a quiet light surface. */
+.basecamp button {
+  font: inherit;
+  cursor: pointer;
+}
+.basecamp button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.basecamp .quiet {
+  border: 0;
+  background: none;
+  padding: 10px 0;
+  text-underline-offset: 5px;
+  text-decoration: underline;
+}
+.basecamp h1:focus {
+  outline: none;
+}
+.basecamp .button {
+  display: block;
+  border-radius: 10px;
+  padding: 13px 18px;
+  min-height: 48px;
+  text-align: center;
+}
+.basecamp .account-button {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #e8eae6;
+  padding: 0;
+}
+.account-button img {
+  width: 23px;
+  height: 23px;
+}
+.app-tabs button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.app-tabs img {
+  width: 22px;
+  height: 22px;
+  opacity: 0.5;
+}
+.app-tabs button[aria-current="page"] img {
+  opacity: 1;
+}
+.step-timer output {
+  border: 5px solid #537889;
+  border-radius: 50%;
+  width: 164px;
+  height: 164px;
+  display: grid;
+  place-items: center;
+  font-size: 32px;
+  box-shadow: inset 0 0 0 7px #b9cbd010;
+}
+.basecamp-main {
+  gap: 22px;
+}
+.basecamp-header {
+  min-height: 76px;
+}
+.challenge-heading h1 {
+  margin: 12px 0 20px;
+}
+.basecamp .vision {
+  margin: 10px 0 4px;
+  font-size: 19px;
+}
+.milestone-summary {
+  padding-top: 16px;
+}
+.current-step .quiet {
+  width: 100%;
+  color: #f1f3f1;
+}
+body:has(.app-tabs) .workspace {
+  padding-bottom: 110px;
+}
+
+.basecamp .current-step .section-label .quiet {
+  width: auto;
+  padding: 0;
+  font-size: 12px;
+}
+.basecamp .current-step {
+  padding: 22px;
+}
+.basecamp .current-step h2 {
+  font-size: 25px;
+}
+.step-timer {
+  padding: 16px 0 0;
+  gap: 8px;
+}
+.step-timer output {
+  width: 132px;
+  height: 132px;
+  font-size: 27px;
+}
+.basecamp .current-step p {
+  margin: 12px 0;
+  font-size: 15px;
+}
+.basecamp-header .brand-lockup {
+  width: 164px;
+}
+.basecamp-header .brand-wordmark {
+  width: 120px;
+}
+
+.basecamp .small {
+  font-size: 12px;
+  line-height: 1.5;
+}
+.milestone-summary .section-label .quiet {
+  padding: 0;
+  font-size: 12px;
+}
+.basecamp .milestone-summary h2 {
+  margin: 12px 0 8px;
+  font-size: 25px;
+}
+.basecamp .milestone-summary p {
+  margin: 8px 0 0;
+}
+
+.basecamp-header {
+  min-height: 68px;
+}
+.basecamp-main {
+  gap: 16px;
+}
+.basecamp .section-label {
+  font-size: 11px;
+  line-height: 1.3;
+}
+.basecamp .challenge-heading .section-label .quiet {
+  padding: 4px 0;
+}
+.basecamp .challenge-heading h1 {
+  margin: 8px 0 14px;
+}
+.basecamp .vision {
+  font-size: 18px;
+  line-height: 1.3;
+  margin: 8px 0 4px;
+}
+.basecamp .schedule-link {
+  padding: 10px 0;
+  font-size: 14px;
+  line-height: 1.4;
+}
+.basecamp-path li {
+  padding-top: 0;
+  padding-bottom: 8px;
+}
+.basecamp .basecamp-path p.small {
+  margin: 10px 0;
+}
+
+.auth-form input {
+  min-height: 48px;
+  font-size: 16px;
+}
+.auth-form .button {
+  margin-top: 24px;
+}
+.auth-options {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 20px 0;
+}
+.auth-options button {
+  min-height: 44px;
+}
+/* Pilot review: clearer hierarchy and comfortable mobile controls. */
+.challenge-heading {
+  background: #dbe5e6;
+  border: 1px solid #b4c6cb;
+  border-left: 3px solid #c28d56;
+  border-radius: 18px;
+  padding: 20px;
+}
+.basecamp .section-label {
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.basecamp .section-label .quiet,
+.basecamp .current-step .section-label .quiet,
+.basecamp .milestone-summary .section-label .quiet {
+  min-height: 44px;
+  padding: 9px 13px;
+  border: 1px solid #53788966;
+  border-radius: 10px;
+  text-decoration: none;
+  font-size: 13px;
+}
+.basecamp .current-step .section-label .quiet {
+  border-color: #adc4cb80;
+}
+.current-step .button.secondary {
+  margin-top: 12px;
+  color: #172329;
+  background: #f1f3f1;
+}
+.wallpaper-card {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 16px;
+  margin-top: 22px;
+  width: 100%;
+  background: #172329;
+  color: #f1f3f1;
+  border: 1px solid #537889;
+  border-radius: 16px;
+  text-align: left;
+  cursor: pointer;
+}
+.wallpaper-card img {
+  width: 72px;
+  height: 108px;
+  object-fit: cover;
+  border-radius: 12px;
+}
+.wallpaper-card strong,
+.wallpaper-card small {
+  display: block;
+}
+.wallpaper-card small {
+  margin-top: 10px;
+  color: #bfd0d5;
+}
+.plan-stage {
+  border: 1px solid #b8c7ca;
+  border-radius: 16px;
+  padding: 18px;
+  margin: 16px 0;
+  background: #ffffff75;
+}
+.plan-stage.current {
+  border: 2px solid #537889;
+  background: #e0e9e9;
+}
+.plan-stage summary {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+  min-height: 48px;
+}
+.plan-stage summary strong,
+.plan-stage summary small {
+  display: block;
+}
+.plan-stage summary strong {
+  font-size: 21px;
+  margin-top: 5px;
+}
+.plan-stage summary small {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.stage-number {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  background: #172329;
+  color: white;
+  border-radius: 50%;
+}
+.step-metadata {
+  display: block;
+  font-size: 13px;
+  margin-top: 6px;
+  color: #42616e;
+}
+.member-rows {
+  display: grid;
+  gap: 10px;
+}
+.member-rows button {
+  padding: 16px;
+  border: 1px solid #9baeb4;
+  border-radius: 12px;
+  min-height: 52px;
+  background: #fff9;
+  text-align: left;
+}
+.repeat-controls {
+  border: 0;
+  padding: 0;
+  margin: 20px 0;
+}
+.weekday-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.weekday-options button {
+  min-width: 44px;
+  min-height: 44px;
+  border: 1px solid #537889;
+  border-radius: 10px;
+  background: transparent;
+  color: inherit;
+}
+.weekday-options button[aria-pressed="true"] {
+  background: #172329;
+  color: white;
+}
+.schedule-fields {
+  border: 1px solid #9baeb4;
+  border-radius: 14px;
+  padding: 16px;
+}
+.schedule-fields input {
+  min-height: 48px;
+  font-size: 16px;
+  min-width: 0;
+  width: 100%;
+}
+.schedule-fields .fields-row {
+  gap: 12px;
+}
+.schedule-fields .fields-row > div {
+  min-width: 0;
+}
+.proof-group {
+  margin: 24px 0 34px;
+}
+.proof-group h2 {
+  font-size: 25px;
+  line-height: 1.25;
+}
+.proof-card strong {
+  display: block;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.4;
+  margin: 8px 0 12px;
+}
+.proof-card .section-label {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+}
+.result-badge {
+  display: inline-block;
+  border: 1px solid #95b4bf;
+  padding: 3px 7px;
+  border-radius: 6px;
+}
+.result-done {
+  background: #42636a;
+  color: white;
+}
+.wallpaper-styles {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  border: 0;
+  padding: 0;
+  margin: 24px 0;
+}
+.wallpaper-swatch {
+  height: 114px;
+  position: relative;
+  overflow: hidden;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  background: #172329;
+  color: white;
+  padding: 6px;
+  cursor: pointer;
+}
+.wallpaper-swatch[aria-pressed="true"] {
+  outline: 2px solid #c28d56;
+  outline-offset: 2px;
+}
+.wallpaper-swatch img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.wallpaper-swatch span {
+  position: relative;
+  font-size: 12px;
+  background: #172329aa;
+  border-radius: 4px;
+  padding: 3px;
+}
+.wallpaper-swatch.mineral {
+  background: #537889;
+}
+.wallpaper-swatch.light {
+  background: #ece9df;
+}
+.wallpaper-toggle {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  min-height: 44px;
+  margin: 4px 0;
+}
+.wallpaper-toggle input {
+  width: 20px;
+  height: 20px;
+}
+.wallpaper-image {
+  max-width: 250px;
+  width: 75%;
+  display: block;
+  margin: 24px auto;
+  border-radius: 22px;
+  box-shadow: 0 10px 40px #0003;
+}
+.image-save-options {
+  display: grid;
+  gap: 10px;
+}
+.image-save-options p {
+  font-size: 14px;
+}
+@media (max-width: 600px) {
+  .experience:has(.proof-group) .experience-heading h1,
+  .experience:has(.plan-overview) .experience-heading h1 {
+    font-size: 36px;
+  }
+  .experience:has(.proof-group) .experience-sub {
+    font-size: 18px;
+  }
+  .challenge-heading h2 {
+    font-size: 26px;
+  }
+  .plan-overview h2 {
+    font-size: 24px;
+  }
+  .experience:has(.plan-overview) .experience-content {
+    gap: 16px;
+  }
+}
+
+/* Secondary actions stay clear without competing with the ember primary CTA. */
+.experience .button.secondary {
+  border-color: #8ba5b0;
+  background: transparent;
+  color: inherit;
+}
+.experience .button.secondary:hover {
+  background: #7895a11a;
+}
+.wallpaper-image {
+  width: auto;
+  max-width: 75%;
+  max-height: 38vh;
+  object-fit: contain;
+}
+
+/* Match the older challenge-specific selector so its zero padding cannot win. */
+.basecamp .challenge-heading .section-label .quiet {
+  padding: 10px 14px;
+  min-height: 44px;
+  flex-shrink: 0;
+}
+.local-datetime-control {
+  display: flex;
+  align-items: center;
+  position: relative;
+  gap: 12px;
+  min-height: 52px;
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #7895a1;
+  border-radius: 10px;
+  margin-top: 8px;
+  box-sizing: border-box;
+}
+.local-datetime-value {
+  flex: 1;
+  font-size: 16px;
+  line-height: 1.4;
+}
+.local-datetime-value.empty {
+  color: #516b76;
+}
+.local-datetime-icon {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  color: #537889;
+}
+.experience .local-datetime-control input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  opacity: 0;
+  cursor: pointer;
+  margin: 0;
+  padding: 0;
+  font-size: 16px;
+}
+.local-datetime-control:focus-within {
+  outline: 2px solid #537889;
+  outline-offset: 3px;
+}
+
+/* Separate the Vision editor action from the Plan's challenge summary. */
+.experience-content > .challenge-heading {
+  margin-top: 20px;
+}
+
+/* Reflection and recovery use the established cards, ink, mineral and artwork. */
+.reflection-answer {
+  padding: 20px 0;
+  border-bottom: 1px solid #809ba840;
+}
+.reflection-answer h2 {
+  font-size: 1.12rem;
+  margin: 0 0 10px;
+}
+.reflection-answer p {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.accomplishment-summary {
+  border-top: 1px solid #c880564d;
+  padding-top: 20px;
+}
+.accomplishment-card {
+  display: grid;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  padding: 24px;
+  border: 1px solid #bf7655;
+  border-radius: 16px;
+  background: #142a32;
+  color: #f9f7f3;
+  margin: 20px 0;
+}
+.accomplishment-card strong {
+  font-family: var(--font-heading, Georgia, serif);
+  font-size: 1.6rem;
+  line-height: 1.2;
+}
+.accomplishment-card p {
+  margin: 0;
+}
+.supporting-proof {
+  margin: 28px 0;
+  border-top: 1px solid #809ba840;
+  padding-top: 20px;
+}
+.supporting-proof summary {
+  cursor: pointer;
+  padding: 12px 0;
+  font-weight: 600;
+}
+.supporting-proof .proof-row {
+  color: inherit;
+}
+.paused-card {
+  padding: 24px;
+  background: #e5ecec;
+  border: 1px solid #829ca6;
+  border-radius: 16px;
+  margin: 20px 0;
+  color: #172a31;
+}
+.paused-card h2 {
+  margin-top: 0;
+}
+.paused-card .button,
+.schedule-review .button {
+  width: 100%;
+}
+.recovery-scope {
+  border: 0;
+  padding: 0;
+  margin: 16px 0 24px;
+  min-width: 0;
+}
+.recovery-scope .experience-choice {
+  width: 100%;
+  margin-top: 10px;
+}
+.schedule-review {
+  margin: 20px 0;
+}
+.paused-card .button {
+  background: var(--mineral);
+  color: var(--ink);
+  border: 1px solid var(--ember);
+}
