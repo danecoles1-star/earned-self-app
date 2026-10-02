@@ -1442,7 +1442,9 @@ body:has(.app-tabs) .workspace {
   background: transparent;
   color: inherit;
 }
-.experience .button.secondary:hover { background: #7895a11a; }
+.experience .button.secondary:hover {
+  background: #7895a11a;
+}
 .wallpaper-image {
   width: auto;
   max-width: 75%;
@@ -1469,9 +1471,20 @@ body:has(.app-tabs) .workspace {
   margin-top: 8px;
   box-sizing: border-box;
 }
-.local-datetime-value { flex: 1; font-size: 16px; line-height: 1.4; }
-.local-datetime-value.empty { color: #516b76; }
-.local-datetime-icon { width: 22px; height: 22px; flex-shrink: 0; color: #537889; }
+.local-datetime-value {
+  flex: 1;
+  font-size: 16px;
+  line-height: 1.4;
+}
+.local-datetime-value.empty {
+  color: #516b76;
+}
+.local-datetime-icon {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  color: #537889;
+}
 .experience .local-datetime-control input {
   position: absolute;
   inset: 0;
@@ -1492,4 +1505,88 @@ body:has(.app-tabs) .workspace {
 /* Separate the Vision editor action from the Plan's challenge summary. */
 .experience-content > .challenge-heading {
   margin-top: 20px;
+}
+
+/* Reflection and recovery use the established cards, ink, mineral and artwork. */
+.reflection-answer {
+  padding: 20px 0;
+  border-bottom: 1px solid #809ba840;
+}
+.reflection-answer h2 {
+  font-size: 1.12rem;
+  margin: 0 0 10px;
+}
+.reflection-answer p {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.accomplishment-summary {
+  border-top: 1px solid #c880564d;
+  padding-top: 20px;
+}
+.accomplishment-card {
+  display: grid;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  padding: 24px;
+  border: 1px solid #bf7655;
+  border-radius: 16px;
+  background: #142a32;
+  color: #f9f7f3;
+  margin: 20px 0;
+}
+.accomplishment-card strong {
+  font-family: var(--font-heading, Georgia, serif);
+  font-size: 1.6rem;
+  line-height: 1.2;
+}
+.accomplishment-card p {
+  margin: 0;
+}
+.supporting-proof {
+  margin: 28px 0;
+  border-top: 1px solid #809ba840;
+  padding-top: 20px;
+}
+.supporting-proof summary {
+  cursor: pointer;
+  padding: 12px 0;
+  font-weight: 600;
+}
+.supporting-proof .proof-row {
+  color: inherit;
+}
+.paused-card {
+  padding: 24px;
+  background: #e5ecec;
+  border: 1px solid #829ca6;
+  border-radius: 16px;
+  margin: 20px 0;
+  color: #172a31;
+}
+.paused-card h2 {
+  margin-top: 0;
+}
+.paused-card .button,
+.schedule-review .button {
+  width: 100%;
+}
+.recovery-scope {
+  border: 0;
+  padding: 0;
+  margin: 16px 0 24px;
+  min-width: 0;
+}
+.recovery-scope .experience-choice {
+  width: 100%;
+  margin-top: 10px;
+}
+.schedule-review {
+  margin: 20px 0;
+}
+.paused-card .button {
+  background: var(--mineral);
+  color: var(--ink);
+  border: 1px solid var(--ember);
 }

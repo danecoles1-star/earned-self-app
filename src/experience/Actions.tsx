@@ -1,3 +1,5 @@
+import { guidanceExample } from "./guidance";
+import { Paused, ScheduleReview } from "./Paused";
 import { LocalDateTimeInput } from "../components/LocalDateTime";
 import { pauseTimer } from "./StepTimer";
 import { useState } from "react";
@@ -8,7 +10,6 @@ import {
   currentSchedule,
   definition,
   currentReport,
-  isOverdue,
   ready,
 } from "../data/domain";
 import {
@@ -40,7 +41,14 @@ export function MoveEditor({
       e.data.stepId === location.pathname.split("/")[3],
   );
   const c = location.pathname.startsWith("/revise/")
-      ? currentAction(s, g.id)
+      ? location.pathname.split("/")[3]
+        ? s.commitments.find(
+            (c) =>
+              c.goal_id === g.id &&
+              c.state === "active" &&
+              c.id === location.pathname.split("/")[3],
+          )
+        : currentAction(s, g.id)
       : undefined,
     d = c && definition(s, c.id, c.revision),
     time = c && currentSchedule(s, c.id),
@@ -60,10 +68,12 @@ export function MoveEditor({
     timeZone:
       time?.time_zone || Intl.DateTimeFormat().resolvedOptions().timeZone,
     location: time?.location || "",
+    scope: "",
     reason: "",
     decision: "continue",
     milestoneId:
       new URLSearchParams(location.search).get("milestone") ||
+      c?.milestone_id ||
       plannedStep?.data.milestoneId ||
       m?.id ||
       "",
@@ -86,15 +96,24 @@ export function MoveEditor({
   if (c && (g.status === "draft" || !c.milestone_id))
     blocked =
       "Record what happened with your current step before preparing a scheduled action.";
-  if (c && isOverdue(s, c.id))
-    blocked = "Report what happened before changing this overdue agreement.";
+
   const next = () => {
     setIssue("");
+    if (c?.recurrence && !v.scope) {
+      setIssue("Choose which repetitions to change.");
+      return;
+    }
     if (step === 1) {
       try {
         scheduledInstant(v.localDate, v.localTime, v.timeZone);
         checkRecurrence(
-          v.repeat ? { days: v.days, until: v.until } : null,
+          c
+            ? v.scope === "future"
+              ? c.recurrence
+              : null
+            : v.repeat
+              ? { days: v.days, until: v.until }
+              : null,
           v.localDate,
         );
       } catch (e) {
@@ -117,7 +136,13 @@ export function MoveEditor({
     void save(
       c ? "reschedule" : "commitment",
       c
-        ? { ...base, commitmentId: c.id, version: c.version, reason: v.reason }
+        ? {
+            ...base,
+            commitmentId: c.id,
+            version: c.version,
+            reason: v.reason,
+            scope: c.recurrence ? v.scope : "occurrence",
+          }
         : {
             ...base,
             id: v.id,
@@ -211,6 +236,7 @@ export function MoveEditor({
               <label>
                 Milestone
                 <select
+                  disabled={!!c}
                   value={v.milestoneId}
                   onChange={(e) => set("milestoneId", e.target.value)}
                 >
@@ -231,6 +257,28 @@ export function MoveEditor({
                     ))}
                 </select>
               </label>
+              {c?.recurrence && (
+                <fieldset className="recovery-scope">
+                  <legend>Apply this change to</legend>
+                  <Choice
+                    selected={v.scope === "occurrence"}
+                    onClick={() => set("scope", "occurrence")}
+                  >
+                    This occurrence only
+                  </Choice>
+                  <Choice
+                    selected={v.scope === "future"}
+                    onClick={() => set("scope", "future")}
+                  >
+                    This and future repetitions
+                  </Choice>
+                  <p className="small">
+                    One occurrence keeps later repetitions on their original
+                    action and schedule. Future repetitions keep your chosen
+                    repeat days.
+                  </p>
+                </fieldset>
+              )}
               <Input
                 label="My next step"
                 value={v.action}
@@ -267,6 +315,11 @@ export function MoveEditor({
                 progress it builds.
               </p>
               <Help
+                example={
+                  guidanceExample(g.words, "step") +
+                  " Done means: " +
+                  guidanceExample(g.words, "criterion")
+                }
                 ambition={g.words}
                 field={`what action would give you evidence toward “${m?.criterion}”?`}
               />
@@ -278,7 +331,7 @@ export function MoveEditor({
                 value={v}
                 change={(patch) => change({ ...v, ...patch })}
               />
-              {v.repeat && (
+              {v.repeat && !c && (
                 <fieldset className="repeat-controls">
                   <legend>Repeat on</legend>
                   <div className="weekday-options">
@@ -316,7 +369,11 @@ export function MoveEditor({
               )}
               <p className="small">
                 {repeatLabel(
-                  v.repeat ? { days: v.days, until: v.until } : null,
+                  c
+                    ? c.recurrence
+                    : v.repeat
+                      ? { days: v.days, until: v.until }
+                      : null,
                 )}
               </p>
               {(!v.localDate || !v.localTime) && (
@@ -338,11 +395,27 @@ export function MoveEditor({
               <p>{v.location}</p>
               <p>
                 {repeatLabel(
-                  v.repeat ? { days: v.days, until: v.until } : null,
+                  c
+                    ? c.recurrence
+                    : v.repeat
+                      ? { days: v.days, until: v.until }
+                      : null,
                 )}
               </p>
               {c && (
-                <p className="small">The earlier agreement stays in Proof.</p>
+                <>
+                  <p className="small">
+                    {c.recurrence
+                      ? v.scope === "occurrence"
+                        ? "This occurrence only. Later repetitions keep their original action and schedule."
+                        : "This and future repetitions. Your repeat days stay the same."
+                      : "The earlier agreement stays in history."}
+                  </p>
+                  <p className="small">
+                    Update any event you already added to your calendar
+                    separately.
+                  </p>
+                </>
               )}
               {(c || v.decision !== "continue") && (
                 <Input
@@ -412,9 +485,11 @@ export function ReportMove({
                 (r) => {
                   localStorage.removeItem(key);
                   navigate(
-                    v.reflection === "Ready to review my milestone"
-                      ? "/milestone/" + g.id
-                      : "/app",
+                    v.result !== "done"
+                      ? "/recovery/" + c.id
+                      : v.reflection === "Ready to review my milestone"
+                        ? "/milestone/" + g.id
+                        : "/app",
                   );
                 },
               );
@@ -425,6 +500,12 @@ export function ReportMove({
         </>
       }
     >
+      {g.status === "paused" && (
+        <p role="status">
+          This challenge is paused. Only record work that already happened.
+          Checking in does not resume it or change future dates.
+        </p>
+      )}
       <h2>{definition(s, c.id, c.revision)?.action}</h2>
       <p className="small">
         {displaySchedule(
@@ -565,7 +646,14 @@ export function MilestoneComplete({
           </p>
         )}
         {g.status !== "active" && (
-          <p>Complete your preparation and schedule a step first.</p>
+          <>
+            <p>
+              {g.status === "paused"
+                ? "This challenge is paused. Resume before attempting a milestone."
+                : "Complete your preparation and schedule a step first."}
+            </p>
+            {g.status === "paused" && <Paused goal={g} navigate={navigate} />}
+          </>
         )}
       </Page>
     );
@@ -753,7 +841,7 @@ export function Decision({ goal: g, snapshot, save, saving, navigate }: Props) {
         completed
           ? step === 0
             ? "Look at the outcome and your Proof."
-            : "Remember where you began. Name what changed."
+            : "Name what changed through doing the work."
           : undefined
       }
       dark={false}
@@ -798,7 +886,17 @@ export function Decision({ goal: g, snapshot, save, saving, navigate }: Props) {
                 void save(
                   "status",
                   { goalId: g.id, version: g.version, status, ...v },
-                  () => navigate("/app"),
+                  () => {
+                    if (status === "paused")
+                      snapshot.commitments
+                        .filter(
+                          (c) => c.goal_id === g.id && c.state === "active",
+                        )
+                        .forEach((c) =>
+                          pauseTimer(`${g.owner_id}:${c.id}:${c.revision}`),
+                        );
+                    navigate(completed ? "/proof/challenge/" + g.id : "/app");
+                  },
                 );
               }}
             >
@@ -814,6 +912,9 @@ export function Decision({ goal: g, snapshot, save, saving, navigate }: Props) {
         ) : undefined
       }
     >
+      {g.status === "paused" && (
+        <ScheduleReview goal={g} snapshot={snapshot} navigate={navigate} />
+      )}
       {blocked ? (
         <p role="alert">{blocked}</p>
       ) : !status ? (
@@ -861,7 +962,7 @@ export function Decision({ goal: g, snapshot, save, saving, navigate }: Props) {
           )}{" "}
           {completed && step === 1 && (
             <>
-              <p className="small">Where you began</p>
+              <p className="small">The vision you chose</p>
               <h2>{g.vision}</h2>
               <Input
                 label="What has changed?"

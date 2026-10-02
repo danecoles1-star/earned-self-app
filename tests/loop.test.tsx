@@ -57,7 +57,9 @@ it("reports a partial result, retains required explanation and offers deliberate
   expect(data.snapshot.reports[0].result).toBe("partly");
   expect(data.snapshot.goals[0].status).toBe("active");
 
-  await u.click(await screen.findByRole("button", { name: "Add a step" }));
+  await u.click(
+    await screen.findByRole("button", { name: "Plan my next step" }),
+  );
   await screen.findByRole("heading", { name: "Choose your next step." });
   await u.type(screen.getByLabelText("My next step"), "Finish the practice");
   await u.type(screen.getByLabelText("Done means"), "Full rehearsal");

@@ -48,6 +48,14 @@ export interface Recurrence {
   until: string;
 }
 export interface Commitment {
+  repeat_template?: {
+    action: string;
+    criterion: string;
+    local_date: string;
+    local_time: string | null;
+    time_zone: string | null;
+    location: string | null;
+  } | null;
   recurrence?: Recurrence | null;
   series_id?: string | null;
   id: string;

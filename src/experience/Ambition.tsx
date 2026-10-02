@@ -1,3 +1,5 @@
+import { Paused } from "./Paused";
+import { completedEvent } from "./ChallengeRecord";
 import { displaySchedule, displayDate } from "../data/time";
 import { currentSchedule } from "../data/domain";
 import { repeatLabel } from "../data/recurrence";
@@ -46,6 +48,7 @@ export function Ambition({
         </button>
       }
     >
+      {g.status === "paused" && <Paused goal={g} navigate={navigate} />}
       {editingVision ? (
         <section className="vision-editor">
           <Input
@@ -169,7 +172,9 @@ export function Ambition({
                   <div className="plan-step-row" key={c.id}>
                     {definition(s, c.id, c.revision)?.action} ·{" "}
                     {c.state === "active"
-                      ? "Scheduled"
+                      ? g.status === "paused"
+                        ? "Paused · date retained"
+                        : "Scheduled"
                       : c.state === "cancelled"
                         ? "Ended without a check-in"
                         : "Check-in recorded"}
@@ -180,6 +185,12 @@ export function Ambition({
                       )}{" "}
                       · {repeatLabel(c.recurrence)}
                     </small>
+                    <button
+                      className="button secondary"
+                      onClick={() => navigate("/revise/" + g.id + "/" + c.id)}
+                    >
+                      Revise this step
+                    </button>
                     {c.state === "active" && c.recurrence && (
                       <button
                         className="button secondary"
@@ -331,57 +342,79 @@ export function ProofList({
           <option value="draft">Preparing</option>
         </select>
       </label>
-      {!s.evidence.length && <p>No Proof yet.</p>}
-      {goals.map((g) => (
-        <section className="proof-group" key={g.id}>
-          <h2>{g.words}</h2>
-          {g.vision && <p className="small">Who I am becoming: {g.vision}</p>}
-          {s.evidence
-            .filter((e) => e.goal_id === g.id)
-            .sort((a, b) => b.recorded_at.localeCompare(a.recorded_at))
-            .map((e) => {
-              const r = currentReport(s, e.id, e.revision),
-                d = definition(s, e.commitment_id, e.commitment_revision);
-              return (
-                <button
-                  className="experience-choice proof-card"
-                  key={e.id}
-                  onClick={() => navigate("/proof/" + e.id)}
-                >
-                  <span>
-                    <small className="section-label">Step check-in</small>
-                    <strong>{d?.action}</strong>
-                    <small style={{ display: "block" }}>
-                      <span className={"result-badge result-" + r?.result}>
-                        {r && resultLabel[r.result]}
-                      </span>{" "}
-                      · {displayDate(e.recorded_at)}
-                    </small>
-                  </span>
-                </button>
-              );
-            })}
-          {s.events
-            .filter(
-              (e) =>
-                e.goal_id === g.id &&
-                ["milestone", "milestone_attempt", "status"].includes(e.kind),
-            )
-            .map((e) => (
-              <div className="first-proof" key={e.id}>
-                <p>{e.data.detail}</p>
-                <p className="small">
-                  {e.kind === "milestone"
-                    ? "Milestone completed"
-                    : e.kind === "milestone_attempt"
-                      ? "Milestone attempted"
-                      : e.data.to}{" "}
-                  · {displayDate(e.recorded_at)}
-                </p>
-              </div>
-            ))}
-        </section>
-      ))}
+      {!s.evidence.length &&
+        !s.events.some(
+          (e) =>
+            e.kind === "milestone" ||
+            e.kind === "milestone_attempt" ||
+            (e.kind === "status" && e.data.to === "completed"),
+        ) && <p>No Proof yet.</p>}
+      {goals.map((g) =>
+        g.status === "completed" ? (
+          <button
+            key={g.id}
+            className="accomplishment-card"
+            onClick={() => navigate("/proof/challenge/" + g.id)}
+          >
+            <span className="section-label">Challenge completed</span>
+            <strong>{g.words}</strong>
+            <p>
+              {completedEvent(s, g.id)?.data.detail ||
+                "Your saved accomplishment"}
+            </p>
+            <span>Revisit what changed →</span>
+          </button>
+        ) : (
+          <section className="proof-group" key={g.id}>
+            <h2>{g.words}</h2>
+            {g.vision && <p className="small">Who I am becoming: {g.vision}</p>}
+            {s.evidence
+              .filter((e) => e.goal_id === g.id)
+              .sort((a, b) => b.recorded_at.localeCompare(a.recorded_at))
+              .map((e) => {
+                const r = currentReport(s, e.id, e.revision),
+                  d = definition(s, e.commitment_id, e.commitment_revision);
+                return (
+                  <button
+                    className="experience-choice proof-card"
+                    key={e.id}
+                    onClick={() => navigate("/proof/" + e.id)}
+                  >
+                    <span>
+                      <small className="section-label">Step check-in</small>
+                      <strong>{d?.action}</strong>
+                      <small style={{ display: "block" }}>
+                        <span className={"result-badge result-" + r?.result}>
+                          {r && resultLabel[r.result]}
+                        </span>{" "}
+                        · {displayDate(e.recorded_at)}
+                      </small>
+                    </span>
+                  </button>
+                );
+              })}
+            {s.events
+              .filter(
+                (e) =>
+                  e.goal_id === g.id &&
+                  ["milestone", "milestone_attempt", "status"].includes(e.kind),
+              )
+              .map((e) => (
+                <div className="first-proof" key={e.id}>
+                  <p>{e.data.detail}</p>
+                  <p className="small">
+                    {e.kind === "milestone"
+                      ? "Milestone completed"
+                      : e.kind === "milestone_attempt"
+                        ? "Milestone attempted"
+                        : e.data.to}{" "}
+                    · {displayDate(e.recorded_at)}
+                  </p>
+                </div>
+              ))}
+          </section>
+        ),
+      )}
     </Page>
   );
 }

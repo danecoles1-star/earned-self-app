@@ -1,4 +1,12 @@
-import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import { Brand } from "../components/Brand";
 import steps from "../assets/art/steps.webp";
 import path from "../assets/art/path.webp";
@@ -118,6 +126,7 @@ export function Choice({
     </button>
   );
 }
+export const SupportMode = createContext<"guided" | "on_request">("on_request");
 export function Help({
   ambition,
   field,
@@ -127,9 +136,11 @@ export function Help({
   field: string;
   example?: string;
 }) {
+  const mode = useContext(SupportMode);
   const [open, setOpen] = useState(false);
   return (
     <div className="context-help">
+      {mode === "guided" && !open && <p className="small">{field}</p>}
       <button
         type="button"
         className="quiet"

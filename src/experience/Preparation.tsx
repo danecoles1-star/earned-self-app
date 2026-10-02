@@ -1,3 +1,4 @@
+import { guidanceExample } from "./guidance";
 import { useState } from "react";
 import type {
   Foundation,
@@ -249,6 +250,7 @@ export function Preparation({
           />
           <Help
             ambition={value.words}
+            example={guidanceExample(value.words, "obstacle")}
             field={`given your constraints (“${value.constraints}”), what will you do when the plan gets difficult? Name a practical response.`}
           />
         </>
@@ -319,6 +321,11 @@ export function Preparation({
                 value={m.criterion}
                 onChange={(v) => updateMilestone(m.id, { criterion: v })}
                 placeholder="How will you know?"
+              />
+              <Help
+                ambition={value.words}
+                field="Choose a turning point that demonstrates readiness for your challenge."
+                example={guidanceExample(value.words, "milestone")}
               />
               <ScheduleFields
                 prefix={`Milestone ${i + 1} deadline`}

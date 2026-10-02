@@ -1,3 +1,5 @@
+import { useEffect } from "react";
+import { Paused } from "./Paused";
 import { displaySchedule } from "../data/time";
 import { repeatLabel } from "../data/recurrence";
 import { artwork } from "./ui";
@@ -32,6 +34,27 @@ export function MemberHome({
     goal.status,
   );
 
+  const paused = goal.status === "paused";
+  useEffect(() => {
+    if (paused) {
+      const event = snapshot.events
+        .filter(
+          (e) =>
+            e.goal_id === goal.id &&
+            e.kind === "status" &&
+            e.data.to === "paused",
+        )
+        .sort((a, b) => b.recorded_at.localeCompare(a.recorded_at))[0];
+      snapshot.commitments
+        .filter((c) => c.goal_id === goal.id && c.state === "active")
+        .forEach((c) =>
+          pauseTimer(
+            `${goal.owner_id}:${c.id}:${c.revision}`,
+            event ? new Date(event.recorded_at).getTime() : Date.now(),
+          ),
+        );
+    }
+  }, [paused, goal.id, goal.owner_id, snapshot.commitments, snapshot.events]);
   const addStep = () =>
     navigate(
       goal.status === "draft" ? "/plan/" + goal.id : "/commitment/" + goal.id,
@@ -71,6 +94,16 @@ export function MemberHome({
             </p>
           )}
         </section>
+        {paused && <Paused goal={goal} navigate={navigate} />}
+        {goal.status === "completed" && (
+          <button
+            className="accomplishment-card"
+            onClick={() => navigate("/proof/challenge/" + goal.id)}
+          >
+            <strong>Revisit your accomplishment</strong>
+            <span>What changed. What you’ll carry forward. →</span>
+          </button>
+        )}
         <section className="milestone-summary">
           <div className="section-label">
             Current milestone
@@ -110,7 +143,7 @@ export function MemberHome({
         <section className="current-step">
           <div className="section-label">
             {c ? "Current step" : "Your next step"}
-            {c && (
+            {c && !paused && (
               <button
                 className="quiet"
                 onClick={() => {
@@ -155,7 +188,9 @@ export function MemberHome({
               </button>
             </p>
           )}
-          {c && d ? (
+          {paused ? (
+            <p>Resume when you’re ready. Your next step is saved.</p>
+          ) : c && d ? (
             <>
               <p className="small">{repeatLabel(c.recurrence)}</p>
               <StepTimer

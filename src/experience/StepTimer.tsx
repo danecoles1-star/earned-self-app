@@ -6,7 +6,7 @@ export function elapsedTime(clock: Clock, now = Date.now()) {
     clock.elapsed + (clock.started === null ? 0 : now - clock.started),
   );
 }
-export function pauseTimer(identity: string) {
+export function pauseTimer(identity: string, pausedAt = Date.now()) {
   const key = `earned-self:timer:${identity}`;
   try {
     const clock = JSON.parse(localStorage.getItem(key) || "null");
@@ -17,7 +17,10 @@ export function pauseTimer(identity: string) {
     )
       localStorage.setItem(
         key,
-        JSON.stringify({ elapsed: elapsedTime(clock), started: null }),
+        JSON.stringify({
+          elapsed: elapsedTime(clock, Math.max(clock.started, pausedAt)),
+          started: null,
+        }),
       );
   } catch {}
 }

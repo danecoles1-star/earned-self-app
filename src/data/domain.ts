@@ -54,6 +54,7 @@ const allowed: Record<Command["kind"], string[]> = {
     "reason",
   ],
   reschedule: [
+    "scope",
     "goalId",
     "commitmentId",
     "version",
@@ -617,13 +618,13 @@ export function applyLocal(
         state: "current",
         created_at: now,
       });
-      if (g.status !== "active")
+      if (g.status === "draft")
         event(g.id, "status", {
           from: g.status,
           to: "active",
           detail: "Preparation and next action scheduled.",
         });
-      g.status = "active";
+      if (g.status === "draft") g.status = "active";
       g.version++;
       event(g.id, "decision", {
         plannedStepId: String(p.plannedStepId || ""),
@@ -632,20 +633,45 @@ export function applyLocal(
         commitmentId: id,
       });
     } else if (c.kind === "reschedule") {
+      const current = s.commitments.find(
+        (v) =>
+          v.goal_id === g.id && v.id === p.commitmentId && v.state === "active",
+      );
       if (!current || current.id !== p.commitmentId)
         throw new Error("Commitment unavailable.");
       if (current.version !== p.version)
         throw new Error("This commitment changed. Reload its current version.");
       if (!["active", "paused"].includes(g.status))
         throw new Error("Only an active or paused pursuit can be rescheduled.");
-      if (isOverdue(s, current.id))
+      if (isOverdue(s, current.id) && !p.scope)
         throw new Error(
           "Your commitment needs an update. Report what happened before committing again.",
         );
+      const scope = p.scope ?? "future";
+      if (scope !== "occurrence" && scope !== "future")
+        throw new Error("Choose which repetitions to change.");
+      if (
+        current.recurrence &&
+        scope === "occurrence" &&
+        !current.repeat_template
+      ) {
+        const original = definition(s, current.id, current.revision)!;
+        const schedule = currentSchedule(s, current.id)!;
+        current.repeat_template = {
+          action: original.action,
+          criterion: original.criterion,
+          local_date: schedule.local_date!,
+          local_time: schedule.local_time,
+          time_zone: schedule.time_zone,
+          location: schedule.location,
+        };
+      } else if (scope === "future") current.repeat_template = null;
       const m = g.milestones.find((m) => m.id === current.milestone_id);
       if (!m) throw new Error("Preparation milestone unavailable.");
       const instant = scheduledInstant(p.localDate, p.localTime, p.timeZone);
 
+      if (current.recurrence && scope === "future")
+        checkRecurrence(current.recurrence, String(p.localDate));
       const old = currentSchedule(s, current.id);
       if (old) old.state = "superseded";
       current.revision++;
@@ -674,6 +700,7 @@ export function applyLocal(
       event(g.id, "reschedule", {
         commitmentId: current.id,
         detail: String(p.reason),
+        scope: String(scope),
       });
       receipt = { id: current.id, version: current.version };
     } else if (c.kind === "outcome") {
@@ -716,34 +743,43 @@ export function applyLocal(
       commit.state = "reported";
       commit.version++;
       if (commit.recurrence && schedule?.local_date) {
-        const day = nextOccurrence(schedule.local_date, commit.recurrence);
+        const template = commit.repeat_template;
+        const nextSchedule = { ...schedule, ...template };
+        const day = nextOccurrence(nextSchedule.local_date!, commit.recurrence);
         if (day) {
           const nextId = crypto.randomUUID();
           const d = definition(s, commit.id, commit.revision)!;
           s.commitments.push({
             ...commit,
+            repeat_template: null,
             id: nextId,
             state: "active",
             revision: 1,
             version: 1,
             created_at: now,
           });
-          s.definitions.push({ ...d, commitment_id: nextId, revision: 1 });
+          s.definitions.push({
+            ...d,
+            action: template?.action ?? d.action,
+            criterion: template?.criterion ?? d.criterion,
+            commitment_id: nextId,
+            revision: 1,
+          });
           let startsAt: string | null = null;
           try {
             startsAt = scheduledInstant(
               day,
-              schedule.local_time?.slice(0, 5),
-              schedule.time_zone,
+              nextSchedule.local_time?.slice(0, 5),
+              nextSchedule.time_zone,
             );
           } catch {}
           s.schedules.push({
-            ...schedule,
+            ...nextSchedule,
             id: crypto.randomUUID(),
             commitment_id: nextId,
             commitment_revision: 1,
             local_date: day,
-            local_time: startsAt ? schedule.local_time : null,
+            local_time: startsAt ? nextSchedule.local_time : null,
             starts_at: startsAt,
             created_at: now,
           });
@@ -855,6 +891,7 @@ export function applyLocal(
         detail: String(p.detail),
         reflection: String(p.reflection || ""),
         next: String(p.next || ""),
+        goalRevision: String(g.revision),
       });
       g.status = state;
       g.version++;

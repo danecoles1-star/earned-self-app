@@ -12,6 +12,9 @@ import { Ambition, ProofList, ProofEntry } from "./experience/Ambition";
 import { Calendar, Wallpaper, Settings } from "./experience/Carry";
 import { Preparation } from "./experience/Preparation";
 import { StepTimer } from "./experience/StepTimer";
+import { ChallengeRecord } from "./experience/ChallengeRecord";
+import { Recovery } from "./experience/Recovery";
+import { SupportMode } from "./experience/ui";
 import { MemberHome, AppNavigation } from "./experience/MemberHome";
 import { Art, Page } from "./experience/ui";
 import { Onboarding } from "./experience/Onboarding";
@@ -599,7 +602,7 @@ export function App({ adapter }: { adapter: Adapter }) {
     const Editor = path.startsWith("/plan/") ? Preparation : MoveEditor;
     screen = goal ? (
       <Editor
-        key={`${user.id}:${goal.id}:${goal.revision}`}
+        key={`${user.id}:${goal.id}:${goal.revision}:${path}`}
         user={user}
         goal={goal}
         snapshot={snapshot}
@@ -607,6 +610,22 @@ export function App({ adapter }: { adapter: Adapter }) {
         saving={saving}
         navigate={navigate}
       />
+    ) : (
+      <Unavailable navigate={navigate} />
+    );
+  } else if (path.startsWith("/proof/challenge/")) {
+    const goal = snapshot.goals.find(
+      (g) => g.id === path.split("/")[3] && g.status === "completed",
+    );
+    screen = goal ? (
+      <ChallengeRecord goal={goal} snapshot={snapshot} navigate={navigate} />
+    ) : (
+      <Unavailable navigate={navigate} />
+    );
+  } else if (path.startsWith("/recovery/")) {
+    const entry = snapshot.evidence.find((e) => e.id === path.split("/")[2]);
+    screen = entry ? (
+      <Recovery snapshot={snapshot} id={entry.id} navigate={navigate} />
     ) : (
       <Unavailable navigate={navigate} />
     );
@@ -874,7 +893,9 @@ export function App({ adapter }: { adapter: Adapter }) {
         </div>
       )}
       <div inert={saving} aria-busy={saving}>
-        {screen}
+        <SupportMode.Provider value={snapshot.supportMode}>
+          {screen}
+        </SupportMode.Provider>
         {user &&
           ![
             "/",

@@ -847,6 +847,217 @@ await rejected(
 await as(a);
 pass("Vision edits preserve challenge and enforce owner and version checks");
 
+// Explicit repetition scope, immutable original agreements, and paused planning.
+const rg = randomUUID(),
+  rs = randomUUID();
+await command(a, "goal", { ...payload, id: rg });
+await command(a, "commitment", {
+  ...c,
+  id: rs,
+  goalId: rg,
+  localDate: "2030-10-01",
+  localTime: "12:00",
+  recurrence: { days: [0, 1, 2, 3, 4, 5, 6], until: "" },
+});
+await command(a, "outcome", {
+  id: rs,
+  goalId: rg,
+  commitmentId: rs,
+  version: 1,
+  result: "did_not_happen",
+  detail: "Missed the session",
+  prevented: "Shift ran late",
+  adjustment: "Try lunch",
+});
+let recovery = (await state()).commitments.find(
+  (x) => x.goal_id === rg && x.state === "active",
+);
+const recoveryOp = randomUUID();
+const recoveryPayload = {
+  goalId: rg,
+  commitmentId: recovery.id,
+  version: 1,
+  action: "Short practice",
+  criterion: "One section",
+  localDate: "2030-10-03",
+  localTime: "13:00",
+  timeZone: "America/Denver",
+  location: "Studio",
+  reason: "Lunch once",
+  scope: "occurrence",
+};
+await command(a, "reschedule", recoveryPayload, recoveryOp);
+await command(a, "reschedule", recoveryPayload, recoveryOp);
+let recovered = await state();
+assert.equal(
+  recovered.definitions.filter((d) => d.commitment_id === recovery.id).length,
+  2,
+);
+assert.equal(
+  recovered.reports.find((r) => r.evidence_id === rs).result,
+  "did_not_happen",
+);
+assert.equal(
+  recovered.events.filter((e) => e.goal_id === rg && e.kind === "reschedule")
+    .length,
+  1,
+);
+await rejected(() => command(a, "reschedule", recoveryPayload), /changed/);
+await as(b);
+await rejected(
+  () => command(b, "reschedule", { ...recoveryPayload, version: 2 }),
+  /unavailable/,
+);
+await as(a);
+await command(a, "outcome", {
+  id: recovery.id,
+  goalId: rg,
+  commitmentId: recovery.id,
+  version: 2,
+  result: "done",
+  detail: "One section practiced",
+});
+recovered = await state();
+let following = recovered.commitments.find(
+  (x) => x.goal_id === rg && x.state === "active",
+);
+assert.equal(
+  recovered.definitions.find((d) => d.commitment_id === following.id).action,
+  c.action,
+);
+assert.equal(
+  recovered.definitions.find((d) => d.commitment_id === following.id).criterion,
+  c.criterion,
+);
+assert.equal(
+  recovered.schedules.find((x) => x.commitment_id === following.id).local_date,
+  "2030-10-03",
+);
+assert.equal(
+  recovered.schedules.find((x) => x.commitment_id === following.id).local_time,
+  "12:00:00",
+);
+assert.equal(following.repeat_template, null);
+pass(
+  "Single-occurrence recovery restores the original repetition, preserves missed Proof, and enforces version/owner/idempotency",
+);
+await command(a, "reschedule", {
+  ...recoveryPayload,
+  commitmentId: following.id,
+  version: 1,
+  scope: "future",
+  localDate: "2030-10-04",
+});
+await command(a, "outcome", {
+  id: following.id,
+  goalId: rg,
+  commitmentId: following.id,
+  version: 2,
+  result: "done",
+  detail: "One section",
+});
+recovered = await state();
+following = recovered.commitments.find(
+  (x) => x.goal_id === rg && x.state === "active",
+);
+assert.equal(
+  recovered.definitions.find((d) => d.commitment_id === following.id).action,
+  "Short practice",
+);
+assert.equal(
+  recovered.schedules.find((x) => x.commitment_id === following.id).local_time,
+  "13:00:00",
+);
+pass(
+  "Future repetition scope carries only the user-confirmed adjustment forward",
+);
+await command(a, "status", {
+  goalId: rg,
+  version: recovered.goals.find((g) => g.id === rg).version,
+  status: "paused",
+  detail: "Make room",
+});
+const unchanged = JSON.stringify(
+  (await state()).schedules.filter((x) => x.goal_id === rg),
+);
+await command(a, "commitment", {
+  ...c,
+  id: randomUUID(),
+  goalId: rg,
+  localDate: "2030-11-01",
+});
+recovered = await state();
+assert.equal(recovered.goals.find((g) => g.id === rg).status, "paused");
+assert.equal(
+  JSON.stringify(
+    recovered.schedules.filter((x) => x.goal_id === rg).slice(0, -1),
+  ),
+  unchanged,
+);
+const countProof = recovered.evidence.filter((x) => x.goal_id === rg).length;
+await command(a, "status", {
+  goalId: rg,
+  version: recovered.goals.find((g) => g.id === rg).version,
+  status: "active",
+  detail: "Reviewed dates",
+});
+recovered = await state();
+assert.equal(
+  recovered.evidence.filter((x) => x.goal_id === rg).length,
+  countProof,
+);
+pass(
+  "Paused planning stays paused; explicit resume preserves schedules and never invents Proof",
+);
+const endedRoutine = randomUUID(),
+  routineStep = randomUUID();
+await command(a, "goal", { ...payload, id: endedRoutine });
+await command(a, "commitment", {
+  ...c,
+  id: routineStep,
+  goalId: endedRoutine,
+  localDate: "2030-10-01",
+  recurrence: { days: [0, 1, 2, 3, 4, 5, 6], until: "2030-10-07" },
+});
+await rejected(
+  () =>
+    command(a, "reschedule", {
+      ...recoveryPayload,
+      goalId: endedRoutine,
+      commitmentId: routineStep,
+      version: 1,
+      scope: "future",
+      localDate: "2030-10-08",
+    }),
+  /end date/,
+);
+assert.equal(
+  (await state()).commitments.find((x) => x.id === routineStep).revision,
+  1,
+);
+pass(
+  "Future changes cannot silently end a routine by moving beyond its agreed end date",
+);
+const completedGoal = randomUUID();
+await command(a, "goal", { ...payload, id: completedGoal });
+await command(a, "status", {
+  goalId: completedGoal,
+  version: 1,
+  status: "completed",
+  detail: "Observed result",
+  reflection: "Own words",
+  next: "Carry forward",
+});
+const completion = (await state()).events.find(
+  (e) => e.goal_id === completedGoal && e.data.to === "completed",
+);
+assert.equal(completion.data.reflection, "Own words");
+assert.equal(completion.data.next, "Carry forward");
+assert.equal(completion.data.goalRevision, "1");
+pass(
+  "Completion records retain reflection, carry-forward answer and exact goal revision",
+);
+
 await db.exec("RESET ROLE");
 await db.query("DELETE FROM auth.users WHERE id=$1", [a]);
 assert.equal(

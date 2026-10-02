@@ -1,3 +1,4 @@
+import { guidanceExample } from "./guidance";
 import { scheduledInstant } from "../data/time";
 import { useState } from "react";
 import type { Goal, Milestone } from "../data/types";
@@ -7,7 +8,7 @@ import {
   useTextDraft,
   type Save,
 } from "../components/PursuitScreens";
-import { Page, Input } from "./ui";
+import { Page, Input, Help } from "./ui";
 export function AddMilestone({
   goal,
   save,
@@ -99,6 +100,11 @@ export function AddMilestone({
         label="What will success look like?"
         value={value.criterion}
         onChange={(criterion) => change({ ...value, criterion })}
+      />
+      <Help
+        ambition={goal.words}
+        field="Choose a turning point that demonstrates growing readiness."
+        example={guidanceExample(goal.words, "milestone")}
       />
       <ScheduleFields
         prefix="Milestone target"

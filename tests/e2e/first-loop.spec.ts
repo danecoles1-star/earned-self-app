@@ -137,6 +137,10 @@ test("first visit through first action, failure recovery, accomplishment and nex
     .getByRole("heading", { name: "Publish a researched essay" })
     .waitFor();
   await shot("45-accomplishment-mobile");
+  await expect(
+    p.getByText("I can share my writing despite uncertainty"),
+  ).toBeVisible();
+  await click("Basecamp");
   await p.getByRole("button", { name: /Take your vision with you/ }).click();
   await fill("Words to carry", "Keep writing.");
   await click("Preview lock screen");
