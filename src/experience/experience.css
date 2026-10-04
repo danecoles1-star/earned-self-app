@@ -900,7 +900,7 @@ body:has(.test-banner) {
   padding: 8px;
 }
 .basecamp-path li.current {
-  border-left: 3px solid #b99359;
+  border-left: 3px solid var(--blue);
   margin-left: -14px;
   padding-left: 21px;
 }
@@ -949,7 +949,7 @@ body:has(.test-banner) {
 .app-tabs button[aria-current="page"] {
   color: #172329;
   font-weight: 700;
-  border-bottom: 2px solid #b99359;
+  border-bottom: 2px solid var(--blue);
 }
 body:has(.app-tabs) .experience {
   padding-bottom: 100px;
@@ -1168,7 +1168,7 @@ body:has(.app-tabs) .workspace {
 .challenge-heading {
   background: #dbe5e6;
   border: 1px solid #b4c6cb;
-  border-left: 3px solid #c28d56;
+  border-left: 3px solid var(--blue);
   border-radius: 18px;
   padding: 20px;
 }
@@ -1368,7 +1368,7 @@ body:has(.app-tabs) .workspace {
   cursor: pointer;
 }
 .wallpaper-swatch[aria-pressed="true"] {
-  outline: 2px solid #c28d56;
+  outline: 2px solid var(--blue);
   outline-offset: 2px;
 }
 .wallpaper-swatch img {
@@ -1589,4 +1589,152 @@ body:has(.app-tabs) .workspace {
   background: var(--mineral);
   color: var(--ink);
   border: 1px solid var(--ember);
+}
+
+/* The shared line marks the current place, never elapsed time. */
+:root {
+  --journey-accent: linear-gradient(
+    135deg,
+    var(--ink),
+    var(--blue) 30%,
+    var(--ember) 54%,
+    var(--blue) 76%,
+    var(--ink)
+  );
+}
+.challenge-heading,
+.plan-stage,
+.basecamp-path li.current {
+  position: relative;
+}
+.challenge-heading {
+  border-left: 0;
+  padding-left: 1.5rem;
+}
+.challenge-heading::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 3px;
+  background: var(--journey-accent);
+  border-radius: 3px;
+}
+.milestone-path {
+  border-left: 2px solid #b9cbd060;
+  margin: 1.5rem 0 1.5rem 0.5rem;
+  padding-left: 1rem;
+}
+.plan-stage.current {
+  outline: none;
+  border-color: var(--blue);
+}
+.plan-stage.current::before {
+  content: "";
+  position: absolute;
+  left: calc(-1rem - 3px);
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  border-radius: 4px;
+  background: var(--journey-accent);
+}
+.plan-stage summary strong {
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 400;
+  font-size: 1.35rem;
+  line-height: 1.25;
+}
+.plan-stage summary {
+  gap: 0.8rem;
+}
+.plan-stage summary small {
+  margin-bottom: 0.4rem;
+}
+.plan-stage .button {
+  margin-top: 0.75rem;
+}
+.plan-tools {
+  display: grid;
+  gap: 1.5rem;
+  margin-top: 1.75rem;
+}
+.preparation-card,
+.manage-challenge,
+.account-identity {
+  padding: 1.25rem;
+  border: 1px solid #b9cbd080;
+  border-radius: 14px;
+  background: #fff;
+}
+.manage-challenge summary {
+  cursor: pointer;
+  padding: 0.25rem 0;
+}
+.manage-challenge .button {
+  margin-top: 1rem;
+}
+.account-identity {
+  margin-bottom: 1.5rem;
+  overflow-wrap: anywhere;
+}
+.account-identity p {
+  margin: 0.5rem 0;
+}
+.basecamp-path li.current {
+  border-left-color: var(--blue);
+}
+.app-tabs button[aria-current="page"] {
+  border-bottom-color: transparent;
+  background-image:
+    linear-gradient(var(--mineral), var(--mineral)), var(--journey-accent);
+  background-origin: padding-box, border-box;
+  background-clip: padding-box, border-box;
+}
+.app-tabs img {
+  width: 30px;
+  height: 30px;
+}
+.plan-step-row.plan-current-step {
+  border-left: 3px solid var(--blue);
+  padding-left: 1rem;
+  background: #f1f3f1;
+}
+.plan-step-row.plan-current-step .section-label {
+  display: block;
+  margin-bottom: 0.5rem;
+}
+.plan-position {
+  position: relative;
+  height: 3px;
+  background: var(--ink);
+  border-radius: 3px;
+  margin: 1.5rem 0;
+}
+.plan-position span {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 50px;
+  transform: translateX(-50%);
+  background: linear-gradient(
+    90deg,
+    var(--ink),
+    var(--blue),
+    var(--ember),
+    var(--blue),
+    var(--ink)
+  );
+}
+
+.basecamp-path li.current {
+  border-left-color: transparent;
+}
+.basecamp-path li.current::before {
+  content: "";
+  position: absolute;
+  left: -3px;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--journey-accent);
 }

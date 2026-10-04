@@ -488,8 +488,23 @@ export function App({ adapter }: { adapter: Adapter }) {
   else if (path === "/resume-entry")
     screen = (
       <ResumeEntry
+        key={`${user?.id}:${draft.id}`}
+        ownerId={user?.id || ""}
         adapter={adapter}
         draft={draft}
+        email={user?.email || ""}
+        onFresh={() => {
+          const current = loadDraft();
+          if (current.id !== draft.id || current.boundOwner) {
+            setDraft(current);
+            return;
+          }
+          archiveDraft(current);
+          clearDraft();
+          setDraft(loadDraft());
+          sessionStorage.removeItem("earned-self:save-after-auth");
+          navigate("/start");
+        }}
         onBack={() => navigate("/start")}
         onSaved={(state) => {
           if (
@@ -656,13 +671,18 @@ export function App({ adapter }: { adapter: Adapter }) {
         navigate={navigate}
       />
     );
-  else if (path.startsWith("/milestone/") || path.startsWith("/decision/")) {
+  else if (
+    path.startsWith("/milestone/") ||
+    path.startsWith("/decision/") ||
+    path.startsWith("/resume/")
+  ) {
     const g = snapshot.goals.find((g) => g.id === path.split("/")[2]);
     const Component = path.startsWith("/milestone/")
       ? MilestoneComplete
       : Decision;
     screen = g ? (
       <Component
+        key={`${path}:${g.id}`}
         goal={g}
         snapshot={snapshot}
         save={save}
@@ -689,6 +709,7 @@ export function App({ adapter }: { adapter: Adapter }) {
   else if (path === "/settings")
     screen = (
       <Settings
+        email={user?.email || ""}
         snapshot={snapshot}
         navigate={navigate}
         save={(mode) => void save("support", { mode })}

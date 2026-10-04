@@ -119,3 +119,12 @@ it("does not overwrite a different draft opened in another tab", async () => {
   expect(loadDraft().words).toBe("A new challenge");
   expect(adapter.execute).not.toHaveBeenCalled();
 });
+it("does not claim a draft when the signed-in account differs from the confirmation", async () => {
+  const { draft, adapter, setOwner } = setup();
+  setOwner("b");
+  await expect(resumeEntry(adapter, draft, "a")).rejects.toThrow(
+    /Sign in with the account/,
+  );
+  expect(adapter.execute).not.toHaveBeenCalled();
+  expect(loadDraft().boundOwner).toBeNull();
+});

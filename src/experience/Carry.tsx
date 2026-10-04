@@ -405,6 +405,7 @@ export function Wallpaper({
   );
 }
 export function Settings({
+  email,
   snapshot,
   navigate,
   save,
@@ -412,6 +413,7 @@ export function Settings({
   selectAmbition,
   saving,
 }: {
+  email: string;
   snapshot: Snapshot;
   navigate: (p: string) => void;
   save: (mode: string) => void;
@@ -421,11 +423,16 @@ export function Settings({
 }) {
   return (
     <Page
-      title="Support that fits."
+      title="Your account."
       sub="Choose how Earned Self meets you."
       dark={false}
       back={() => navigate("/app")}
     >
+      <section className="account-identity">
+        <span className="section-label">Signed in as</span>
+        <p>{email || "Local preview account"}</p>
+      </section>
+      <h2>Support that fits.</h2>
       <Choice
         selected={snapshot.supportMode === "guided"}
         onClick={() => !saving && save("guided")}

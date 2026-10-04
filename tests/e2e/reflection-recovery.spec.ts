@@ -220,6 +220,8 @@ for (const width of [390, 1440]) {
     await seed(p, f.get(), "/app");
     await p.getByRole("button", { name: "Start step" }).click();
     await p.getByRole("button", { name: "Plan", exact: true }).click();
+    await snap(p, "plan-navigation", width);
+    await p.locator("summary").filter({ hasText: "Manage challenge" }).click();
     await p.getByRole("button", { name: "Pause, return or complete" }).click();
     await p.getByRole("button", { name: "Pause for now" }).click();
     await p
@@ -247,14 +249,17 @@ for (const width of [390, 1440]) {
     await p.getByRole("button", { name: "Save revised agreement" }).click();
     expect((await state(p)).goals[0].status).toBe("paused");
     await p.getByRole("button", { name: "Review and resume" }).click();
+    await expect(p.getByLabel("Why are you ready to return?")).toHaveValue("");
     await p
-      .getByRole("button", { name: "Resume scheduled preparation" })
-      .click();
-    await p
-      .getByLabel("Why are you making this decision?")
+      .getByLabel("Why are you ready to return?")
       .fill("I reviewed my dates");
-    await p.getByRole("button", { name: "Save my decision" }).click();
+    await p
+      .getByRole("button", { name: "Resume challenge", exact: true })
+      .click();
     expect((await state(p)).evidence).toHaveLength(0);
+    await p.goto("/settings");
+    await expect(p.getByText("Signed in as")).toBeVisible();
+    await snap(p, "account-identity", width);
     await p.goto("/commitment/g");
     await expect(
       p.getByText(/what action would give you evidence/),

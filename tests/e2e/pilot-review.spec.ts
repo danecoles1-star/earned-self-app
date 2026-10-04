@@ -101,13 +101,21 @@ for (const width of [390, 1440])
     await expect(
       p.getByText("Current milestone", { exact: true }),
     ).toBeVisible();
-    await p.getByRole("button", { name: "Edit vision", exact: true }).click();
+    await p.locator("summary").filter({ hasText: "Manage challenge" }).click();
+    await p
+      .getByRole("button", { name: "Refine my vision", exact: true })
+      .click();
     await p
       .getByLabel("Who I am becoming", { exact: true })
       .fill("Healthy enough to climb mountains into my 70s");
     await p.getByRole("button", { name: "Save vision", exact: true }).click();
     await expect(
-      p.getByRole("button", { name: "Edit vision", exact: true }),
+      p.getByRole("button", { name: "Refine my vision", exact: true }),
+    ).toBeVisible();
+    await expect(
+      p.getByText("Saved on this device. Preview data only.", {
+        exact: true,
+      }),
     ).toBeVisible();
     await p.reload();
     await expect(

@@ -49,6 +49,11 @@ test("first visit through first action, failure recovery, accomplishment and nex
   await click("Sign in to save");
   await click("Enter local preview");
   await expect(
+    p.getByRole("button", { name: "Save this plan", exact: true }),
+  ).toBeVisible();
+  await shot("13-confirm-plan-account-mobile");
+  await click("Save this plan");
+  await expect(
     p.getByText("Saved to your account.", { exact: true }),
   ).toBeVisible();
   await click("Continue preparation");
@@ -113,7 +118,7 @@ test("first visit through first action, failure recovery, accomplishment and nex
   await shot("35-proof-mobile");
 
   await click("Plan");
-  await click("Milestones · Finish the first draft");
+  await click("Review milestone");
   await click("I’m ready");
   await fill(
     "What happened and what did you learn?",
@@ -126,6 +131,7 @@ test("first visit through first action, failure recovery, accomplishment and nex
   await shot("38-milestone-mobile");
   await click("See what comes next");
   await click("Plan");
+  await p.locator("summary").filter({ hasText: "Manage challenge" }).click();
   await click("Pause, return or complete");
   await click("I accomplished it");
   await fill("What actually happened?", "The essay has been published");

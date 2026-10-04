@@ -229,7 +229,7 @@ export function Auth({
                 <>
                   <p>
                     {type === "signup"
-                      ? "New account? Check your inbox for a confirmation code. Already have an account? Use a sign-in code below instead."
+                      ? "For a new account, look for a confirmation code. Already confirmed this email? Use the sign-in options below; another signup will not send a new confirmation."
                       : type === "recovery"
                         ? "If this email matches an account, you’ll receive a password reset code. Enter it here to choose a new password."
                         : "If this email matches an account, you’ll receive a sign-in code. Enter it here to continue."}

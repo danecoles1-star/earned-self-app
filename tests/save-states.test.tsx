@@ -85,6 +85,9 @@ it("shows loading and failure honestly, disables navigation while saving, and re
     }),
   );
   await u.click(screen.getByRole("button", { name: "Open Basecamp" }));
+  await u.click(
+    await screen.findByRole("button", { name: "Save this plan", exact: true }),
+  );
   await screen.findByText("Keeping your progress.");
   expect(screen.queryByRole("navigation")).not.toBeInTheDocument();
   await waitFor(() => expect(attempted).toHaveLength(1));

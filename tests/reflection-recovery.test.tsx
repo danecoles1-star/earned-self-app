@@ -225,3 +225,115 @@ it("future changes cannot silently end a routine by moving beyond its end date",
   ).toThrow(/repeat days|end date/);
   expect(t.get().commitments[0].revision).toBe(1);
 });
+
+it("opens a focused resume form without reusing the pause reason or changing scheduled work", async () => {
+  const { Decision } = await import("../src/experience/Actions");
+  const t = setup();
+  t.send("commitment", action);
+  const g = t.get().goals[0];
+  g.status = "paused";
+  localStorage.setItem(
+    `earned-self:decision:${g.owner_id}:${g.id}`,
+    JSON.stringify({ detail: "I injured my ankle" }),
+  );
+  history.replaceState({}, "", "/resume/g");
+  const before = JSON.stringify(t.get());
+  render(
+    <Decision
+      goal={g}
+      snapshot={t.get()}
+      saving={false}
+      save={async () => {}}
+      navigate={() => {}}
+    />,
+  );
+  expect(
+    screen.getByRole("heading", { name: "Resume your challenge" }),
+  ).toBeInTheDocument();
+  expect(screen.getByLabelText("Why are you ready to return?")).toHaveValue("");
+  expect(
+    screen.getByRole("button", { name: "Resume challenge", exact: true }),
+  ).toBeDisabled();
+  expect(
+    screen.getAllByRole("heading", { name: "Review your scheduled work" }),
+  ).toHaveLength(1);
+  expect(
+    screen.getByRole("button", { name: "Stay paused" }),
+  ).toBeInTheDocument();
+  expect(JSON.stringify(t.get())).toBe(before);
+});
+it("keeps decision drafts separate when moving between pause and accomplishment", async () => {
+  const { Decision } = await import("../src/experience/Actions");
+  const t = setup();
+  const g = t.get().goals[0];
+  g.status = "active";
+  history.replaceState({}, "", "/decision/g");
+  render(
+    <Decision
+      goal={g}
+      snapshot={t.get()}
+      saving={false}
+      save={async () => {}}
+      navigate={() => {}}
+    />,
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Pause for now" }));
+  fireEvent.change(screen.getByLabelText("Why are you making this decision?"), {
+    target: { value: "Rest my ankle" },
+  });
+  fireEvent.click(screen.getByRole("button", { name: "Go back" }));
+  fireEvent.click(screen.getByRole("button", { name: "I accomplished it" }));
+  expect(screen.getByLabelText("What actually happened?")).toHaveValue("");
+});
+it("moves the Plan marker only with milestone completion and keeps vision editing secondary", async () => {
+  const { Ambition } = await import("../src/experience/Ambition");
+  const t = setup();
+  const g = t.get().goals[0];
+  history.replaceState({}, "", "/manage");
+  const props = {
+    goal: g,
+    snapshot: t.get(),
+    saving: false,
+    save: async () => {},
+    navigate: () => {},
+  };
+  const view = render(<Ambition {...props} />);
+  const first = screen.getByRole("img", {
+    name: `Current milestone: ${g.milestones[0].title}`,
+  });
+  const initialPosition = first.querySelector("span")!.style.left;
+  expect(
+    screen
+      .getByRole("button", { name: "Refine my vision", hidden: true })
+      .closest("details")?.open,
+  ).toBe(false);
+  view.rerender(<Ambition {...props} goal={{ ...g, status: "paused" }} />);
+  expect(
+    screen
+      .getByRole("img", { name: `Paused at: ${g.milestones[0].title}` })
+      .querySelector("span")!.style.left,
+  ).toBe(initialPosition);
+  const changed = structuredClone(t.get());
+  changed.events.push({
+    id: "milestone-proof",
+    goal_id: g.id,
+    kind: "milestone",
+    data: { milestoneId: g.milestones[0].id },
+    recorded_at: "2030-01-01",
+  });
+  view.rerender(<Ambition {...props} snapshot={changed} />);
+  if (g.milestones.length > 1)
+    expect(
+      screen
+        .getByRole("img", {
+          name: `Current milestone: ${g.milestones[1].title}`,
+        })
+        .querySelector("span")!.style.left,
+    ).not.toBe(initialPosition);
+  else
+    expect(
+      screen
+        .getByRole("img", { name: /All milestones recorded/ })
+        .querySelector("span"),
+    ).toBeNull();
+});

@@ -784,19 +784,22 @@ export function MilestoneComplete({
   );
 }
 export function Decision({ goal: g, snapshot, save, saving, navigate }: Props) {
-  const [status, setStatus] = useState(""),
+  const [status, setStatus] = useState(
+      location.pathname.startsWith("/resume/") && g.status === "paused"
+        ? "active"
+        : "",
+    ),
     [step, setStep] = useState(0);
   const {
-    value: v,
+    value: responses,
     change,
     error,
-  } = useTextDraft(`earned-self:decision:${g.owner_id}:${g.id}`, {
-    detail: "",
-    reflection: "",
-    next: "",
-  });
+  } = useTextDraft<
+    Record<string, { detail: string; reflection: string; next: string }>
+  >(`earned-self:decision-v2:${g.owner_id}:${g.id}:${g.version}`, {});
+  const v = responses[status] || { detail: "", reflection: "", next: "" };
   const set = (field: string, value: string) =>
-    change({ ...v, [field]: value });
+    change({ ...responses, [status]: { ...v, [field]: value } });
   const completed = status === "completed";
   const outstanding = currentAction(snapshot, g.id);
   const ended = ["completed", "changed_direction", "abandoned"].includes(
@@ -834,7 +837,7 @@ export function Decision({ goal: g, snapshot, save, saving, navigate }: Props) {
             : status === "paused"
               ? "Make room to return."
               : status === "active"
-                ? "Return with intention."
+                ? "Resume your challenge"
                 : "Choose a new direction."
       }
       sub={
@@ -845,7 +848,13 @@ export function Decision({ goal: g, snapshot, save, saving, navigate }: Props) {
           : undefined
       }
       dark={false}
-      back={() => (status ? (setStatus(""), setStep(0)) : navigate("/manage"))}
+      back={() =>
+        location.pathname.startsWith("/resume/")
+          ? navigate("/app")
+          : status
+            ? (setStatus(""), setStep(0))
+            : navigate("/manage")
+      }
       footer={
         blocked ? (
           <button
@@ -906,14 +915,21 @@ export function Decision({ goal: g, snapshot, save, saving, navigate }: Props) {
                   ? "Continue"
                   : completed
                     ? "Confirm accomplishment"
-                    : "Save my decision"}
+                    : status === "active"
+                      ? "Resume challenge"
+                      : "Save my decision"}
             </button>
           </>
         ) : undefined
       }
     >
-      {g.status === "paused" && (
+      {g.status === "paused" && status === "active" && (
         <ScheduleReview goal={g} snapshot={snapshot} navigate={navigate} />
+      )}
+      {status === "active" && (
+        <button className="quiet" onClick={() => navigate("/app")}>
+          Stay paused
+        </button>
       )}
       {blocked ? (
         <p role="alert">{blocked}</p>
@@ -954,7 +970,9 @@ export function Decision({ goal: g, snapshot, save, saving, navigate }: Props) {
               label={
                 completed
                   ? "What actually happened?"
-                  : "Why are you making this decision?"
+                  : status === "active"
+                    ? "Why are you ready to return?"
+                    : "Why are you making this decision?"
               }
               value={v.detail}
               onChange={(v) => set("detail", v)}

@@ -13,7 +13,7 @@ import {
   definition,
 } from "../data/domain";
 import { resultLabel } from "../data/types";
-import { Page, Input } from "./ui";
+import { artwork, Page, Input } from "./ui";
 import { useTextDraft, type Save } from "../components/PursuitScreens";
 export function Ambition({
   goal: g,
@@ -49,62 +49,6 @@ export function Ambition({
       }
     >
       {g.status === "paused" && <Paused goal={g} navigate={navigate} />}
-      {editingVision ? (
-        <section className="vision-editor">
-          <Input
-            label="Who I am becoming"
-            value={vision}
-            onChange={setVision}
-          />
-          <p className="small">
-            Your challenge and Proof stay unchanged. Earlier wording remains in
-            history.
-          </p>
-          <button
-            className="button"
-            disabled={saving || !vision.trim()}
-            onClick={() =>
-              void save(
-                "vision",
-                { goalId: g.id, version: g.version, vision },
-                () => setEditingVision(false),
-              )
-            }
-          >
-            Save vision
-          </button>
-          <button
-            className="button secondary"
-            onClick={() => setEditingVision(false)}
-          >
-            Cancel
-          </button>
-          <details>
-            <summary>Earlier wording</summary>
-            {s.goalHistory
-              .filter((h) => h.goal_id === g.id && h.vision?.trim())
-              .map((h) => (
-                <button
-                  key={h.revision}
-                  className="experience-choice"
-                  onClick={() => setVision(h.vision)}
-                >
-                  {h.vision}
-                </button>
-              ))}
-          </details>
-        </section>
-      ) : (
-        <button
-          className="button secondary"
-          onClick={() => {
-            setVision(g.vision);
-            setEditingVision(true);
-          }}
-        >
-          Edit vision
-        </button>
-      )}
       <section className="challenge-heading">
         <span className="section-label">Your challenge</span>
         <h2>{g.words}</h2>
@@ -113,183 +57,301 @@ export function Ambition({
       {section === "overview" && (
         <section className="plan-overview">
           <h2>Milestones & steps</h2>
-          {!g.milestones.length && <p>No milestones planned yet.</p>}
-          {g.milestones.map((m, i) => (
-            <details
-              className={
-                m.id === currentMilestone(s, g)?.id
-                  ? "plan-stage current"
-                  : "plan-stage"
+          {!!g.milestones.length && (
+            <div
+              className="plan-position"
+              role="img"
+              aria-label={
+                m
+                  ? `${g.status === "paused" ? "Paused at" : "Current milestone"}: ${m.title}`
+                  : "All milestones recorded. Challenge completion is a separate decision."
               }
-              key={m.id}
-              open={m.id === currentMilestone(s, g)?.id}
             >
-              <summary>
-                <span className="stage-number">{i + 1}</span>
-                <span>
-                  <small>
-                    {s.events.some(
-                      (e) =>
-                        e.goal_id === g.id &&
-                        e.kind === "milestone" &&
-                        e.data.milestoneId === m.id,
-                    )
-                      ? "Completed"
-                      : m.id === currentMilestone(s, g)?.id
-                        ? "Current milestone"
-                        : "Upcoming"}
-                  </small>
-                  <strong>{m.title}</strong>
-                </span>
-              </summary>
-              <p>{m.criterion}</p>
-              <p className="small">
-                {displaySchedule(m.localDate, m.localTime)}
-              </p>
-              {pendingSteps(s, g)
-                .filter((e) => e.data.milestoneId === m.id)
-                .map((e) => (
-                  <div key={e.id}>
-                    <p>{e.data.action}</p>
-                    <button
-                      className="quiet"
-                      onClick={() =>
-                        navigate("/commitment/" + g.id + "/" + e.data.stepId)
-                      }
-                    >
-                      Schedule this step
-                    </button>
-                  </div>
-                ))}
-              {s.commitments
-                .filter(
-                  (c) =>
-                    c.goal_id === g.id &&
-                    c.milestone_id === m.id &&
-                    c.state === "active",
-                )
-                .map((c) => (
-                  <div className="plan-step-row" key={c.id}>
-                    {definition(s, c.id, c.revision)?.action} ·{" "}
-                    {c.state === "active"
-                      ? g.status === "paused"
-                        ? "Paused · date retained"
-                        : "Scheduled"
-                      : c.state === "cancelled"
-                        ? "Ended without a check-in"
-                        : "Check-in recorded"}
-                    <small className="step-metadata">
-                      {displaySchedule(
-                        currentSchedule(s, c.id)?.local_date,
-                        currentSchedule(s, c.id)?.local_time,
-                      )}{" "}
-                      · {repeatLabel(c.recurrence)}
+              {m && (
+                <span
+                  style={{
+                    left: `${g.milestones.length === 1 ? 50 : 8 + (84 * g.milestones.findIndex((item) => item.id === m.id)) / (g.milestones.length - 1)}%`,
+                  }}
+                />
+              )}
+            </div>
+          )}
+          {!g.milestones.length && <p>No milestones planned yet.</p>}
+          {!m && (
+            <button
+              className="button secondary"
+              onClick={() => navigate("/milestone/" + g.id)}
+            >
+              Review milestones
+            </button>
+          )}
+          <div className="milestone-path">
+            {g.milestones.map((m, i) => (
+              <details
+                className={
+                  m.id === currentMilestone(s, g)?.id
+                    ? "plan-stage current"
+                    : "plan-stage"
+                }
+                key={m.id}
+                open={m.id === currentMilestone(s, g)?.id}
+              >
+                <summary>
+                  <span className="stage-number">{i + 1}</span>
+                  <span>
+                    <small>
+                      {s.events.some(
+                        (e) =>
+                          e.goal_id === g.id &&
+                          e.kind === "milestone" &&
+                          e.data.milestoneId === m.id,
+                      )
+                        ? "Completed"
+                        : m.id === currentMilestone(s, g)?.id
+                          ? "Current milestone"
+                          : "Upcoming"}
                     </small>
-                    <button
-                      className="button secondary"
-                      onClick={() => navigate("/revise/" + g.id + "/" + c.id)}
-                    >
-                      Revise this step
-                    </button>
-                    {c.state === "active" && c.recurrence && (
+                    <strong>{m.title}</strong>
+                  </span>
+                </summary>
+                <p>{m.criterion}</p>
+                {m.id === currentMilestone(s, g)?.id && (
+                  <button
+                    className="button secondary"
+                    onClick={() => navigate("/milestone/" + g.id)}
+                  >
+                    Review milestone
+                  </button>
+                )}
+                <p className="small">
+                  {displaySchedule(m.localDate, m.localTime)}
+                </p>
+                {pendingSteps(s, g)
+                  .filter((e) => e.data.milestoneId === m.id)
+                  .map((e) => (
+                    <div key={e.id}>
+                      <p>{e.data.action}</p>
                       <button
-                        className="button secondary"
-                        disabled={saving}
+                        className="quiet"
                         onClick={() =>
-                          void save(
-                            "stop_repeat",
-                            {
-                              goalId: g.id,
-                              commitmentId: c.id,
-                              version: c.version,
-                            },
-                            () => {},
-                          )
+                          navigate("/commitment/" + g.id + "/" + e.data.stepId)
                         }
                       >
-                        Stop future repetitions
+                        Schedule this step
                       </button>
-                    )}
-                  </div>
-                ))}
-              <p className="small">
-                {
-                  s.commitments.filter(
+                    </div>
+                  ))}
+                {s.commitments
+                  .filter(
                     (c) =>
                       c.goal_id === g.id &&
                       c.milestone_id === m.id &&
-                      c.state === "reported",
-                  ).length
-                }{" "}
-                check-ins recorded in Proof
-              </p>
-              {!s.events.some(
-                (e) =>
-                  e.goal_id === g.id &&
-                  e.kind === "milestone" &&
-                  e.data.milestoneId === m.id,
-              ) && (
-                <button
-                  className="button secondary"
-                  onClick={() =>
-                    navigate("/add-step/" + g.id + "?milestone=" + m.id)
-                  }
-                >
-                  Add step
-                </button>
-              )}
-            </details>
-          ))}
-        </section>
-      )}
-      {section === "overview" ? (
-        <div className="member-rows">
-          <button
-            disabled={["completed", "changed_direction", "abandoned"].includes(
-              g.status,
-            )}
-            onClick={() => navigate("/add-milestone/" + g.id)}
-          >
-            Add milestone
-          </button>
-          <button
-            disabled={["completed", "changed_direction", "abandoned"].includes(
-              g.status,
-            )}
-            onClick={() => navigate("/add-step/" + g.id)}
-          >
-            Add step
-          </button>
-          <button onClick={() => setSection("preparation")}>
-            My preparation
-          </button>
-          <button onClick={() => navigate("/milestone/" + g.id)}>
-            Milestones ·{" "}
-            {g.milestones.length
-              ? m?.title || "All completed"
-              : "None planned yet"}
-          </button>
-          {g.status === "draft" && !currentAction(s, g.id) && (
-            <button onClick={() => navigate("/plan/" + g.id)}>
-              Complete my preparation
-            </button>
-          )}
+                      c.state === "active",
+                  )
+                  .map((c) => (
+                    <div
+                      className={
+                        currentAction(s, g.id)?.id === c.id
+                          ? "plan-step-row plan-current-step"
+                          : "plan-step-row"
+                      }
+                      key={c.id}
+                    >
+                      {currentAction(s, g.id)?.id === c.id && (
+                        <small className="section-label">Current step</small>
+                      )}
+                      {definition(s, c.id, c.revision)?.action} ·{" "}
+                      {c.state === "active"
+                        ? g.status === "paused"
+                          ? "Paused · date retained"
+                          : "Scheduled"
+                        : c.state === "cancelled"
+                          ? "Ended without a check-in"
+                          : "Check-in recorded"}
+                      <small className="step-metadata">
+                        {displaySchedule(
+                          currentSchedule(s, c.id)?.local_date,
+                          currentSchedule(s, c.id)?.local_time,
+                        )}{" "}
+                        · {repeatLabel(c.recurrence)}
+                      </small>
+                      <button
+                        className="button secondary"
+                        onClick={() => navigate("/revise/" + g.id + "/" + c.id)}
+                      >
+                        Revise this step
+                      </button>
+                      {c.state === "active" && c.recurrence && (
+                        <button
+                          className="button secondary"
+                          disabled={saving}
+                          onClick={() =>
+                            void save(
+                              "stop_repeat",
+                              {
+                                goalId: g.id,
+                                commitmentId: c.id,
+                                version: c.version,
+                              },
+                              () => {},
+                            )
+                          }
+                        >
+                          Stop future repetitions
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                <p className="small">
+                  {
+                    s.commitments.filter(
+                      (c) =>
+                        c.goal_id === g.id &&
+                        c.milestone_id === m.id &&
+                        c.state === "reported",
+                    ).length
+                  }{" "}
+                  check-ins recorded in Proof
+                </p>
+                {!s.events.some(
+                  (e) =>
+                    e.goal_id === g.id &&
+                    e.kind === "milestone" &&
+                    e.data.milestoneId === m.id,
+                ) && (
+                  <button
+                    className="button secondary"
+                    onClick={() =>
+                      navigate("/add-step/" + g.id + "?milestone=" + m.id)
+                    }
+                  >
+                    Add step
+                  </button>
+                )}
+              </details>
+            ))}
+          </div>
           {!["completed", "changed_direction", "abandoned"].includes(
             g.status,
           ) && (
-            <button onClick={() => navigate("/decision/" + g.id)}>
-              Pause, return or complete
+            <button
+              className="button secondary"
+              onClick={() => navigate("/add-milestone/" + g.id)}
+            >
+              Add milestone
             </button>
           )}
-          <button onClick={() => navigate("/wallpaper/" + g.id)}>
-            Create wallpaper
+        </section>
+      )}
+      {section === "overview" ? (
+        <div className="plan-tools">
+          <section className="preparation-card">
+            <h2>Why & obstacles</h2>
+            <p className="small">
+              Keep your reason and your response within reach.
+            </p>
+            <button
+              className="button secondary"
+              onClick={() => setSection("preparation")}
+            >
+              My preparation
+            </button>
+            {g.status === "draft" && !currentAction(s, g.id) && (
+              <button
+                className="button secondary"
+                onClick={() => navigate("/plan/" + g.id)}
+              >
+                Complete my preparation
+              </button>
+            )}
+          </section>
+          <button
+            className="wallpaper-card"
+            onClick={() => navigate("/wallpaper/" + g.id)}
+          >
+            <img src={artwork.mountain} alt="" />
+            <span>
+              <strong>Take your vision with you</strong>
+              <small>Create wallpaper →</small>
+            </span>
           </button>
-
-          {g.status !== "draft" && (
-            <button onClick={() => navigate("/history")}>
-              Agreements and revisions
+          <details className="manage-challenge">
+            <summary>Manage challenge</summary>
+            <button
+              className="button secondary"
+              onClick={() => {
+                setVision(g.vision);
+                setEditingVision(true);
+              }}
+            >
+              Refine my vision
             </button>
-          )}
+            {editingVision ? (
+              <section className="vision-editor">
+                <Input
+                  label="Who I am becoming"
+                  value={vision}
+                  onChange={setVision}
+                />
+                <p className="small">
+                  Your challenge and Proof stay unchanged. Earlier wording
+                  remains in history.
+                </p>
+                <button
+                  className="button"
+                  disabled={saving || !vision.trim()}
+                  onClick={() =>
+                    void save(
+                      "vision",
+                      { goalId: g.id, version: g.version, vision },
+                      () => setEditingVision(false),
+                    )
+                  }
+                >
+                  Save vision
+                </button>
+                <button
+                  className="button secondary"
+                  onClick={() => setEditingVision(false)}
+                >
+                  Cancel
+                </button>
+                <details>
+                  <summary>Earlier wording</summary>
+                  {s.goalHistory
+                    .filter((h) => h.goal_id === g.id && h.vision?.trim())
+                    .map((h) => (
+                      <button
+                        key={h.revision}
+                        className="experience-choice"
+                        onClick={() => setVision(h.vision)}
+                      >
+                        {h.vision}
+                      </button>
+                    ))}
+                </details>
+              </section>
+            ) : null}
+
+            {!["completed", "changed_direction", "abandoned"].includes(
+              g.status,
+            ) && (
+              <button
+                className="button secondary"
+                onClick={() => navigate("/decision/" + g.id)}
+              >
+                Pause, return or complete
+              </button>
+            )}
+            {g.status !== "draft" && (
+              <button
+                className="button secondary"
+                onClick={() => navigate("/history")}
+              >
+                Agreements and revisions
+              </button>
+            )}
+          </details>
         </div>
       ) : (
         <>
@@ -303,6 +365,14 @@ export function Ambition({
           <p>{g.unknowns}</p>
           <h2>My milestones</h2>
           {!g.milestones.length && <p>No milestones planned yet.</p>}
+          {!m && (
+            <button
+              className="button secondary"
+              onClick={() => navigate("/milestone/" + g.id)}
+            >
+              Review milestones
+            </button>
+          )}
           {g.milestones.map((m) => (
             <div className="first-proof" key={m.id}>
               <h3>{m.title}</h3>

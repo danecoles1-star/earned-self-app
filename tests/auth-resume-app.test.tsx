@@ -43,7 +43,7 @@ function setup(signedIn = false) {
   };
   return { adapter, state: () => store.snapshot };
 }
-it("signs in and automatically saves an onboarding draft and pending first step to Basecamp", async () => {
+it("requires confirmation after sign-in before saving an onboarding draft and pending first step to Basecamp", async () => {
   const x = newEntryExperience();
   x.step = 10;
   x.first.action = "Choose a training route";
@@ -65,6 +65,12 @@ it("signs in and automatically saves an onboarding draft and pending first step 
   );
   await u.type(screen.getByLabelText("Password"), "synthetic-password");
   await u.click(screen.getByRole("button", { name: "Log in", exact: true }));
+  await screen.findByRole("heading", { name: "Save this plan?" });
+  expect(state().goals).toHaveLength(0);
+  expect(loadDraft().boundOwner).toBeNull();
+  await u.click(
+    screen.getByRole("button", { name: "Save this plan", exact: true }),
+  );
   await screen.findByText("Saved to your account.");
   await waitFor(() => expect(location.pathname).toBe("/app"));
   expect(state().goals).toHaveLength(1);
@@ -92,4 +98,33 @@ it("keeps a failed legacy callback on login and preserves its draft", async () =
   await screen.findByLabelText("Password");
   expect(location.pathname).toBe("/auth");
   expect(loadDraft().id).toBe(draft.id);
+});
+it("lets a member start fresh without saving or losing the unclaimed draft", async () => {
+  const draft = {
+    ...loadDraft(),
+    words: "An earlier plan",
+    vision: "My earlier vision",
+  };
+  saveDraft(draft);
+  history.replaceState({}, "", "/resume-entry");
+  const { adapter, state } = setup(true);
+  const u = userEvent.setup();
+  render(<App adapter={adapter} />);
+  await screen.findByRole("heading", { name: "Save this plan?" });
+  await u.click(
+    screen.getByRole("button", { name: "Start fresh", exact: true }),
+  );
+  expect(state().goals).toHaveLength(0);
+  expect(loadDraft().id).not.toBe(draft.id);
+  expect(
+    Object.values(localStorage).some((value) => value.includes(draft.id)),
+  ).toBe(true);
+  expect(location.pathname).toBe("/start");
+});
+it("shows the signed-in account email in account settings", async () => {
+  history.replaceState({}, "", "/settings");
+  const { adapter } = setup(true);
+  render(<App adapter={adapter} />);
+  await screen.findByText("Signed in as");
+  expect(screen.getByText("member@example.invalid")).toBeInTheDocument();
 });

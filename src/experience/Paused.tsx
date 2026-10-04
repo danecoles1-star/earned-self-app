@@ -12,7 +12,7 @@ export function Paused({
     <section className="paused-card" aria-label="Challenge paused">
       <h2>Paused. Still yours.</h2>
       <p>Your preparation and Proof are saved. Dates stay as planned.</p>
-      <button className="button" onClick={() => navigate("/decision/" + g.id)}>
+      <button className="button" onClick={() => navigate("/resume/" + g.id)}>
         Review and resume
       </button>
       <button className="quiet" onClick={() => navigate("/manage")}>
@@ -38,7 +38,8 @@ export function ScheduleReview({
       <h2>Review your scheduled work</h2>
       <p className="small">
         Resume keeps every date and commitment. Nothing is marked missed or
-        completed. Update calendar events separately.
+        completed. If you change a date, update any calendar event you
+        previously added.
       </p>
       {pending.map((c) => {
         const t = currentSchedule(s, c.id);

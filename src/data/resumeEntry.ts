@@ -1,6 +1,10 @@
 import type { Adapter, Command } from "./types";
 import { canUseDraft, loadDraft, saveDraft, type EntryDraft } from "./drafts";
-export async function resumeEntry(adapter: Adapter, draft: EntryDraft) {
+export async function resumeEntry(
+  adapter: Adapter,
+  draft: EntryDraft,
+  expectedOwner?: string,
+) {
   const stored = loadDraft();
   if (stored.id !== draft.id || stored.operationId !== draft.operationId)
     throw new Error(
@@ -9,7 +13,11 @@ export async function resumeEntry(adapter: Adapter, draft: EntryDraft) {
   if (stored.id === draft.id && stored.boundOwner)
     draft = { ...draft, boundOwner: stored.boundOwner };
   const user = await adapter.getUser();
-  if (!user || !canUseDraft(draft, user.id))
+  if (
+    !user ||
+    (expectedOwner && user.id !== expectedOwner) ||
+    !canUseDraft(draft, user.id)
+  )
     throw new Error(
       "Sign in with the account that owns this draft. Your draft has been kept.",
     );
