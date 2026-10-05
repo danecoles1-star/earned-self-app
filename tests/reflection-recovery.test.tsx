@@ -172,8 +172,8 @@ it("paused Basecamp removes action controls without erasing the commitment", () 
   expect(
     screen.getByRole("button", { name: "Review and resume" }),
   ).toBeVisible();
-  expect(screen.queryByRole("button", { name: "Start step" })).toBeNull();
-  expect(screen.queryByRole("button", { name: "Finish session" })).toBeNull();
+  expect(screen.queryByRole("button", { name: "Start timer" })).toBeNull();
+  expect(screen.queryByRole("button", { name: "Step check-in" })).toBeNull();
   expect(screen.queryByRole("button", { name: "Step check-in" })).toBeNull();
   expect(s.commitments[0].state).toBe("active");
 });

@@ -218,7 +218,7 @@ for (const width of [390, 1440]) {
       location: "Office",
     });
     await seed(p, f.get(), "/app");
-    await p.getByRole("button", { name: "Start step" }).click();
+    await p.getByRole("button", { name: "Start timer" }).click();
     await p.getByRole("button", { name: "Plan", exact: true }).click();
     await snap(p, "plan-navigation", width);
     await p.locator("summary").filter({ hasText: "Manage challenge" }).click();
@@ -231,8 +231,8 @@ for (const width of [390, 1440]) {
     await expect(
       p.getByRole("heading", { name: "Paused. Still yours." }),
     ).toBeVisible();
-    await expect(p.getByRole("button", { name: "Start step" })).toHaveCount(0);
-    await expect(p.getByRole("button", { name: "Finish session" })).toHaveCount(
+    await expect(p.getByRole("button", { name: "Start timer" })).toHaveCount(0);
+    await expect(p.getByRole("button", { name: "Step check-in" })).toHaveCount(
       0,
     );
     await snap(p, "paused-basecamp", width);

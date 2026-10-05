@@ -2,7 +2,7 @@ import type { Goal, Snapshot } from "../data/types";
 import { resultLabel } from "../data/types";
 import { currentReport, definition } from "../data/domain";
 import { displayDate } from "../data/time";
-import { Art, Page } from "./ui";
+import { Stage } from "./Stage";
 export function completedEvent(s: Snapshot, id: string) {
   return s.events
     .filter(
@@ -10,6 +10,18 @@ export function completedEvent(s: Snapshot, id: string) {
         e.goal_id === id && e.kind === "status" && e.data.to === "completed",
     )
     .sort((a, b) => b.recorded_at.localeCompare(a.recorded_at))[0];
+}
+export function completionRecord(s: Snapshot, g: Goal) {
+  const event = completedEvent(s, g.id);
+  const history = s.goalHistory
+    .filter((h) => h.goal_id === g.id)
+    .sort((a, b) => a.revision - b.revision);
+  const original = history[0];
+  const completed =
+    history.find((h) => String(h.revision) === event?.data.goalRevision) ||
+    history.filter((h) => event && h.recorded_at <= event.recorded_at).at(-1) ||
+    g;
+  return { event, original, completed };
 }
 export function ChallengeRecord({
   goal: g,
@@ -20,15 +32,7 @@ export function ChallengeRecord({
   snapshot: Snapshot;
   navigate: (p: string) => void;
 }) {
-  const event = completedEvent(s, g.id);
-  const history = s.goalHistory
-    .filter((h) => h.goal_id === g.id)
-    .sort((a, b) => a.revision - b.revision);
-  const original = history[0];
-  const completed =
-    history.find((h) => String(h.revision) === event?.data.goalRevision) ||
-    history.filter((h) => event && h.recorded_at <= event.recorded_at).at(-1) ||
-    g;
+  const { event, original, completed } = completionRecord(s, g);
   const field = (label: string, value?: string) => (
     <section className="reflection-answer">
       <h2>{label}</h2>
@@ -36,17 +40,12 @@ export function ChallengeRecord({
     </section>
   );
   return (
-    <Page
-      title="You did the work."
-      sub="Your accomplishment. In your words."
+    <Stage
+      title="Your Proof"
+      tone="completed"
+      navigate={navigate}
       back={() => navigate("/proof")}
-      footer={
-        <button className="button" onClick={() => navigate("/new")}>
-          Choose my next challenge
-        </button>
-      }
     >
-      <Art kind="mountain" />
       <section className="accomplishment-summary">
         <span className="section-label">
           Challenge completed
@@ -55,6 +54,10 @@ export function ChallengeRecord({
         <h2>{completed.words}</h2>
         <p>Done meant: {completed.outcome || "Criterion not recorded."}</p>
       </section>
+      <p className="vision-distinction">
+        Your vision describes who you wanted to become. Your reflections below
+        describe what you recorded.
+      </p>
       {field(
         original ? "Your original vision" : "Your saved vision",
         original?.vision ?? g.vision,
@@ -114,6 +117,14 @@ export function ChallengeRecord({
               ["milestone", "milestone_attempt"].includes(e.kind),
           ) && <p>No supporting entries were recorded.</p>}
       </details>
-    </Page>
+      <div className="record-next">
+        <button className="button" onClick={() => navigate("/new")}>
+          Choose my next challenge
+        </button>
+        <button className="quiet" onClick={() => navigate("/proof")}>
+          Return to Your Proof
+        </button>
+      </div>
+    </Stage>
   );
 }

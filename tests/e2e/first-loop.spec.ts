@@ -40,7 +40,7 @@ test("first visit through first action, failure recovery, accomplishment and nex
   await fill("What will you do now?", "Write one opening sentence");
   await fill("What will be done?", "One sentence is on the page");
   await click("Do it now");
-  await click("Start step");
+  await click("Start timer");
   await click("Check in");
   await click("Done");
   await fill("What happened?", "I wrote one opening sentence");
@@ -88,6 +88,7 @@ test("first visit through first action, failure recovery, accomplishment and nex
   await fill("Where?", "At my desk");
   await next();
   await click("Save step");
+  await p.getByText("Step details & calendar", { exact: true }).click();
   await p.getByRole("button", { name: /Add to calendar/ }).click();
   await shot("25-calendar-mobile");
   const download = p.waitForEvent("download");

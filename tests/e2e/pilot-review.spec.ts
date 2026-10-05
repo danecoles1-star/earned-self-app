@@ -74,11 +74,11 @@ for (const width of [390, 1440])
     await expect(
       p.getByRole("heading", { name: "Morning stretching", exact: true }),
     ).toBeVisible();
-    await p.getByRole("button", { name: "Start step", exact: true }).click();
+    await p.getByRole("button", { name: "Start timer", exact: true }).click();
     await p.waitForTimeout(1100);
     await p.reload();
     await expect(p.getByRole("button", { name: "Pause timer" })).toBeVisible();
-    await p.getByRole("button", { name: "Finish session" }).click();
+    await p.getByRole("button", { name: "Step check-in" }).click();
     await p.getByRole("button", { name: "Done", exact: true }).click();
     await p
       .getByLabel("What happened?", { exact: true })
@@ -86,9 +86,9 @@ for (const width of [390, 1440])
     await p.getByRole("button", { name: "Keep preparing" }).click();
     await p.getByRole("button", { name: "Save to Proof" }).click();
     await expect(p).toHaveURL(/\/app$/);
-    await expect(
-      p.getByText("11/03/2030 · 6:00 AM · America/Denver", { exact: false }),
-    ).toBeVisible();
+    await expect(p.locator(".timer-schedule")).toHaveText(
+      "11/03/2030 · 6:00 AM · America/Denver",
+    );
     const padding = await p
       .getByRole("button", { name: "Why & obstacles", exact: true })
       .evaluate((el) => Number.parseFloat(getComputedStyle(el).paddingLeft));
@@ -98,9 +98,9 @@ for (const width of [390, 1440])
       fullPage: true,
     });
     await p.getByRole("button", { name: "Plan", exact: true }).click();
-    await expect(
-      p.getByText("Current milestone", { exact: true }),
-    ).toBeVisible();
+    await expect(p.locator(".plan-focus .section-label")).toHaveText(
+      "Current milestone",
+    );
     await p.locator("summary").filter({ hasText: "Manage challenge" }).click();
     await p
       .getByRole("button", { name: "Refine my vision", exact: true })
@@ -118,6 +118,7 @@ for (const width of [390, 1440])
       }),
     ).toBeVisible();
     await p.reload();
+    await p.getByRole("button", { name: "Basecamp", exact: true }).click();
     await expect(
       p.getByText("Healthy enough to climb mountains into my 70s", {
         exact: true,
@@ -138,6 +139,7 @@ for (const width of [390, 1440])
       fullPage: true,
     });
     await p.getByRole("button", { name: "Return to Basecamp" }).click();
+    await p.getByText("Step details & calendar", { exact: true }).click();
     await p.getByRole("button", { name: /Add to calendar/ }).click();
     await expect(
       p.getByRole("button", { name: "Return to Basecamp" }),

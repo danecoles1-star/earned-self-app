@@ -6,6 +6,7 @@ import "./styles.css";
 import "./marketing.css";
 import "./logo.css";
 import "./experience/experience.css";
+import "./experience/focus-stage.css";
 async function start() {
   let adapter: Adapter;
   if (__LOCAL_PREVIEW__) {

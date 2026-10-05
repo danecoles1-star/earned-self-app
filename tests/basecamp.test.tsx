@@ -17,16 +17,16 @@ it("timer counts wall time across reload and pauses without losing elapsed time"
   vi.useFakeTimers();
   vi.setSystemTime(100000);
   const view = render(<StepTimer identity="a:step:1" />);
-  fireEvent.click(screen.getByRole("button", { name: "Start step" }));
+  fireEvent.click(screen.getByRole("button", { name: "Start timer" }));
   act(() => vi.advanceTimersByTime(65000));
-  expect(screen.getByLabelText("Elapsed time")).toHaveTextContent("00:01:05");
+  expect(screen.getByLabelText("Elapsed time")).toHaveTextContent("01:05");
   view.unmount();
   vi.setSystemTime(180000);
   render(<StepTimer identity="a:step:1" />);
-  expect(screen.getByLabelText("Elapsed time")).toHaveTextContent("00:01:20");
+  expect(screen.getByLabelText("Elapsed time")).toHaveTextContent("01:20");
   fireEvent.click(screen.getByRole("button", { name: "Pause timer" }));
   act(() => vi.advanceTimersByTime(10000));
-  expect(screen.getByLabelText("Elapsed time")).toHaveTextContent("00:01:20");
+  expect(screen.getByLabelText("Elapsed time")).toHaveTextContent("01:20");
   expect(elapsedTime({ elapsed: 0, started: 200000 }, 180000)).toBe(0);
 });
 it("timer is isolated by account and step", () => {
@@ -35,7 +35,7 @@ it("timer is isolated by account and step", () => {
     JSON.stringify({ elapsed: 60000, started: null }),
   );
   render(<StepTimer identity="b:step:1" />);
-  expect(screen.getByLabelText("Elapsed time")).toHaveTextContent("00:00:00");
+  expect(screen.getByLabelText("Elapsed time")).toHaveTextContent("00:00");
 });
 it("pending onboarding action saves no Proof and can be reported later", () => {
   let store: LocalStore = { snapshot: emptySnapshot(), receipts: {} };
@@ -288,4 +288,14 @@ it("Vision edits preserve challenge and history and reject stale or foreign save
       "b",
     ),
   ).toThrow();
+});
+
+it("timer keeps hours explicit for long sessions", () => {
+  localStorage.setItem(
+    "earned-self:timer:a:long:1",
+    JSON.stringify({ elapsed: 3661000, started: null }),
+  );
+  render(<StepTimer identity="a:long:1" />);
+  expect(screen.getByLabelText("Elapsed time")).toHaveTextContent("01:01:01");
+  expect(screen.getByLabelText("Elapsed time")).toHaveClass("timer-hours");
 });

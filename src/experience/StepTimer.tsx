@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 type Clock = { elapsed: number; started: number | null };
 export function elapsedTime(clock: Clock, now = Date.now()) {
   return Math.max(
@@ -24,7 +24,13 @@ export function pauseTimer(identity: string, pausedAt = Date.now()) {
       );
   } catch {}
 }
-export function StepTimer({ identity }: { identity: string }) {
+export function StepTimer({
+  identity,
+  children,
+}: {
+  identity: string;
+  children?: ReactNode;
+}) {
   const key = `earned-self:timer:${identity}`;
   const read = (): Clock => {
     try {
@@ -62,6 +68,7 @@ export function StepTimer({ identity }: { identity: string }) {
   ]
     .map((n) => String(n).padStart(2, "0"))
     .join(":");
+  const compactDisplay = seconds < 3600 ? display.slice(3) : display;
   const toggle = () => {
     const stamp = Date.now();
     const current = error ? clock : read();
@@ -80,14 +87,25 @@ export function StepTimer({ identity }: { identity: string }) {
   };
   return (
     <div className="step-timer">
-      <output aria-label="Elapsed time">{display}</output>
-      <span className="small">Elapsed time · this device</span>
+      <div className="timer-face">
+        {children}
+        <output
+          className={seconds >= 3600 ? "timer-hours" : undefined}
+          aria-label="Elapsed time"
+        >
+          {compactDisplay}
+        </output>
+        <span className="timer-label">Time spent on this step</span>
+      </div>
+      <p className="timer-help">
+        Start the timer while you work. Check in when you finish.
+      </p>
       <button className="button" onClick={toggle}>
         {clock.started !== null
           ? "Pause timer"
           : clock.elapsed
             ? "Resume timer"
-            : "Start step"}
+            : "Start timer"}
       </button>
       {error && <p role="alert">{error}</p>}
     </div>
