@@ -160,14 +160,18 @@ export function Ambition({
                       {currentAction(s, g.id)?.id === c.id && (
                         <small className="section-label">Current step</small>
                       )}
-                      {definition(s, c.id, c.revision)?.action} ·{" "}
-                      {c.state === "active"
-                        ? g.status === "paused"
-                          ? "Paused · date retained"
-                          : "Scheduled"
-                        : c.state === "cancelled"
-                          ? "Ended without a check-in"
-                          : "Check-in recorded"}
+                      <strong className="plan-step-title">
+                        {definition(s, c.id, c.revision)?.action}
+                      </strong>
+                      <small className="step-state">
+                        {c.state === "active"
+                          ? g.status === "paused"
+                            ? "Paused · date retained"
+                            : "Scheduled"
+                          : c.state === "cancelled"
+                            ? "Ended without a check-in"
+                            : "Check-in recorded"}
+                      </small>
                       <small className="step-metadata">
                         {displaySchedule(
                           currentSchedule(s, c.id)?.local_date,

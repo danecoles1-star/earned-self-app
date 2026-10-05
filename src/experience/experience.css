@@ -1738,3 +1738,229 @@ body:has(.app-tabs) .workspace {
   width: 3px;
   background: var(--journey-accent);
 }
+
+/* Mineral Paper: consistent surfaces, curved trim and room to act.
+   The timer accent is decorative, not a completion percentage. */
+:root {
+  --section-accent: linear-gradient(
+    180deg,
+    var(--ink) 0%,
+    var(--blue) 3%,
+    var(--ember) 7%,
+    var(--blue) 12%,
+    var(--ink) 20%,
+    var(--ink) 100%
+  );
+}
+.challenge-heading,
+.plan-stage.current {
+  border: 1px solid #b4c6cb;
+  background: #e0e9e9;
+}
+.challenge-heading::before,
+.plan-stage.current::before,
+.basecamp-path li.current::before {
+  content: "";
+  position: absolute;
+  inset: -1px auto -1px -1px;
+  width: calc(100% + 2px);
+  padding: 3px;
+  border-radius: inherit;
+  background: var(--section-accent);
+  pointer-events: none;
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  clip-path: inset(0 calc(100% - 24px) 0 0);
+}
+.basecamp-main {
+  gap: 28px;
+}
+.milestone-summary {
+  padding-top: 24px;
+}
+.basecamp .milestone-summary h2 {
+  margin: 18px 0 12px;
+}
+.basecamp .milestone-summary .milestone-review {
+  display: block;
+  width: 100%;
+  margin-top: 24px;
+  padding: 12px 16px;
+  min-height: 48px;
+  border: 1px solid #8ba5b0;
+  border-radius: 10px;
+  text-decoration: none;
+}
+.basecamp .current-step {
+  padding: 26px;
+}
+.basecamp .current-step .section-label {
+  gap: 20px;
+  margin-bottom: 28px;
+}
+.basecamp .current-step .section-label .quiet {
+  padding: 12px 16px;
+  min-height: 48px;
+}
+.basecamp .current-step h2 {
+  margin: 0 0 20px;
+}
+.basecamp .current-step p {
+  margin: 20px 0;
+  line-height: 1.6;
+}
+.basecamp .current-step .schedule-link {
+  padding: 18px 0;
+  line-height: 1.6;
+}
+.step-timer {
+  padding: 28px 0 4px;
+  gap: 20px;
+}
+.step-timer output {
+  width: 164px;
+  height: 164px;
+  border: 5px solid transparent;
+  background:
+    linear-gradient(var(--ink), var(--ink)) padding-box,
+    conic-gradient(
+        from 0deg,
+        var(--blue),
+        var(--ember) 24deg,
+        var(--blue) 48deg,
+        var(--blue) 250deg,
+        var(--ink) 305deg,
+        var(--blue)
+      )
+      border-box;
+  font-size: 32px;
+}
+.step-timer .button {
+  margin-top: 12px;
+}
+.current-step .button.secondary {
+  border-color: var(--blue);
+  margin-top: 16px;
+}
+.milestone-path {
+  border: 0;
+  margin: 24px 0;
+  padding: 0;
+}
+.plan-stage {
+  padding: 18px 20px;
+  margin: 14px 0;
+  background: transparent;
+}
+.plan-stage.current,
+.plan-stage[open] {
+  padding: 24px;
+}
+.plan-stage summary {
+  min-height: 44px;
+  gap: 14px;
+}
+.plan-stage summary > span:last-child {
+  min-width: 0;
+  flex: 1;
+}
+.plan-stage:not([open]) summary::after {
+  content: "›";
+  font-size: 24px;
+  color: var(--blue);
+}
+.plan-stage summary strong {
+  font-size: 1.35rem;
+  overflow-wrap: anywhere;
+}
+.plan-stage[open] > p {
+  margin: 20px 0;
+  line-height: 1.6;
+}
+.plan-stage .button {
+  margin-top: 16px;
+  min-height: 48px;
+}
+.plan-stage > .button {
+  width: 100%;
+}
+.plan-step-row,
+.plan-step-row.plan-current-step {
+  padding: 24px 0 0;
+  margin-top: 28px;
+  border: 0;
+  border-top: 1px solid #53788940;
+  background: transparent;
+}
+.plan-step-row.plan-current-step .section-label {
+  margin-bottom: 16px;
+  color: #466775;
+}
+.plan-step-title {
+  display: block;
+  font:
+    400 23px/1.3 Georgia,
+    "Times New Roman",
+    serif;
+  overflow-wrap: anywhere;
+  margin-bottom: 12px;
+}
+.step-state,
+.step-metadata {
+  display: block;
+  line-height: 1.6;
+  color: #466775;
+}
+.plan-step-row .button {
+  width: 100%;
+}
+.plan-position {
+  height: 1px;
+  background: #53788940;
+  margin: 24px 0;
+}
+.plan-position span {
+  top: -1px;
+  bottom: -1px;
+  border-radius: 3px;
+}
+.preparation-card,
+.manage-challenge,
+.account-identity {
+  background: #e0e9e966;
+}
+.basecamp-path ol {
+  padding: 0;
+  border: 0;
+}
+.basecamp-path li,
+.basecamp-path li.current {
+  border: 1px solid #b4c6cb;
+  border-radius: 16px;
+  margin: 12px 0;
+  padding: 12px 16px;
+}
+.basecamp-path li.current {
+  background: #e0e9e9;
+}
+.basecamp-path li button {
+  width: 100%;
+  min-height: 44px;
+  padding: 0;
+}
+.basecamp-path .path-step {
+  padding-left: 0;
+}
+@media (max-width: 360px) {
+  .basecamp .current-step,
+  .plan-stage.current,
+  .plan-stage[open] {
+    padding: 20px;
+  }
+}

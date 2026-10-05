@@ -105,27 +105,7 @@ export function MemberHome({
           </button>
         )}
         <section className="milestone-summary">
-          <div className="section-label">
-            Current milestone
-            <button
-              className="quiet"
-              onClick={() =>
-                navigate(
-                  milestone
-                    ? "/milestone/" + goal.id
-                    : ended
-                      ? "/new"
-                      : "/plan/" + goal.id,
-                )
-              }
-            >
-              {milestone
-                ? "Review milestone"
-                : ended
-                  ? "Start a new challenge"
-                  : "Plan my milestone"}
-            </button>
-          </div>
+          <div className="section-label">Current milestone</div>
           <h2>
             {milestone?.title ||
               (ended ? "Your next chapter" : "Choose your first milestone")}
@@ -139,6 +119,24 @@ export function MemberHome({
               )}
             </p>
           )}
+          <button
+            className="quiet milestone-review"
+            onClick={() =>
+              navigate(
+                milestone
+                  ? "/milestone/" + goal.id
+                  : ended
+                    ? "/new"
+                    : "/plan/" + goal.id,
+              )
+            }
+          >
+            {milestone
+              ? "Review milestone"
+              : ended
+                ? "Start a new challenge"
+                : "Plan my milestone"}
+          </button>
         </section>
         <section className="current-step">
           <div className="section-label">
