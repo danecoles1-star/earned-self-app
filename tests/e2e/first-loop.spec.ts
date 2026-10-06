@@ -75,7 +75,6 @@ test("first visit through first action, failure recovery, accomplishment and nex
   await fill("Evidence", "A complete essay draft");
   await fill("Milestone 1 deadline date", "2030-12-01");
   await fill("Milestone 1 deadline time", "17:00");
-  await fill("Milestone 1 deadline time zone", "America/Denver");
   await next();
   await p.getByRole("checkbox").check();
   await click("Keep my preparation");
@@ -84,11 +83,12 @@ test("first visit through first action, failure recovery, accomplishment and nex
   await next();
   await fill("Action date", "2030-11-01");
   await fill("Action time", "17:00");
-  await fill("Action time zone", "America/Denver");
   await fill("Where?", "At my desk");
   await next();
   await click("Save step");
-  await p.getByText("Step details & calendar", { exact: true }).click();
+  await expect(
+    p.getByRole("region", { name: "Step details & calendar" }),
+  ).toBeVisible();
   await p.getByRole("button", { name: /Add to calendar/ }).click();
   await shot("25-calendar-mobile");
   const download = p.waitForEvent("download");

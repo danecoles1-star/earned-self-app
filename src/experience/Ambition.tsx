@@ -1,3 +1,4 @@
+import { MilestonePath } from "./MilestonePath";
 import { Paused } from "./Paused";
 import { completedEvent, completionRecord } from "./ChallengeRecord";
 import { Stage } from "./Stage";
@@ -14,7 +15,7 @@ import {
   definition,
 } from "../data/domain";
 import { resultLabel } from "../data/types";
-import { artwork, Page, Input } from "./ui";
+import { Page, Input } from "./ui";
 import { useTextDraft, type Save } from "../components/PursuitScreens";
 export function Ambition({
   goal: g,
@@ -66,68 +67,7 @@ export function Ambition({
       </section>
       {section === "overview" && (
         <section className="plan-overview">
-          {m && !ended && (
-            <section className="plan-focus">
-              <span className="section-label">
-                {g.status === "paused"
-                  ? "Paused milestone"
-                  : "Current milestone"}
-              </span>
-              <h2>{m.title}</h2>
-              <p>{m.criterion}</p>
-              <div className="plan-next-actions">
-                {s.commitments
-                  .filter(
-                    (c) =>
-                      c.goal_id === g.id &&
-                      c.milestone_id === m.id &&
-                      c.state === "active",
-                  )
-                  .sort((a, b) =>
-                    (currentSchedule(s, a.id)?.starts_at || "").localeCompare(
-                      currentSchedule(s, b.id)?.starts_at || "",
-                    ),
-                  )
-                  .slice(0, 2)
-                  .map((c) => (
-                    <button
-                      className="plan-next-action"
-                      key={c.id}
-                      onClick={() =>
-                        navigate(
-                          currentAction(s, g.id)?.id === c.id
-                            ? "/app"
-                            : "/revise/" + g.id + "/" + c.id,
-                        )
-                      }
-                    >
-                      <small>
-                        {currentAction(s, g.id)?.id === c.id
-                          ? "Current step"
-                          : "Up next"}
-                      </small>
-                      <strong>
-                        {definition(s, c.id, c.revision)?.action ||
-                          "Earlier step"}
-                      </strong>
-                      <span>
-                        {displaySchedule(
-                          currentSchedule(s, c.id)?.local_date,
-                          currentSchedule(s, c.id)?.local_time,
-                          currentSchedule(s, c.id)?.time_zone,
-                        )}
-                      </span>
-                    </button>
-                  ))}
-              </div>
-              <button
-                className="button"
-                onClick={() => navigate("/milestone/" + g.id)}
-              >
-                Review milestone
-              </button>
-            </section>
-          )}
+          <MilestonePath goal={g} snapshot={s} />
           {!m && !ended && (
             <button
               className="button secondary"
@@ -136,183 +76,190 @@ export function Ambition({
               Review milestones
             </button>
           )}
-          <details className="all-plan-details">
-            <summary>All milestones & steps</summary>
-            {!!g.milestones.length && (
-              <div
-                className="plan-position"
-                role="img"
-                aria-label={
-                  m
-                    ? `${g.status === "paused" ? "Paused at" : "Current milestone"}: ${m.title}`
-                    : "All milestones recorded. Challenge completion is a separate decision."
-                }
-              >
-                {m && (
-                  <span
-                    style={{
-                      left: `${g.milestones.length === 1 ? 50 : 8 + (84 * g.milestones.findIndex((item) => item.id === m.id)) / (g.milestones.length - 1)}%`,
-                    }}
-                  />
-                )}
-              </div>
-            )}
+          <section
+            className="all-plan-details"
+            aria-label="All milestones & steps"
+          >
+            <h2>Milestones & steps</h2>
             {!g.milestones.length && <p>No milestones planned yet.</p>}
             <div className="milestone-path">
-              {g.milestones.map((m, i) => (
-                <details
-                  className={
-                    m.id === currentMilestone(s, g)?.id
-                      ? "plan-stage current"
-                      : "plan-stage"
-                  }
-                  key={m.id}
-                  open={m.id === currentMilestone(s, g)?.id}
-                >
-                  <summary>
-                    <span className="stage-number">{i + 1}</span>
-                    <span>
-                      <small>
-                        {s.events.some(
-                          (e) =>
-                            e.goal_id === g.id &&
-                            e.kind === "milestone" &&
-                            e.data.milestoneId === m.id,
-                        )
-                          ? "Completed"
-                          : m.id === currentMilestone(s, g)?.id
-                            ? "Current milestone"
-                            : "Upcoming"}
-                      </small>
-                      <strong>{m.title}</strong>
-                    </span>
-                  </summary>
-                  <p>{m.criterion}</p>
-                  {m.id === currentMilestone(s, g)?.id && (
-                    <button
-                      className="button secondary"
-                      onClick={() => navigate("/milestone/" + g.id)}
-                    >
-                      Review milestone
-                    </button>
-                  )}
-                  <p className="small">
-                    {displaySchedule(m.localDate, m.localTime)}
-                  </p>
-                  {pendingSteps(s, g)
-                    .filter((e) => e.data.milestoneId === m.id)
-                    .map((e) => (
-                      <div key={e.id}>
-                        <p>{e.data.action}</p>
-                        <button
-                          className="quiet"
-                          onClick={() =>
-                            navigate(
-                              "/commitment/" + g.id + "/" + e.data.stepId,
-                            )
-                          }
-                        >
-                          Schedule this step
-                        </button>
-                      </div>
-                    ))}
-                  {s.commitments
-                    .filter(
-                      (c) =>
-                        c.goal_id === g.id &&
-                        c.milestone_id === m.id &&
-                        c.state === "active",
-                    )
-                    .map((c) => (
-                      <div
-                        className={
-                          currentAction(s, g.id)?.id === c.id
-                            ? "plan-step-row plan-current-step"
-                            : "plan-step-row"
-                        }
-                        key={c.id}
-                      >
-                        {currentAction(s, g.id)?.id === c.id && (
-                          <small className="section-label">Current step</small>
-                        )}
-                        <strong className="plan-step-title">
-                          {definition(s, c.id, c.revision)?.action}
-                        </strong>
-                        <small className="step-state">
-                          {c.state === "active"
-                            ? g.status === "paused"
-                              ? "Paused · date retained"
-                              : "Scheduled"
-                            : c.state === "cancelled"
-                              ? "Ended without a check-in"
-                              : "Check-in recorded"}
+              {[...g.milestones]
+                .sort((a, b) => Number(b.id === m?.id) - Number(a.id === m?.id))
+                .map((m) => (
+                  <details
+                    className={
+                      !ended && m.id === currentMilestone(s, g)?.id
+                        ? "plan-stage current plan-focus"
+                        : "plan-stage"
+                    }
+                    key={m.id}
+                    id={"milestone-" + m.id}
+                    open={m.id === currentMilestone(s, g)?.id}
+                  >
+                    <summary>
+                      <span className="stage-number">
+                        {g.milestones.findIndex((item) => item.id === m.id) + 1}
+                      </span>
+                      <span>
+                        <small>
+                          {s.events.some(
+                            (e) =>
+                              e.goal_id === g.id &&
+                              e.kind === "milestone" &&
+                              e.data.milestoneId === m.id,
+                          )
+                            ? "Completed"
+                            : m.id === currentMilestone(s, g)?.id
+                              ? g.status === "paused"
+                                ? "Paused milestone"
+                                : ended
+                                  ? "Not completed"
+                                  : "Current milestone"
+                              : ended
+                                ? "Not completed"
+                                : "Upcoming"}
                         </small>
-                        <small className="step-metadata">
-                          {displaySchedule(
-                            currentSchedule(s, c.id)?.local_date,
-                            currentSchedule(s, c.id)?.local_time,
-                          )}{" "}
-                          · {repeatLabel(c.recurrence)}
-                        </small>
-                        <button
-                          className="button secondary"
-                          onClick={() =>
-                            navigate("/revise/" + g.id + "/" + c.id)
-                          }
-                        >
-                          Revise this step
-                        </button>
-                        {c.state === "active" && c.recurrence && (
+                        <strong>{m.title}</strong>
+                      </span>
+                    </summary>
+                    <p>{m.criterion}</p>
+                    <p className="small">
+                      {displaySchedule(m.localDate, m.localTime, m.timeZone)}
+                    </p>
+                    {pendingSteps(s, g)
+                      .filter((e) => e.data.milestoneId === m.id)
+                      .map((e) => (
+                        <div key={e.id}>
+                          <p>{e.data.action}</p>
                           <button
-                            className="button secondary"
-                            disabled={saving}
+                            className="quiet"
                             onClick={() =>
-                              void save(
-                                "stop_repeat",
-                                {
-                                  goalId: g.id,
-                                  commitmentId: c.id,
-                                  version: c.version,
-                                },
-                                () => {},
+                              navigate(
+                                "/commitment/" + g.id + "/" + e.data.stepId,
                               )
                             }
                           >
-                            Stop future repetitions
+                            Schedule this step
                           </button>
-                        )}
-                      </div>
-                    ))}
-                  <p className="small">
-                    {
-                      s.commitments.filter(
+                        </div>
+                      ))}
+                    {s.commitments
+                      .filter(
                         (c) =>
                           c.goal_id === g.id &&
                           c.milestone_id === m.id &&
-                          c.state === "reported",
-                      ).length
-                    }{" "}
-                    check-ins recorded in Proof
-                  </p>
-                  {!s.events.some(
-                    (e) =>
-                      e.goal_id === g.id &&
-                      e.kind === "milestone" &&
-                      e.data.milestoneId === m.id,
-                  ) && (
-                    <button
-                      className="button secondary"
-                      onClick={() =>
-                        navigate("/add-step/" + g.id + "?milestone=" + m.id)
-                      }
-                    >
-                      Add step
-                    </button>
-                  )}
-                </details>
-              ))}
+                          c.state === "active",
+                      )
+                      .map((c) => (
+                        <div
+                          className={
+                            currentAction(s, g.id)?.id === c.id
+                              ? "plan-step-row plan-current-step"
+                              : "plan-step-row"
+                          }
+                          key={c.id}
+                        >
+                          {currentAction(s, g.id)?.id === c.id && (
+                            <small className="section-label">
+                              Current step
+                            </small>
+                          )}
+                          <button
+                            className="quiet plan-step-title"
+                            onClick={() =>
+                              navigate(
+                                currentAction(s, g.id)?.id === c.id
+                                  ? "/app"
+                                  : "/revise/" + g.id + "/" + c.id,
+                              )
+                            }
+                          >
+                            {definition(s, c.id, c.revision)?.action}
+                          </button>
+                          <small className="step-state">
+                            {c.state === "active"
+                              ? g.status === "paused"
+                                ? "Paused · date retained"
+                                : "Scheduled"
+                              : c.state === "cancelled"
+                                ? "Ended without a check-in"
+                                : "Check-in recorded"}
+                          </small>
+                          <small className="step-metadata">
+                            {displaySchedule(
+                              currentSchedule(s, c.id)?.local_date,
+                              currentSchedule(s, c.id)?.local_time,
+                              currentSchedule(s, c.id)?.time_zone,
+                            )}{" "}
+                            · {repeatLabel(c.recurrence)}
+                          </small>
+                          <button
+                            className="button secondary"
+                            onClick={() =>
+                              navigate("/revise/" + g.id + "/" + c.id)
+                            }
+                          >
+                            Revise this step
+                          </button>
+                          {c.state === "active" && c.recurrence && (
+                            <button
+                              className="button secondary"
+                              disabled={saving}
+                              onClick={() =>
+                                void save(
+                                  "stop_repeat",
+                                  {
+                                    goalId: g.id,
+                                    commitmentId: c.id,
+                                    version: c.version,
+                                  },
+                                  () => {},
+                                )
+                              }
+                            >
+                              Stop future repetitions
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                    {m.id === currentMilestone(s, g)?.id && (
+                      <button
+                        className="button secondary"
+                        onClick={() => navigate("/milestone/" + g.id)}
+                      >
+                        Review milestone
+                      </button>
+                    )}
+                    <p className="small">
+                      {
+                        s.commitments.filter(
+                          (c) =>
+                            c.goal_id === g.id &&
+                            c.milestone_id === m.id &&
+                            c.state === "reported",
+                        ).length
+                      }{" "}
+                      check-ins recorded in Proof
+                    </p>
+                    {!s.events.some(
+                      (e) =>
+                        e.goal_id === g.id &&
+                        e.kind === "milestone" &&
+                        e.data.milestoneId === m.id,
+                    ) && (
+                      <button
+                        className="button secondary"
+                        onClick={() =>
+                          navigate("/add-step/" + g.id + "?milestone=" + m.id)
+                        }
+                      >
+                        Add step
+                      </button>
+                    )}
+                  </details>
+                ))}
             </div>
-          </details>
+          </section>
           {!["completed", "changed_direction", "abandoned"].includes(
             g.status,
           ) && (
@@ -361,7 +308,6 @@ export function Ambition({
             className="wallpaper-card"
             onClick={() => navigate("/wallpaper/" + g.id)}
           >
-            <img src={artwork.mountain} alt="" />
             <span>
               <strong>Take your vision with you</strong>
               <small>Create wallpaper →</small>
@@ -470,7 +416,7 @@ export function Ambition({
               <h3>{m.title}</h3>
               <p>{m.criterion}</p>
               <p className="small">
-                {displaySchedule(m.localDate, m.localTime)} · {m.timeZone}
+                {displaySchedule(m.localDate, m.localTime, m.timeZone)}
               </p>
             </div>
           ))}

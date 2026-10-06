@@ -1,7 +1,7 @@
 .marketing {
   background: #dce1df;
   color: #f1f3f1;
-  font-family: "Avenir Next", Avenir, "Segoe UI", Arial, sans-serif;
+  font-family: var(--font-interface);
   font-size: 16px;
   line-height: 1.6;
 }
@@ -23,7 +23,7 @@
 .marketing h3,
 .marketing h4,
 .marketing blockquote {
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--font-editorial);
   font-weight: 400;
   letter-spacing: -0.035em;
 }
@@ -60,7 +60,7 @@
 }
 .marketing .market-eyebrow,
 .marketing .eyebrow {
-  font-family: "Avenir Next", Arial, sans-serif;
+  font-family: var(--font-interface);
   font-size: 12px;
   letter-spacing: 1.3px;
   text-transform: uppercase;
@@ -77,10 +77,7 @@
 .marketing .market-primary,
 .marketing .market-secondary,
 .marketing .market-light {
-  font:
-    600 16px/1.4 "Avenir Next",
-    Arial,
-    sans-serif;
+  font: 600 16px/1.4 var(--font-interface);
   min-height: 54px;
   padding: 15px 23px;
   border: 1px solid transparent;
@@ -352,9 +349,7 @@
 .dream-tabs button span {
   display: block;
   color: #f1f3f1;
-  font:
-    22px/1.25 Georgia,
-    serif;
+  font: 22px/1.25 var(--font-editorial);
   margin-top: 10px;
 }
 .dream-tabs button[aria-selected="true"] {
@@ -564,9 +559,7 @@
   color: #b9cbd0;
 }
 .edge-story p {
-  font:
-    26px/1.28 Georgia,
-    serif;
+  font: 26px/1.28 var(--font-editorial);
   margin-top: 12px;
 }
 .membership-section {
@@ -588,16 +581,12 @@
   padding-left: 50px;
 }
 .membership-price {
-  font:
-    76px/1.15 Georgia,
-    serif;
+  font: 76px/1.15 var(--font-editorial);
   margin: 20px 0 !important;
   letter-spacing: -3px;
 }
 .membership-price span {
-  font:
-    16px/1.5 Arial,
-    sans-serif;
+  font: 16px/1.5 var(--font-interface);
   letter-spacing: 0;
 }
 .membership-offer .market-primary {
@@ -880,10 +869,7 @@
     font-size: 14px;
   }
   .dream-tabs button span {
-    font:
-      15px/1.4 "Avenir Next",
-      Arial,
-      sans-serif;
+    font: 15px/1.4 var(--font-interface);
     overflow-wrap: normal;
   }
   .first-move {
@@ -1047,10 +1033,7 @@
   font-size: 29px;
 }
 .reduced-home .hero-record .chapter-meaning p:last-child {
-  font:
-    16px/1.6 "Avenir Next",
-    Arial,
-    sans-serif;
+  font: 16px/1.6 var(--font-interface);
 }
 .reduced-home .experience-section {
   padding-block: 55px;

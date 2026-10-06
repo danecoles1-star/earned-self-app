@@ -93,7 +93,7 @@ body {
 .focus-stage h2,
 .focus-stage h3,
 .focus-stage blockquote {
-  font-family: Georgia, serif;
+  font-family: var(--font-editorial);
   font-weight: 400;
   letter-spacing: -0.035em;
   line-height: 1.1;
@@ -114,7 +114,7 @@ body {
   display: block;
   font-size: 11px;
   line-height: 1.5;
-  font-family: Arial, sans-serif;
+  font-family: var(--font-interface);
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: #405c69;
@@ -128,9 +128,7 @@ body {
   background: var(--ink);
   color: #f6f1e8;
   border: 1px solid var(--ink);
-  font:
-    500 17px/1.35 Arial,
-    sans-serif;
+  font: 500 17px/1.35 var(--font-interface);
   box-shadow: none;
   text-align: center;
   white-space: normal;
@@ -148,20 +146,14 @@ body {
   outline-offset: 4px;
 }
 .stage-focus {
-  background:
-    linear-gradient(to bottom, transparent 700px, #f6f1e8 1020px),
-    url("../assets/art/focus-mountains.webp") center 70px / min(100%, 760px)
-      auto no-repeat,
-    #f6f1e8;
+  background: none;
 }
 .identity-reminder {
   margin: 4px 0 24px;
   max-width: 520px;
 }
 .identity-reminder p {
-  font:
-    400 clamp(24px, 4vw, 30px) / 1.2 Georgia,
-    serif;
+  font: 400 clamp(24px, 4vw, 30px) / 1.2 var(--font-editorial);
   letter-spacing: -0.025em;
   margin: 0;
 }
@@ -219,7 +211,7 @@ body {
   position: absolute;
   inset: 0;
   z-index: -1;
-  background: url("../assets/art/focus-ring.webp") center/contain no-repeat;
+  background: none;
   pointer-events: none;
 }
 .focus-stage .timer-face output {
@@ -234,9 +226,7 @@ body {
   width: 100%;
   height: auto;
   min-height: 0;
-  font:
-    400 clamp(58px, 18vw, 92px) / 1 Georgia,
-    serif;
+  font: 400 clamp(58px, 18vw, 92px) / 1 var(--font-editorial);
   line-height: 1.15;
   letter-spacing: -0.055em;
   font-variant-numeric: tabular-nums;
@@ -249,9 +239,7 @@ body {
   display: none;
 }
 .focus-stage .timer-face h2 {
-  font:
-    500 12px/1.4 Arial,
-    sans-serif;
+  font: 500 12px/1.4 var(--font-interface);
   letter-spacing: 0.06em;
   margin: 0;
   max-width: 230px;
@@ -282,9 +270,7 @@ body {
   background: #fffdf8;
   border: 1.5px solid var(--ember);
   color: var(--ink);
-  font:
-    400 23px/1.3 Georgia,
-    serif;
+  font: 400 23px/1.3 var(--font-editorial);
   min-height: 60px;
   width: 100%;
   max-width: 420px;
@@ -342,11 +328,7 @@ body {
   margin: 20px 0;
 }
 .stage-prepare {
-  background:
-    linear-gradient(to bottom, transparent 240px, #f6f1e8 610px),
-    url("../assets/art/focus-mountains.webp") center 0 / min(100%, 760px) auto
-      no-repeat,
-    #f6f1e8;
+  background: none;
 }
 .plan-challenge-context {
   margin-bottom: 80px;
@@ -399,9 +381,7 @@ body {
   font-size: 11px;
 }
 .plan-next-action strong {
-  font:
-    400 23px/1.25 Georgia,
-    serif;
+  font: 400 23px/1.25 var(--font-editorial);
   letter-spacing: -0.02em;
 }
 .plan-next-action span {
@@ -541,9 +521,7 @@ body {
 .proof-row strong,
 .proof-attempt strong {
   display: block;
-  font:
-    400 24px/1.25 Georgia,
-    serif;
+  font: 400 24px/1.25 var(--font-editorial);
   margin: 12px 0;
 }
 .proof-row small,
@@ -572,8 +550,7 @@ body {
 }
 .accomplishment-summary {
   padding: 40px 0 64px;
-  background: url("../assets/art/focus-mountains.webp") center 30% / cover
-    no-repeat;
+  background: none;
 }
 .accomplishment-summary h2 {
   font-size: clamp(40px, 6vw, 58px);
@@ -595,18 +572,14 @@ body {
   box-shadow: none;
 }
 .reflection-answer h2 {
-  font:
-    500 12px/1.4 Arial,
-    sans-serif;
+  font: 500 12px/1.4 var(--font-interface);
   text-transform: uppercase;
   letter-spacing: 0.14em;
   color: #405c69;
   margin: 0 0 24px;
 }
 .reflection-answer p {
-  font:
-    400 clamp(24px, 4vw, 32px) / 1.35 Georgia,
-    serif;
+  font: 400 clamp(24px, 4vw, 32px) / 1.35 var(--font-editorial);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
   margin: 0 0 24px;
@@ -634,9 +607,7 @@ body {
   gap: 8px !important;
   min-height: 44px !important;
   padding: 8px 4px !important;
-  font:
-    400 12px/1.2 Arial,
-    sans-serif !important;
+  font: 400 12px/1.2 var(--font-interface) !important;
   color: var(--ink) !important;
   border-radius: 0;
 }
@@ -740,11 +711,7 @@ body {
 }
 
 .stage-proof {
-  background:
-    linear-gradient(to bottom, transparent 180px, #f6f1e8 640px),
-    url("../assets/art/focus-mountains.webp") center 100px / min(100%, 900px)
-      auto no-repeat,
-    #f6f1e8;
+  background: none;
 }
 .stage-proof .proof-support {
   padding-top: 24px;
@@ -790,7 +757,6 @@ body {
 .stage-prepare .manage-challenge .button {
   margin: 16px 0;
 }
-
 
 .focus-stage .stage-header .account-button {
   border: 1px solid var(--ink);

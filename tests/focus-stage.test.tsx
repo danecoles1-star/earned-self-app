@@ -147,7 +147,9 @@ it("Basecamp retains the current step details and timer but removes work control
     />,
   );
   expect(screen.getByText("Who I am becoming")).toBeVisible();
-  fireEvent.click(screen.getByText("Step details & calendar"));
+  expect(
+    screen.getByRole("region", { name: "Step details & calendar" }),
+  ).toBeVisible();
   expect(screen.getByText("Done means: " + action.criterion)).toBeVisible();
   fireEvent.click(screen.getByRole("button", { name: "Start timer" }));
   fireEvent.click(screen.getByRole("button", { name: "Step check-in" }));
@@ -180,8 +182,10 @@ it("Plan shows the current milestone first and keeps the complete plan and prepa
   );
   expect(screen.getByRole("heading", { name: "Your Plan" })).toBeVisible();
   expect(screen.queryByText("Who I am becoming")).toBeNull();
-  fireEvent.click(screen.getByText("All milestones & steps"));
-  expect(screen.getByText("Launch shop")).toBeVisible();
+  expect(
+    screen.getByRole("navigation", { name: "Your milestone path" }),
+  ).toBeVisible();
+  expect(screen.getAllByText("Launch shop")[0]).toBeVisible();
   fireEvent.click(screen.getByRole("button", { name: "My preparation" }));
   expect(
     screen.getByRole("heading", { name: "Your preparation" }),

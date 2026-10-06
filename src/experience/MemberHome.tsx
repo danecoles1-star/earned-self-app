@@ -75,6 +75,7 @@ export function MemberHome({
             className="quiet milestone-context"
             onClick={() => navigate("/milestone/" + goal.id)}
           >
+            <span>Current milestone</span>
             {milestone.title}
             <span aria-hidden="true"> ›</span>
           </button>
@@ -118,20 +119,22 @@ export function MemberHome({
               <StepTimer
                 key={c.id}
                 identity={`${goal.owner_id}:${c.id}:${c.revision}`}
+                schedule={
+                  time &&
+                  displaySchedule(
+                    time.local_date,
+                    time.local_time,
+                    time.time_zone,
+                  )
+                }
               >
                 <h2>{d.action}</h2>
-                {time && (
-                  <span className="timer-schedule">
-                    {displaySchedule(
-                      time.local_date,
-                      time.local_time,
-                      time.time_zone,
-                    )}
-                  </span>
-                )}
               </StepTimer>
-              <button className="quiet focus-check-in" onClick={checkIn}>
-                Step check-in <span aria-hidden="true">›</span>
+              <button
+                className="button secondary focus-check-in"
+                onClick={checkIn}
+              >
+                Step check-in
               </button>
             </>
           ) : (
@@ -142,36 +145,10 @@ export function MemberHome({
           )}
           {time && !time.local_time && (
             <p role="status">
-              This session needs a time because the clock changes. Open Step
-              details & calendar to revise it.
+              This session needs a time because the clock changes. Choose Revise
+              this step below.
             </p>
           )}
-          <details className="stage-details">
-            <summary>Step details & calendar</summary>
-            <p>{d.action}</p>
-            <p>Done means: {d.criterion}</p>
-            <p>{repeatLabel(c.recurrence)}</p>
-            {time && (
-              <button
-                className="button secondary"
-                onClick={() => navigate("/calendar/" + goal.id)}
-              >
-                {displaySchedule(
-                  time.local_date,
-                  time.local_time,
-                  time.time_zone,
-                )}{" "}
-                · Add to calendar
-              </button>
-            )}
-
-            <button
-              className="button secondary"
-              onClick={() => navigate("/revise/" + goal.id)}
-            >
-              Revise this step
-            </button>
-          </details>
         </section>
       ) : (
         <section className="stage-ended">
@@ -212,6 +189,33 @@ export function MemberHome({
           </button>
         )}
       </div>
+      {c && d && !ended && (
+        <section className="stage-details" aria-label="Step details & calendar">
+          <h3>Step details & calendar</h3>
+          <p>Done means: {d.criterion}</p>
+          <p>{repeatLabel(c.recurrence)}</p>
+          {time && (
+            <button
+              className="button secondary"
+              onClick={() => navigate("/calendar/" + goal.id)}
+            >
+              {displaySchedule(
+                time.local_date,
+                time.local_time,
+                time.time_zone,
+              )}{" "}
+              · Add to calendar
+            </button>
+          )}
+
+          <button
+            className="button secondary"
+            onClick={() => navigate("/revise/" + goal.id)}
+          >
+            Revise this step
+          </button>
+        </section>
+      )}
       <button
         className="wallpaper-card"
         onClick={() => navigate("/wallpaper/" + goal.id)}

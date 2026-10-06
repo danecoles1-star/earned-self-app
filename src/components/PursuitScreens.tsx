@@ -1,5 +1,5 @@
 import { LocalDateTimeInput } from "./LocalDateTime";
-import { displaySchedule } from "../data/time";
+import { displaySchedule, deviceSchedule } from "../data/time";
 import { useEffect, useState } from "react";
 import {
   currentAction,
@@ -156,6 +156,8 @@ export function ScheduleFields({
   prefix?: string;
   required?: boolean;
 }) {
+  const shown = deviceSchedule(value);
+  const deviceZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
   return (
     <div className="schedule-fields">
       <div className="fields-row">
@@ -173,23 +175,22 @@ export function ScheduleFields({
               id={prefix + k}
               kind={type}
               required={required}
-              value={value[k]}
-              onChange={(v) => change({ ...value, [k]: v })}
+              value={shown[k]}
+              onChange={(v) =>
+                change({ ...shown, timeZone: deviceZone, [k]: v })
+              }
             />
           </div>
         ))}
       </div>
-      <label htmlFor={prefix + "zone"}>{prefix} time zone</label>
-      <input
-        id={prefix + "zone"}
-        value={value.timeZone}
-        required={required}
-        onChange={(e) => change({ ...value, timeZone: e.target.value })}
-      />
       <p className="muted">
         {value.localDate && value.localTime
           ? displaySchedule(value.localDate, value.localTime, value.timeZone)
-          : "Choose a date and time. Your schedule stays in this time zone."}
+          : "Choose a date and time on this device."}
+      </p>
+      <p className="small">
+        Times use this device’s settings. Changing the date or time updates this
+        schedule when you save.
       </p>
     </div>
   );

@@ -201,7 +201,8 @@ export function Wallpaper({
           y += 100;
         }
         if (reason) {
-          ctx.font = "32px Arial";
+          ctx.font =
+            '32px "Avenir Next", Avenir, Montserrat, Arial, sans-serif';
           const words = goal.meaning.split(/\s+/);
           const lines: string[] = [];
           let line = "";
@@ -223,7 +224,8 @@ export function Wallpaper({
           lines.forEach((l, i) => ctx.fillText(l, 585, y + 45 + i * 44));
         }
         if (date) {
-          ctx.font = "28px Arial";
+          ctx.font =
+            '28px "Avenir Next", Avenir, Montserrat, Arial, sans-serif';
           ctx.fillText(
             displayDate(new Date().toLocaleDateString("en-CA")),
             585,
@@ -242,7 +244,8 @@ export function Wallpaper({
           }
           ctx.drawImage(logo, 380, 2290, 55, 56);
           ctx.fillStyle = light ? "#172329" : "#f1f3f1";
-          ctx.font = "24px Arial";
+          ctx.font =
+            '24px "Avenir Next", Avenir, Montserrat, Arial, sans-serif';
           ctx.fillText("E A R N E D   S E L F", 630, 2327);
         }
         const blob = await new Promise<Blob | null>((r) =>

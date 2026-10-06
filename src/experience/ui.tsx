@@ -20,7 +20,7 @@ export function Page({
   sub,
   children,
   back,
-  dark = true,
+  dark: _dark = true,
   footer,
   progress,
   layout = "flow",
@@ -40,13 +40,9 @@ export function Page({
     window.scrollTo(0, 0);
   }, [title]);
   return (
-    <div
-      className={
-        "experience experience-" + layout + " " + (dark ? "ink" : "mineral")
-      }
-    >
+    <div className={"experience experience-" + layout + " " + "mineral"}>
       <header className="experience-header">
-        <Brand mineral={!dark} />
+        <Brand mineral />
         {back && (
           <button className="quiet" onClick={back} aria-label="Go back">
             Back

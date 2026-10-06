@@ -28,3 +28,5 @@ start().catch(() => {
   document.getElementById("root")!.textContent =
     "The application configuration needs attention. No account data was loaded. Please contact the private-test organizer.";
 });
+
+import "./experience/ivory-orb.css";

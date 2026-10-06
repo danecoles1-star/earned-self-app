@@ -1,0 +1,469 @@
+/* Approved Ivory / liquid-glass direction. Keep the existing brand icons and type. */
+:root {
+  color-scheme: light;
+}
+body,
+.focus-stage,
+.stage-focus,
+.stage-prepare,
+.stage-proof,
+.stage-completed,
+.experience,
+.experience.mineral,
+.experience.ink {
+  background: var(--proof-ivory, #f6f1e8);
+  color: #101a20;
+}
+.focus-stage::before,
+.focus-stage::after,
+.accomplishment-summary::before {
+  display: none;
+}
+.focus-stage {
+  --muted: #485f6b;
+}
+.focus-stage .accomplishment-summary {
+  background: none;
+}
+.identity-reminder {
+  margin-bottom: 28px;
+}
+.identity-reminder p {
+  font-size: clamp(30px, 7.9vw, 44px);
+  line-height: 1.12;
+}
+.stage-context {
+  margin-bottom: 30px;
+  gap: 22px;
+}
+.stage-context .quiet {
+  font: 400 clamp(22px, 5.5vw, 28px) / 1.25 var(--font-editorial);
+  color: #101a20;
+  padding: 0;
+}
+.stage-context .quiet > span:first-child {
+  display: block;
+  font: 500 11px/1.4 var(--font-interface);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  margin: 0 0 8px;
+  color: #485f6b;
+}
+.focus-stage .timer-step-title {
+  text-align: center;
+  width: 100%;
+  margin: 0 auto 12px;
+}
+.focus-stage .timer-step-title h2 {
+  font: 400 21px/1.45 var(--font-interface);
+  letter-spacing: -0.015em;
+  margin: 0;
+  text-wrap: pretty;
+  overflow-wrap: anywhere;
+}
+.focus-stage .timer-face {
+  width: min(380px, calc(100vw - 40px));
+  min-height: 0;
+  height: auto;
+  aspect-ratio: 1;
+  padding: 0 18%;
+  margin: 0 auto 8px;
+  overflow: visible;
+  background: none;
+}
+.focus-stage .timer-face::before {
+  display: none;
+}
+.timer-orb {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  z-index: -1;
+  pointer-events: none;
+  animation: orb-drift 14s ease-in-out infinite;
+  animation-play-state: paused;
+}
+.step-timer[data-running="true"] .timer-orb {
+  animation-play-state: running;
+}
+@keyframes orb-drift {
+  0%,
+  100% {
+    transform: rotate(-7deg) scale(0.98);
+  }
+  50% {
+    transform: rotate(13deg) scale(1.02);
+  }
+}
+.focus-stage .timer-face output {
+  font-size: clamp(56px, 17vw, 80px);
+  margin: 12px 0 4px;
+  padding: 0;
+  line-height: 1.15;
+  letter-spacing: -0.035em;
+  width: max-content;
+  max-width: none;
+  text-shadow: 0 1px 12px #f6f1e8;
+}
+.focus-stage .timer-face output.timer-hours {
+  font-size: clamp(30px, 9vw, 44px);
+}
+.focus-stage .timer-label {
+  font: 500 10px/1.6 var(--font-interface);
+  color: #101a20;
+  letter-spacing: 0.14em;
+  white-space: nowrap;
+}
+.focus-stage .timer-schedule {
+  order: initial;
+  margin: 12px 0 16px;
+  font-size: 16px;
+  text-align: center;
+  color: #101a20;
+}
+.focus-stage .timer-help {
+  margin: 0 auto 24px;
+  color: #485f6b;
+  font-size: 13px;
+  max-width: 31ch;
+}
+.focus-stage .step-timer .button {
+  background: #101a20;
+  color: #f6f1e8;
+  font: 500 17px/1.4 var(--font-interface);
+  border: 1px solid #101a20;
+  min-height: 52px;
+}
+.focus-stage .focus-check-in {
+  text-decoration: none;
+  width: 100%;
+  max-width: 420px;
+  margin: 16px auto 36px;
+  min-height: 52px;
+  font: 500 17px/1.4 var(--font-interface);
+  padding: 12px 20px;
+}
+.stage-details {
+  margin: 0 auto;
+  padding: 20px 0 0;
+  max-width: 420px;
+}
+.stage-details h3 {
+  font: 500 11px/1.5 var(--font-interface);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #485f6b;
+  margin: 0 0 16px;
+}
+.stage-details p {
+  font-size: 15px;
+  margin: 0 0 12px;
+}
+.stage-details .button {
+  margin: 12px 0 0;
+  min-height: 48px;
+  font-size: 15px;
+}
+.stage-secondary-links {
+  margin: 28px 0;
+  gap: 12px 24px;
+}
+.stage-secondary-links .quiet {
+  min-height: 44px;
+}
+.plan-challenge-context {
+  margin-bottom: 24px;
+}
+.focus-stage .plan-challenge-context h2 {
+  font-size: clamp(28px, 7vw, 40px);
+}
+.journey-path {
+  position: relative;
+  margin: 20px 0 40px;
+}
+.journey-spine {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 44px;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+.journey-path ol {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+.journey-path li {
+  position: relative;
+  margin: 0;
+  padding: 0;
+}
+.journey-path li > button {
+  display: grid;
+  grid-template-columns: 44px 28px minmax(0, 1fr);
+  gap: 12px;
+  width: 100%;
+  min-height: 136px;
+  padding: 20px 0;
+  text-align: left;
+  color: #101a20;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  align-items: center;
+  cursor: pointer;
+}
+.path-marker {
+  justify-self: center;
+  width: 18px;
+  height: 18px;
+  border: 3px solid #5e7783;
+  background: #f6f1e8;
+  border-radius: 50%;
+}
+.journey-path [data-state="current"] .path-marker {
+  width: 22px;
+  height: 22px;
+  border: 3px solid #f6f1e8;
+  background: #ff5b36;
+  box-shadow:
+    0 0 0 2px #ff5b36,
+    0 0 16px #ff5b3655;
+}
+.journey-path [data-state="completed"] .path-marker {
+  background: #5e7783;
+}
+.path-number {
+  font: 400 26px/1 var(--font-editorial);
+  color: #5e7783;
+}
+.path-copy {
+  display: grid;
+  gap: 6px;
+}
+.path-copy small {
+  font: 500 10px/1.4 var(--font-interface);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #485f6b;
+}
+.path-copy strong {
+  font: 500 19px/1.3 var(--font-interface);
+  letter-spacing: -0.02em;
+}
+.path-copy > span {
+  font: 400 14px/1.5 var(--font-interface);
+  color: #485f6b;
+}
+.plan-focus {
+  padding-top: 0;
+}
+.focus-stage .plan-next-actions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0;
+  margin: 24px 0;
+}
+.focus-stage .plan-next-action {
+  border: 0;
+  border-left: 2px solid #5e778360;
+  border-radius: 0;
+  padding: 12px 0 24px 22px;
+  box-shadow: none;
+}
+.focus-stage .plan-next-action strong {
+  font: 500 19px/1.4 var(--font-interface);
+}
+.all-plan-details {
+  margin: 44px 0 24px;
+  border: 0;
+}
+.all-plan-details > h2 {
+  font-size: 30px;
+}
+.plan-stage {
+  scroll-margin-top: 20px;
+}
+.focus-stage .plan-tools .wallpaper-card {
+  min-height: 80px;
+}
+@media (min-width: 800px) {
+  .focus-stage {
+    max-width: none;
+  }
+  .focus-stage .stage-main,
+  .focus-stage .stage-header {
+    max-width: 620px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .focus-stage .timer-face {
+    width: 380px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .timer-orb {
+    animation: none !important;
+    transform: none !important;
+  }
+}
+.focus-stage .all-plan-details {
+  margin-top: 0;
+}
+.focus-stage .all-plan-details > h2 {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+.focus-stage .plan-stage.current {
+  padding: 0 0 28px;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+.focus-stage .plan-stage.current > summary {
+  padding: 0;
+  display: block;
+  list-style: none;
+}
+.focus-stage .plan-stage.current > summary::after {
+  display: none;
+}
+.focus-stage .plan-stage.current > summary .stage-number {
+  display: none;
+}
+.focus-stage .plan-stage.current > summary strong {
+  font: 400 clamp(30px, 7.7vw, 42px) / 1.12 var(--font-editorial);
+  letter-spacing: -0.025em;
+  margin-top: 10px;
+}
+.focus-stage .plan-stage.current > p {
+  margin: 20px 0;
+}
+.focus-stage .plan-stage.current .plan-step-row {
+  padding: 22px 0;
+  border-left: 0;
+  background: none;
+  border-radius: 0;
+}
+.focus-stage .plan-stage.current .plan-step-title {
+  font: 500 20px/1.4 var(--font-interface);
+}
+.focus-stage .plan-stage.current .plan-step-title {
+  display: block;
+  text-align: left;
+  min-height: 44px;
+  width: 100%;
+  padding: 8px 0;
+}
+.focus-stage .stage-context .quiet > span[aria-hidden] {
+  display: none;
+}
+/* Clip only the rotating artwork's transparent corners, never the title or digits. */
+.focus-stage .timer-face {
+  width: min(380px, 100%);
+  overflow: hidden;
+}
+@media (min-width: 800px) {
+  .focus-stage .timer-face {
+    width: 380px;
+    max-width: 100%;
+  }
+}
+.journey-path li {
+  background-position: -4px center;
+  background-size: 52px 100%;
+}
+/* Dark artwork is a deliberate image surface on Ivory, not a fading dark halo. */
+.experience.mineral .experience-art {
+  mask-image: none;
+  -webkit-mask-image: none;
+  border-radius: 18px;
+}
+.stage-prepare:has(.plan-overview) .stage-title {
+  font: 500 11px/1.5 var(--font-interface);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: #485f6b;
+  margin-bottom: 18px;
+}
+.stage-prepare:has(.plan-overview) .plan-challenge-context > .section-label {
+  display: none;
+}
+.stage-prepare:has(.plan-overview) .plan-challenge-context > h2 {
+  font-size: clamp(34px, 8.5vw, 46px);
+  line-height: 1.1;
+}
+.completed-proof-list {
+  margin-top: 32px;
+  margin-bottom: 40px;
+}
+.completed-proof-entry {
+  margin-bottom: 24px;
+  padding-bottom: 32px;
+}
+.completed-proof-entry .record-link {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 52px;
+  background: #101a20;
+  color: #f6f1e8;
+  border-radius: 999px;
+  text-decoration: none;
+  font: 500 16px/1.4 var(--font-interface);
+  padding: 12px 18px;
+  margin-top: 28px;
+}
+.completed-proof-entry blockquote {
+  font-style: normal;
+}
+.identity-reminder p {
+  font-size: clamp(34px, 10vw, 44px);
+  font-weight: 600;
+  line-height: 1.08;
+}
+.stage-prepare:has(.plan-overview) .plan-challenge-context > h2 {
+  font-size: clamp(36px, 10.5vw, 48px);
+  font-weight: 600;
+}
+.focus-stage .plan-stage.current > summary strong {
+  font-size: clamp(34px, 9vw, 44px);
+  font-weight: 600;
+}
+.journey-path li > button {
+  min-height: 120px;
+}
+.path-copy small {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+.path-copy strong {
+  font-size: 20px;
+}
+.focus-action {
+  margin-bottom: 0;
+}
+.focus-stage > .stage-main > .stage-details {
+  margin-top: 32px;
+  margin-bottom: 40px;
+}
+
+/* Brand guide p31: numerical data uses the interface sans. */
+.timer-time,
+.focus-stage .timer-face output,
+.path-number {
+  font-family: var(--font-interface);
+  font-variant-numeric: tabular-nums;
+}

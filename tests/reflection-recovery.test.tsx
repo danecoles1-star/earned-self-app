@@ -298,21 +298,27 @@ it("moves the Plan marker only with milestone completion and keeps vision editin
     navigate: () => {},
   };
   const view = render(<Ambition {...props} />);
-  const first = screen.getByRole("img", {
-    name: `Current milestone: ${g.milestones[0].title}`,
-  });
-  const initialPosition = first.querySelector("span")!.style.left;
+  const current = () =>
+    document.querySelector('.journey-path [aria-current="step"]');
+  const initialPosition = current()?.getAttribute("aria-controls");
+  expect(current()).toHaveTextContent(g.milestones[0].title);
   expect(
     screen
       .getByRole("button", { name: "Refine my vision", hidden: true })
       .closest("details")?.open,
   ).toBe(false);
   view.rerender(<Ambition {...props} goal={{ ...g, status: "paused" }} />);
-  expect(
-    screen
-      .getByRole("img", { name: `Paused at: ${g.milestones[0].title}` })
-      .querySelector("span")!.style.left,
-  ).toBe(initialPosition);
+  expect(current()?.getAttribute("aria-controls")).toBe(initialPosition);
+  const attempted = structuredClone(t.get());
+  attempted.events.push({
+    id: "attempt",
+    goal_id: g.id,
+    kind: "milestone_attempt",
+    data: { milestoneId: g.milestones[0].id },
+    recorded_at: "2030-01-01",
+  });
+  view.rerender(<Ambition {...props} snapshot={attempted} />);
+  expect(current()?.getAttribute("aria-controls")).toBe(initialPosition);
   const changed = structuredClone(t.get());
   changed.events.push({
     id: "milestone-proof",
@@ -322,18 +328,8 @@ it("moves the Plan marker only with milestone completion and keeps vision editin
     recorded_at: "2030-01-01",
   });
   view.rerender(<Ambition {...props} snapshot={changed} />);
-  if (g.milestones.length > 1)
-    expect(
-      screen
-        .getByRole("img", {
-          name: `Current milestone: ${g.milestones[1].title}`,
-        })
-        .querySelector("span")!.style.left,
-    ).not.toBe(initialPosition);
-  else
-    expect(
-      screen
-        .getByRole("img", { name: /All milestones recorded/ })
-        .querySelector("span"),
-    ).toBeNull();
+  if (g.milestones.length > 1) {
+    expect(current()).toHaveTextContent(g.milestones[1].title);
+    expect(current()?.getAttribute("aria-controls")).not.toBe(initialPosition);
+  } else expect(current()).toBeNull();
 });

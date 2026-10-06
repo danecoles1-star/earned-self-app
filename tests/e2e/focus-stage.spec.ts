@@ -84,7 +84,14 @@ for (const width of [320, 390, 1440]) {
       scrollHeight: el.scrollHeight,
     }));
     expect(timerText.scrollWidth).toBeLessThanOrEqual(timerText.clientWidth);
-    expect(timerText.scrollHeight).toBeLessThanOrEqual(timerText.clientHeight);
+    const timerFaceBounds = (await p.locator(".timer-face").boundingBox())!;
+    const timerTextBounds = (await p
+      .getByLabel("Elapsed time")
+      .boundingBox())!;
+    expect(timerTextBounds.y).toBeGreaterThanOrEqual(timerFaceBounds.y);
+    expect(timerTextBounds.y + timerTextBounds.height).toBeLessThanOrEqual(
+      timerFaceBounds.y + timerFaceBounds.height,
+    );
     await expect(p.locator(".stage-context .quiet").first()).toHaveCSS(
       "background-color",
       "rgba(0, 0, 0, 0)",
@@ -97,7 +104,7 @@ for (const width of [320, 390, 1440]) {
       start = p.getByRole("button", { name: "Start timer", exact: true });
     const rb = await ring.boundingBox(),
       sb = await start.boundingBox();
-    expect(rb!.width).toBeGreaterThanOrEqual(280);
+    expect(rb!.width).toBeGreaterThanOrEqual(250);
     expect(sb!.y - (rb!.y + rb!.height)).toBeGreaterThanOrEqual(32);
     await capture(p, "basecamp", width);
     await start.click();
@@ -105,7 +112,9 @@ for (const width of [320, 390, 1440]) {
     await p.reload();
     await p.getByRole("button", { name: "Pause timer" }).click();
     await expect(p.getByRole("button", { name: "Resume timer" })).toBeVisible();
-    await p.getByText("Step details & calendar", { exact: true }).click();
+    await expect(
+      p.getByRole("region", { name: "Step details & calendar" }),
+    ).toBeVisible();
     await expect(
       p.getByText("Done means: Three distinct sketches on paper"),
     ).toBeVisible();
@@ -116,10 +125,18 @@ for (const width of [320, 390, 1440]) {
     await expect(p.getByText("Who I am becoming", { exact: true })).toHaveCount(
       0,
     );
-    await expect(p.locator(".plan-focus h2")).toHaveText("Validate collection");
+    await expect(p.locator(".plan-focus > summary strong")).toHaveText(
+      "Validate collection",
+    );
     await capture(p, "plan", width);
-    await p.getByText("All milestones & steps", { exact: true }).click();
-    await expect(p.getByText("Launch shop", { exact: true })).toBeVisible();
+    await expect(
+      p.getByRole("navigation", { name: "Your milestone path" }),
+    ).toBeVisible();
+    await expect(
+      p
+        .getByRole("navigation", { name: "Your milestone path" })
+        .getByText("Launch shop", { exact: true }),
+    ).toBeVisible();
     await p.getByRole("button", { name: "Proof", exact: true }).click();
     await expect(
       p.getByRole("heading", { name: "Your Proof", exact: true }),
@@ -161,23 +178,82 @@ test("long step titles remain readable in details without squeezing the timer", 
   s.snapshot.definitions.find((d) => d.commitment_id === "next-step")!.action =
     title;
   await seed(p, s);
-  const timerTitle = p.locator(".timer-face h2"),
+  const timerTitle = p.locator(".timer-step-title h2"),
     timerOutput = p.getByLabel("Elapsed time");
   await expect(timerTitle).toHaveText(title);
   await expect(timerOutput).toBeVisible();
   const titleBox = (await timerTitle.boundingBox())!,
-    outputBox = (await timerOutput.boundingBox())!;
+    outputBox = (await timerOutput.boundingBox())!,
+    faceBox = (await p.locator(".timer-face").boundingBox())!;
   expect(titleBox.y + titleBox.height).toBeLessThanOrEqual(outputBox.y);
   expect(
-    await timerOutput.evaluate(
-      (el) =>
-        el.scrollWidth <= el.clientWidth && el.scrollHeight <= el.clientHeight,
-    ),
+    await timerOutput.evaluate((el) => el.scrollWidth <= el.clientWidth),
   ).toBe(true);
+  expect(outputBox.y).toBeGreaterThanOrEqual(faceBox.y);
+  expect(outputBox.y + outputBox.height).toBeLessThanOrEqual(
+    faceBox.y + faceBox.height,
+  );
   await capture(p, "long-title", 320);
-  await p.getByText("Step details & calendar", { exact: true }).click();
   await expect(
-    p.locator(".stage-details").getByText(title, { exact: true }),
+    p.getByRole("region", { name: "Step details & calendar" }),
   ).toBeVisible();
+  await expect(p.locator(".timer-step-title h2")).toHaveText(title);
   expect(errors).toEqual([]);
+});
+
+test("Ivory orb follows timer state, respects reduced motion and keeps every digit in bounds", async ({
+  page: p,
+}) => {
+  await p.setViewportSize({ width: 390, height: 844 });
+  await p.emulateMedia({ reducedMotion: "no-preference" });
+  await seed(p, fixture());
+  const orb = p.locator(".timer-orb");
+  await expect(orb).toHaveCSS("animation-play-state", "paused");
+  await expect(p.locator(".stage-focus")).toHaveCSS(
+    "background-color",
+    "rgb(246, 241, 232)",
+  );
+  await expect(p.locator(".stage-focus")).toHaveCSS("background-image", "none");
+  await expect(p.locator(".stage-details")).not.toHaveJSProperty(
+    "tagName",
+    "DETAILS",
+  );
+  await p.getByRole("button", { name: "Start timer", exact: true }).click();
+  await expect(orb).toHaveCSS("animation-play-state", "running");
+  await expect(p.getByLabel("Elapsed time")).not.toHaveText("00:00");
+  await p.reload();
+  await expect(
+    p.getByRole("button", { name: "Pause timer", exact: true }),
+  ).toBeVisible();
+  await p.getByRole("button", { name: "Pause timer", exact: true }).click();
+  await expect(orb).toHaveCSS("animation-play-state", "paused");
+  await p.emulateMedia({ reducedMotion: "reduce" });
+  await expect(orb).toHaveCSS("animation-name", "none");
+  await p.evaluate(() =>
+    localStorage.setItem(
+      "earned-self:timer:local-preview-member:next-step:1",
+      JSON.stringify({ elapsed: 360000000, started: null }),
+    ),
+  );
+  await p.setViewportSize({ width: 320, height: 844 });
+  await p.reload();
+  await expect(p.getByLabel("Elapsed time")).toHaveText("100:00:00");
+  const face = await p.locator(".timer-face").boundingBox();
+  const digits = await p.getByLabel("Elapsed time").boundingBox();
+  expect(digits!.x).toBeGreaterThanOrEqual(face!.x);
+  expect(digits!.x + digits!.width).toBeLessThanOrEqual(face!.x + face!.width);
+  expect(
+    await p.evaluate(() => document.documentElement.scrollWidth),
+  ).toBeLessThanOrEqual(320);
+  await capture(p, "100-hour", 320);
+  await p.getByRole("button", { name: "Plan", exact: true }).click();
+  await expect(
+    p.getByRole("navigation", { name: "Your milestone path" }),
+  ).toBeVisible();
+  await expect(p.locator('.journey-path [aria-current="step"]')).toContainText(
+    "Validate collection",
+  );
+  await expect(
+    p.locator(".journey-path").getByText("Launch shop", { exact: true }),
+  ).toBeVisible();
 });

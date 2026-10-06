@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
+import orb from "../assets/art/focus-orb.webp";
 type Clock = { elapsed: number; started: number | null };
 export function elapsedTime(clock: Clock, now = Date.now()) {
   return Math.max(
@@ -27,9 +28,11 @@ export function pauseTimer(identity: string, pausedAt = Date.now()) {
 export function StepTimer({
   identity,
   children,
+  schedule,
 }: {
   identity: string;
   children?: ReactNode;
+  schedule?: ReactNode;
 }) {
   const key = `earned-self:timer:${identity}`;
   const read = (): Clock => {
@@ -86,21 +89,28 @@ export function StepTimer({
     }
   };
   return (
-    <div className="step-timer">
+    <div className="step-timer" data-running={clock.started !== null}>
+      <div className="timer-step-title">{children}</div>
       <div className="timer-face">
-        {children}
+        <img className="timer-orb" src={orb} alt="" draggable={false} />
         <output
           className={seconds >= 3600 ? "timer-hours" : undefined}
+          style={
+            seconds >= 360000
+              ? { fontSize: `${Math.max(14, 270 / compactDisplay.length)}px` }
+              : undefined
+          }
           aria-label="Elapsed time"
         >
           {compactDisplay}
         </output>
-        <span className="timer-label">Time spent on this step</span>
+        <span className="timer-label">Elapsed time</span>
       </div>
-      <p className="timer-help">
+      {schedule && <p className="timer-schedule">{schedule}</p>}
+      <p className="timer-help" id="timer-help">
         Start the timer while you work. Check in when you finish.
       </p>
-      <button className="button" onClick={toggle}>
+      <button className="button" onClick={toggle} aria-describedby="timer-help">
         {clock.started !== null
           ? "Pause timer"
           : clock.elapsed

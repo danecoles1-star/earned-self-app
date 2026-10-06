@@ -69,12 +69,62 @@ export function displayTime(time?: string | null) {
   const [h, m] = time.split(":");
   return `${Number(h) % 12 || 12}:${m} ${Number(h) < 12 ? "AM" : "PM"}`;
 }
+/** Convert a saved agreement for display/editing without writing or rescheduling it. */
+export function deviceSchedule(value: {
+  localDate: string;
+  localTime: string;
+  timeZone: string;
+}) {
+  const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  if (
+    !value.localDate ||
+    !value.localTime ||
+    !value.timeZone ||
+    value.timeZone === zone
+  )
+    return { ...value };
+  try {
+    const instant = new Date(
+      scheduledInstant(
+        value.localDate,
+        value.localTime.slice(0, 5),
+        value.timeZone,
+      ),
+    );
+    const parts = Object.fromEntries(
+      new Intl.DateTimeFormat("en-CA", {
+        timeZone: zone,
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        hourCycle: "h23",
+      })
+        .formatToParts(instant)
+        .map((p) => [p.type, p.value]),
+    );
+    return {
+      localDate: `${parts.year}-${parts.month}-${parts.day}`,
+      localTime: `${parts.hour}:${parts.minute}`,
+      timeZone: zone,
+    };
+  } catch {
+    // Legacy incomplete/ambiguous agreements must be reviewed, never silently shifted.
+    return { ...value };
+  }
+}
 export function displaySchedule(
   day?: string | null,
   time?: string | null,
   zone?: string | null,
 ) {
-  return [displayDate(day), displayTime(time), zone?.replaceAll("_", " ")]
+  const local = deviceSchedule({
+    localDate: day || "",
+    localTime: time || "",
+    timeZone: zone || "",
+  });
+  return [displayDate(local.localDate), displayTime(local.localTime)]
     .filter(Boolean)
     .join(" · ");
 }

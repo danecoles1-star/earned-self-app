@@ -53,9 +53,6 @@ for (const width of [390, 1440])
     await p.keyboard.press("Escape");
     await p.getByLabel("Action date", { exact: true }).fill("2030-11-02");
     await p.getByLabel("Action time", { exact: true }).fill("06:00");
-    await p
-      .getByLabel("Action time zone", { exact: true })
-      .fill("America/Denver");
     await p.getByLabel("Where?", { exact: true }).fill("Bedroom");
     await expect(
       p.locator(".local-datetime-value").filter({ hasText: "11/02/2030" }),
@@ -66,9 +63,7 @@ for (const width of [390, 1440])
     });
 
     await p.getByRole("button", { name: "Continue", exact: true }).click();
-    await expect(
-      p.getByText("11/02/2030 · 6:00 AM · America/Denver"),
-    ).toBeVisible();
+    await expect(p.getByText("11/02/2030 · 6:00 AM")).toBeVisible();
     await p.getByRole("button", { name: "Save step", exact: true }).click();
     await expect(p).toHaveURL(/\/app$/);
     await expect(
@@ -87,7 +82,7 @@ for (const width of [390, 1440])
     await p.getByRole("button", { name: "Save to Proof" }).click();
     await expect(p).toHaveURL(/\/app$/);
     await expect(p.locator(".timer-schedule")).toHaveText(
-      "11/03/2030 · 6:00 AM · America/Denver",
+      "11/03/2030 · 6:00 AM",
     );
     const padding = await p
       .getByRole("button", { name: "Why & obstacles", exact: true })
@@ -98,7 +93,7 @@ for (const width of [390, 1440])
       fullPage: true,
     });
     await p.getByRole("button", { name: "Plan", exact: true }).click();
-    await expect(p.locator(".plan-focus .section-label")).toHaveText(
+    await expect(p.locator(".plan-focus > summary small")).toHaveText(
       "Current milestone",
     );
     await p.locator("summary").filter({ hasText: "Manage challenge" }).click();
@@ -139,7 +134,9 @@ for (const width of [390, 1440])
       fullPage: true,
     });
     await p.getByRole("button", { name: "Return to Basecamp" }).click();
-    await p.getByText("Step details & calendar", { exact: true }).click();
+    await expect(
+      p.getByRole("region", { name: "Step details & calendar" }),
+    ).toBeVisible();
     await p.getByRole("button", { name: /Add to calendar/ }).click();
     await expect(
       p.getByRole("button", { name: "Return to Basecamp" }),
