@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { Paused } from "./Paused";
 import { displaySchedule } from "../data/time";
 import { repeatLabel } from "../data/recurrence";
-import { artwork } from "./ui";
+import wallpaperScene from "../assets/art/plan-landscape.webp";
 import homeIcon from "../assets/icons/earned-basecamp.svg";
 import planIcon from "../assets/icons/earned-plan.svg";
 import proofIcon from "../assets/icons/earned-proof.svg";
@@ -222,7 +222,7 @@ export function MemberHome({
         className="wallpaper-card"
         onClick={() => navigate("/wallpaper/" + goal.id)}
       >
-        <img src={artwork.mountain} alt="" />
+        <img src={wallpaperScene} alt="" />
         <span>
           <strong>Take your vision with you</strong>
           <small>Create wallpaper →</small>

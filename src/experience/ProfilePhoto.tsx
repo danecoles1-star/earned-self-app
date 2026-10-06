@@ -6,6 +6,12 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import {
+  cropRectangle,
+  movePhotoCrop,
+  type CropPoint,
+  type PhotoCrop,
+} from "../data/photoCrop";
 import type { Adapter } from "../data/types";
 import account from "../assets/icons/user-round.svg";
 
@@ -86,7 +92,10 @@ export function ProfileProvider({
 }
 
 /** Re-encode to a small square image, dropping original metadata before uploading. */
-export async function prepareProfilePhoto(file: File): Promise<Blob> {
+export async function prepareProfilePhoto(
+  file: File,
+  crop: PhotoCrop = { x: 0.5, y: 0.5, zoom: 1 },
+): Promise<Blob> {
   if (!/^image\/(jpeg|png|webp|heic|heif)$/.test(file.type))
     throw new Error(
       "Choose a JPG, PNG, WebP, or a photo your browser can open.",
@@ -102,18 +111,8 @@ export async function prepareProfilePhoto(file: File): Promise<Blob> {
     canvas.width = canvas.height = 256;
     const ctx = canvas.getContext("2d");
     if (!ctx) throw new Error("Photo editing is unavailable in this browser.");
-    const edge = Math.min(img.naturalWidth, img.naturalHeight);
-    ctx.drawImage(
-      img,
-      (img.naturalWidth - edge) / 2,
-      (img.naturalHeight - edge) / 2,
-      edge,
-      edge,
-      0,
-      0,
-      256,
-      256,
-    );
+    const rect = cropRectangle(img.naturalWidth, img.naturalHeight, crop);
+    ctx.drawImage(img, rect.x, rect.y, rect.edge, rect.edge, 0, 0, 256, 256);
     const blob = await new Promise<Blob | null>((resolve) =>
       canvas.toBlob(resolve, "image/webp", 0.85),
     );
@@ -132,10 +131,34 @@ export async function prepareProfilePhoto(file: File): Promise<Blob> {
 }
 export function ProfilePhotoEditor() {
   const { photo, busy, error, save } = useContext(ProfileContext);
-  const [draft, setDraft] = useState<Blob | null>(null),
+  const [draft, setDraft] = useState<File | null>(null),
     [preview, setPreview] = useState<string | null>(null),
     [notice, setNotice] = useState(""),
     [preparing, setPreparing] = useState(false);
+  const [crop, setCrop] = useState<PhotoCrop>({ x: 0.5, y: 0.5, zoom: 1 });
+  const [dimensions, setDimensions] = useState({ width: 1, height: 1 });
+  const pointers = useRef(new Map<number, CropPoint>());
+  const currentCrop = useRef(crop);
+  currentCrop.current = crop;
+  const gesture = useRef<{
+    center: CropPoint;
+    distance: number;
+    crop: PhotoCrop;
+  } | null>(null);
+  const resetGesture = () => {
+    const points = [...pointers.current.values()];
+    if (!points.length) {
+      gesture.current = null;
+      return;
+    }
+    const [a, b = a] = points;
+    gesture.current = {
+      center: { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 },
+      distance: Math.hypot(a.x - b.x, a.y - b.y),
+      crop: currentCrop.current,
+    };
+  };
+  const rect = cropRectangle(dimensions.width, dimensions.height, crop);
   useEffect(() => {
     if (!draft) {
       setPreview(null);
@@ -149,12 +172,12 @@ export function ProfilePhotoEditor() {
     <section className="profile-editor" aria-label="Profile photo">
       <img
         className="profile-editor-image"
-        src={preview || photo || account}
+        src={photo || account}
         alt="Profile photo preview"
       />
       <h2>Your photo</h2>
       <p className="small">
-        Only you can see it. Preview the crop before saving.
+        Only you can see it. Position your photo before saving.
       </p>
       <label className="button secondary photo-picker">
         {photo ? "Change photo" : "Upload photo"}
@@ -169,7 +192,24 @@ export function ProfilePhotoEditor() {
             setPreparing(true);
             setNotice("");
             try {
-              setDraft(await prepareProfilePhoto(file));
+              // Validate and decode before presenting positioning controls. Nothing uploads yet.
+              await prepareProfilePhoto(file);
+              const source = URL.createObjectURL(file);
+              try {
+                const image = new Image();
+                image.src = source;
+                await image.decode();
+                setDimensions({
+                  width: image.naturalWidth,
+                  height: image.naturalHeight,
+                });
+                pointers.current.clear();
+                gesture.current = null;
+                setCrop({ x: 0.5, y: 0.5, zoom: 1 });
+                setDraft(file);
+              } finally {
+                URL.revokeObjectURL(source);
+              }
             } catch (err) {
               setNotice(
                 err instanceof Error ? err.message : "Photo could not open.",
@@ -181,27 +221,152 @@ export function ProfilePhotoEditor() {
         />
       </label>
       {draft && (
-        <div className="photo-actions">
-          <button
-            className="button"
-            disabled={busy}
-            onClick={async () => {
-              try {
-                await save(draft);
-                setDraft(null);
-                setNotice("Photo saved.");
-              } catch {}
+        <div className="photo-crop">
+          <p>Drag to position. Pinch to zoom.</p>
+          <div
+            className="photo-crop-window"
+            aria-label="Photo crop preview"
+            onPointerDown={(e) => {
+              if (busy || preparing || pointers.current.size >= 2) return;
+              e.currentTarget.setPointerCapture(e.pointerId);
+              const bounds = e.currentTarget.getBoundingClientRect();
+              pointers.current.set(e.pointerId, {
+                x:
+                  (e.clientX - bounds.left - bounds.width * 0.1) /
+                  (bounds.width * 0.8),
+                y:
+                  (e.clientY - bounds.top - bounds.height * 0.1) /
+                  (bounds.height * 0.8),
+              });
+              resetGesture();
+            }}
+            onPointerUp={(e) => {
+              pointers.current.delete(e.pointerId);
+              resetGesture();
+            }}
+            onPointerCancel={(e) => {
+              pointers.current.delete(e.pointerId);
+              resetGesture();
+            }}
+            onLostPointerCapture={(e) => {
+              if (pointers.current.delete(e.pointerId)) resetGesture();
+            }}
+            onPointerMove={(e) => {
+              if (
+                !pointers.current.has(e.pointerId) ||
+                !gesture.current ||
+                busy ||
+                preparing
+              )
+                return;
+              const bounds = e.currentTarget.getBoundingClientRect();
+              pointers.current.set(e.pointerId, {
+                x:
+                  (e.clientX - bounds.left - bounds.width * 0.1) /
+                  (bounds.width * 0.8),
+                y:
+                  (e.clientY - bounds.top - bounds.height * 0.1) /
+                  (bounds.height * 0.8),
+              });
+              const [a, b = a] = [...pointers.current.values()];
+              const center = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+              const distance = Math.hypot(a.x - b.x, a.y - b.y);
+              const start = gesture.current;
+              const next = movePhotoCrop(
+                dimensions.width,
+                dimensions.height,
+                start.crop,
+                start.center,
+                center,
+                start.distance ? distance / start.distance : 1,
+              );
+              currentCrop.current = next;
+              setCrop(next);
             }}
           >
-            {busy ? "Saving…" : "Save photo"}
-          </button>
-          <button
-            className="quiet"
-            disabled={busy}
-            onClick={() => setDraft(null)}
-          >
-            Cancel
-          </button>
+            <img
+              src={preview || undefined}
+              alt="Positioned photo"
+              draggable={false}
+              style={{
+                width: `${(dimensions.width / rect.edge) * 80}%`,
+                height: `${(dimensions.height / rect.edge) * 80}%`,
+                left: `${10 + (-rect.x / rect.edge) * 80}%`,
+                top: `${10 + (-rect.y / rect.edge) * 80}%`,
+              }}
+            />
+            <span className="photo-crop-frame" aria-hidden="true" />
+          </div>
+          <details className="photo-crop-adjust">
+            <summary>Adjust</summary>
+            <label>
+              Zoom
+              <input
+                type="range"
+                min="1"
+                max="3"
+                step="0.01"
+                value={crop.zoom}
+                disabled={busy}
+                onChange={(e) => setCrop({ ...crop, zoom: +e.target.value })}
+              />
+            </label>
+            <label>
+              Horizontal position
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.01"
+                value={crop.x}
+                disabled={busy}
+                onChange={(e) => setCrop({ ...crop, x: +e.target.value })}
+              />
+            </label>
+            <label>
+              Vertical position
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.01"
+                value={crop.y}
+                disabled={busy}
+                onChange={(e) => setCrop({ ...crop, y: +e.target.value })}
+              />
+            </label>
+          </details>
+          <div className="photo-actions">
+            <button
+              className="button"
+              disabled={busy || preparing}
+              onClick={async () => {
+                setPreparing(true);
+                try {
+                  await save(await prepareProfilePhoto(draft, crop));
+                  setDraft(null);
+                  setNotice("Photo saved.");
+                } catch (err) {
+                  setNotice(
+                    err instanceof Error
+                      ? err.message
+                      : "Photo could not be saved.",
+                  );
+                } finally {
+                  setPreparing(false);
+                }
+              }}
+            >
+              {busy || preparing ? "Saving…" : "Save photo"}
+            </button>
+            <button
+              className="quiet"
+              disabled={busy || preparing}
+              onClick={() => setDraft(null)}
+            >
+              Cancel
+            </button>
+          </div>
         </div>
       )}
       {photo && !draft && (

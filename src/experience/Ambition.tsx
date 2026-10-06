@@ -51,6 +51,11 @@ export function Ambition({
   return (
     <Stage
       title={section === "preparation" ? "Your preparation" : "Your Plan"}
+      statement={
+        section === "overview"
+          ? "Every day, every step, every milestone brings progress"
+          : undefined
+      }
       navigate={navigate}
       back={
         section === "preparation" ? () => setSection("overview") : undefined
@@ -480,7 +485,12 @@ export function ProofList({
       g.status !== "completed" && (filter === "all" || g.status === filter),
   );
   return (
-    <Stage title="Your Proof" navigate={navigate} tone="proof">
+    <Stage
+      title="Your Proof"
+      statement="The evidence is stacking up, keep going"
+      navigate={navigate}
+      tone="proof"
+    >
       {s.goals.find((g) => g.id === s.selectedGoal) && (
         <details className="challenge-breadcrumb">
           <summary>
@@ -498,11 +508,6 @@ export function ProofList({
                 ? "In progress"
                 : "Your record"}
           </span>
-          <h2>
-            The work you’re
-            <br />
-            putting in.
-          </h2>
         </div>
       )}
       {!completed.length && <Landscape scene="proof" />}

@@ -1,3 +1,4 @@
+import { isAppRoute } from "./data/routes";
 import { ProfileProvider } from "./experience/ProfilePhoto";
 import { Auth } from "./experience/Auth";
 import { ResumeEntry } from "./experience/ResumeEntry";
@@ -332,6 +333,23 @@ export function App({ adapter }: { adapter: Adapter }) {
         <h1 tabIndex={-1}>Opening your session.</h1>
         <p role="status">Loading…</p>
       </main>
+    );
+  else if (!isAppRoute(path))
+    screen = (
+      <Page
+        title="This page is not here."
+        dark={false}
+        footer={
+          <button
+            className="button"
+            onClick={() => navigate(user ? "/app" : "/")}
+          >
+            {user ? "Return to Basecamp" : "Return to Earned Self"}
+          </button>
+        }
+      >
+        <p>Check the address or return to continue.</p>
+      </Page>
     );
   else if (path === "/new")
     screen = (

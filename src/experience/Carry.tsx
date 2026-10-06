@@ -1,3 +1,4 @@
+import wallpaperScene from "../assets/art/plan-landscape.webp";
 import { ProfilePhotoEditor } from "./ProfilePhoto";
 import { displaySchedule, displayDate } from "../data/time";
 import { useEffect, useState } from "react";
@@ -122,7 +123,7 @@ export function Wallpaper({
     [error, setError] = useState(""),
     [saved, setSaved] = useState(false),
     [busy, setBusy] = useState(false);
-  const light = style === "light";
+  const light = style === "light" || style === "mountain";
   const [previewUrl, setPreviewUrl] = useState("");
   const [imageBlob, setImageBlob] = useState<Blob | null>(null);
   useEffect(() => {
@@ -140,14 +141,14 @@ export function Wallpaper({
         canvas.height = 2532;
         const ctx = canvas.getContext("2d")!;
         ctx.fillStyle = light
-          ? "#ece9df"
+          ? "#F6F1E8"
           : style === "mineral"
-            ? "#537889"
-            : "#172329";
+            ? "#5E7783"
+            : "#101A20";
         ctx.fillRect(0, 0, 1170, 2532);
         if (style === "mountain") {
           const image = new Image();
-          image.src = artwork.mountain;
+          image.src = wallpaperScene;
           await image.decode();
           const layer = document.createElement("canvas");
           layer.width = 1170;
@@ -178,7 +179,7 @@ export function Wallpaper({
           ctx.fillStyle = glow;
           ctx.fillRect(0, 0, 1170, 2532);
         }
-        ctx.fillStyle = light ? "#172329" : "#f1f3f1";
+        ctx.fillStyle = light ? "#101A20" : "#f1f3f1";
         ctx.font = "78px Georgia";
         ctx.textAlign = "center";
         let y = 850;
@@ -244,7 +245,7 @@ export function Wallpaper({
             ctx.fill();
           }
           ctx.drawImage(logo, 380, 2290, 55, 56);
-          ctx.fillStyle = light ? "#172329" : "#f1f3f1";
+          ctx.fillStyle = light ? "#101A20" : "#f1f3f1";
           ctx.font =
             '24px "Avenir Next", Avenir, Montserrat, Arial, sans-serif';
           ctx.fillText("E A R N E D   S E L F", 630, 2327);
@@ -300,7 +301,7 @@ export function Wallpaper({
           ? "Choose what belongs on your lock screen."
           : "Preview before you save."
       }
-      dark={!light}
+      dark={false}
       back={() => (step ? setStep(0) : navigate("/app"))}
       footer={
         <>
@@ -373,10 +374,20 @@ export function Wallpaper({
                 key={name}
                 className={"wallpaper-swatch " + name}
                 aria-pressed={style === name}
+                aria-label={name === "mineral" ? "Mineral" : undefined}
                 onClick={() => setStyle(name)}
               >
-                {name === "mountain" && <img src={artwork.mountain} alt="" />}
-                <span>{name[0].toUpperCase() + name.slice(1)}</span>
+                {name === "mountain" && <img src={wallpaperScene} alt="" />}
+                <span>
+                  {
+                    {
+                      mountain: "Focus landscape",
+                      ink: "Summit Ink",
+                      mineral: "Prepared Mineral",
+                      light: "Proof Ivory",
+                    }[name]
+                  }
+                </span>
               </button>
             ))}
           </fieldset>

@@ -15,8 +15,12 @@ export function Stage({
   tone = "prepare",
   back,
   backLabel = "Back to Proof",
+  statement = title === "Your Proof"
+    ? "The evidence is stacking up, keep going"
+    : undefined,
 }: {
   title: string;
+  statement?: string;
   children: ReactNode;
   navigate: (path: string) => void;
   tone?: "focus" | "prepare" | "proof" | "completed";
@@ -54,10 +58,18 @@ export function Stage({
         <h1
           ref={heading}
           tabIndex={-1}
-          className={tone === "focus" ? "visually-hidden" : "stage-title"}
+          className={
+            tone === "focus" || statement ? "visually-hidden" : "stage-title"
+          }
         >
           {title}
         </h1>
+        {statement && (
+          <section className="identity-reminder page-identity">
+            <span className="section-label">{title}</span>
+            <p>{statement}</p>
+          </section>
+        )}
         {children}
       </main>
     </div>
