@@ -93,9 +93,6 @@ export function Homepage({
         </div>
         <div className="how-hero-end">
           <p>A clear path. One next step.</p>
-          <button className="button how-primary" onClick={begin}>
-            Begin my challenge <span aria-hidden="true">›</span>
-          </button>
         </div>
       </section>
       <section className="how-method" aria-labelledby="method-title">

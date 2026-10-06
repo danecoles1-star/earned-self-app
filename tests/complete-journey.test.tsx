@@ -34,9 +34,9 @@ it("public examples switch without creating or selecting a user's challenge", ()
   }))
     fireEvent.click(button);
   fireEvent.click(screen.getByRole("button", { name: "Take your first step" }));
-  fireEvent.click(screen.getByRole("button", { name: "Begin my challenge" }));
+  expect(screen.queryByRole("button", { name: "Begin my challenge" })).toBeNull();
   fireEvent.click(screen.getByRole("button", { name: "Make it mine" }));
-  expect(start.mock.calls).toEqual(Array.from({ length: 5 }, () => ["vision"]));
+  expect(start.mock.calls).toEqual(Array.from({ length: 4 }, () => ["vision"]));
   fireEvent.click(screen.getByRole("button", { name: "Log in" }));
   expect(signIn).toHaveBeenCalledOnce();
 });

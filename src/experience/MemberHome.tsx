@@ -66,11 +66,26 @@ export function MemberHome({
         </section>
       )}
       <Landscape />
-      <div className="stage-context">
-        <button className="quiet" onClick={() => navigate("/manage")}>
-          <span>Challenge</span> {goal.words}
-          <span aria-hidden="true"> ›</span>
+      <div
+        className="stage-context context-pair"
+        data-has-milestone={!!milestone && !ended}
+      >
+        <button
+          className="quiet context-challenge"
+          onClick={() => navigate("/manage")}
+        >
+          <span className="context-label">Challenge</span>
+          <span className="context-title">{goal.words}</span>
         </button>
+        {milestone && !ended && (
+          <button
+            className="quiet milestone-context"
+            onClick={() => navigate("/milestone/" + goal.id)}
+          >
+            <span className="context-label">Current milestone</span>
+            <span className="context-title">{milestone.title}</span>
+          </button>
+        )}
       </div>
       {paused && <Paused goal={goal} navigate={navigate} />}
       {ended ? (
@@ -160,16 +175,6 @@ export function MemberHome({
             {goal.status === "draft" ? "Continue preparation" : "Add a step"}
           </button>
         </section>
-      )}
-      {milestone && !ended && (
-        <button
-          className="quiet milestone-context"
-          onClick={() => navigate("/milestone/" + goal.id)}
-        >
-          <span>Current milestone</span>
-          {milestone.title}
-          <span aria-hidden="true"> ›</span>
-        </button>
       )}
       <div className="stage-secondary-links">
         <button className="quiet" onClick={() => navigate("/manage")}>
