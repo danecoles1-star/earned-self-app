@@ -14,7 +14,7 @@ import {
   definition,
 } from "../data/domain";
 import { StepTimer, pauseTimer } from "./StepTimer";
-import { Stage } from "./Stage";
+import { Stage, Landscape } from "./Stage";
 
 export function MemberHome({
   goal,
@@ -65,6 +65,7 @@ export function MemberHome({
           <p>{goal.vision}</p>
         </section>
       )}
+      <Landscape />
       <div className="stage-context">
         <button className="quiet" onClick={() => navigate("/manage")}>
           <span>Challenge</span> {goal.words}
@@ -118,6 +119,7 @@ export function MemberHome({
             <>
               <StepTimer
                 key={c.id}
+                title={d.action}
                 identity={`${goal.owner_id}:${c.id}:${c.revision}`}
                 schedule={
                   time &&

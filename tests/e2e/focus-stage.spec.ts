@@ -85,9 +85,7 @@ for (const width of [320, 390, 1440]) {
     }));
     expect(timerText.scrollWidth).toBeLessThanOrEqual(timerText.clientWidth);
     const timerFaceBounds = (await p.locator(".timer-face").boundingBox())!;
-    const timerTextBounds = (await p
-      .getByLabel("Elapsed time")
-      .boundingBox())!;
+    const timerTextBounds = (await p.getByLabel("Elapsed time").boundingBox())!;
     expect(timerTextBounds.y).toBeGreaterThanOrEqual(timerFaceBounds.y);
     expect(timerTextBounds.y + timerTextBounds.height).toBeLessThanOrEqual(
       timerFaceBounds.y + timerFaceBounds.height,
@@ -207,7 +205,7 @@ test("Ivory orb follows timer state, respects reduced motion and keeps every dig
   await p.setViewportSize({ width: 390, height: 844 });
   await p.emulateMedia({ reducedMotion: "no-preference" });
   await seed(p, fixture());
-  const orb = p.locator(".timer-orb");
+  const orb = p.locator(".timer-orbit");
   await expect(orb).toHaveCSS("animation-play-state", "paused");
   await expect(p.locator(".stage-focus")).toHaveCSS(
     "background-color",

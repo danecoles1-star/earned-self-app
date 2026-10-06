@@ -1,5 +1,6 @@
 import { useEffect, useRef, type ReactNode } from "react";
 import { Brand } from "../components/Brand";
+import mountains from "../assets/art/quiet-mountains.webp";
 import account from "../assets/icons/user-round.svg";
 
 export function Stage({
@@ -50,5 +51,16 @@ export function Stage({
         {children}
       </main>
     </div>
+  );
+}
+
+export function Landscape() {
+  return (
+    <img
+      className="stage-landscape"
+      src={mountains}
+      alt=""
+      aria-hidden="true"
+    />
   );
 }

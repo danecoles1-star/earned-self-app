@@ -24,8 +24,10 @@ export function Page({
   footer,
   progress,
   layout = "flow",
+  className = "",
 }: {
   layout?: "flow" | "welcome";
+  className?: string;
   title: string;
   sub?: string;
   children: ReactNode;
@@ -40,7 +42,11 @@ export function Page({
     window.scrollTo(0, 0);
   }, [title]);
   return (
-    <div className={"experience experience-" + layout + " " + "mineral"}>
+    <div
+      className={
+        "experience experience-" + layout + " " + "mineral " + className
+      }
+    >
       <header className="experience-header">
         <Brand mineral />
         {back && (

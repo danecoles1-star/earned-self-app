@@ -2,7 +2,7 @@ import { StepTimer, pauseTimer } from "./StepTimer";
 import { firstMoveExample } from "./guidance";
 import { useState } from "react";
 import type { EntryDraft } from "../data/drafts";
-import { Art, Choice, Help, Input, Page } from "./ui";
+import { Choice, Help, Input, Page } from "./ui";
 export interface FirstMove {
   id: string;
   action: string;
@@ -168,6 +168,7 @@ export function Onboarding({
   };
   return (
     <Page
+      className="onboarding-flow"
       title={titles[step] ?? titles[0]}
       sub={subs[step]}
       dark={[1, 3, 8, 10].includes(step)}
@@ -329,8 +330,12 @@ export function Onboarding({
       )}
       {step === 8 && (
         <div className="focus-move">
-          <h2>{x.first.action}</h2>
-          <StepTimer identity={`entry:${draft.id}:${x.first.id}`} />
+          <StepTimer
+            identity={`entry:${draft.id}:${x.first.id}`}
+            title={x.first.action}
+          >
+            <h2>{x.first.action}</h2>
+          </StepTimer>
           <p>Done means: {x.first.criterion}</p>
           {x.first.started && (
             <p role="status">
@@ -382,7 +387,7 @@ export function Onboarding({
       )}
       {step === 10 && (
         <>
-          <Art kind="path" />
+          <div className="first-win-rule" aria-hidden="true" />
           <p className="first-proof">{x.first.detail}</p>
           <p className="small">
             Your first account is kept on this device. Sign in to keep it in

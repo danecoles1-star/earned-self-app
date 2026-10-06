@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
-import orb from "../assets/art/focus-orb.webp";
+import ring from "../assets/art/mineral-ring.webp";
 type Clock = { elapsed: number; started: number | null };
 export function elapsedTime(clock: Clock, now = Date.now()) {
   return Math.max(
@@ -29,10 +29,12 @@ export function StepTimer({
   identity,
   children,
   schedule,
+  title,
 }: {
   identity: string;
   children?: ReactNode;
   schedule?: ReactNode;
+  title?: string;
 }) {
   const key = `earned-self:timer:${identity}`;
   const read = (): Clock => {
@@ -90,23 +92,38 @@ export function StepTimer({
   };
   return (
     <div className="step-timer" data-running={clock.started !== null}>
-      <div className="timer-step-title">{children}</div>
+      {children && (
+        <div className="timer-step-title">
+          <span className="section-label">Current step</span>
+          {children}
+        </div>
+      )}
       <div className="timer-face">
-        <img className="timer-orb" src={orb} alt="" draggable={false} />
-        <output
-          className={seconds >= 3600 ? "timer-hours" : undefined}
-          style={
-            seconds >= 360000
-              ? { fontSize: `${Math.max(14, 270 / compactDisplay.length)}px` }
-              : undefined
-          }
-          aria-label="Elapsed time"
-        >
-          {compactDisplay}
-        </output>
-        <span className="timer-label">Elapsed time</span>
+        <img className="timer-ring" src={ring} alt="" draggable={false} />
+        <span className="timer-orbit" aria-hidden="true">
+          <span className="timer-marker" />
+        </span>
+        <div className="timer-readout">
+          {title && (
+            <span className="timer-action-name" title={title}>
+              {title}
+            </span>
+          )}
+          <output
+            className={seconds >= 3600 ? "timer-hours" : undefined}
+            style={
+              seconds >= 360000
+                ? { fontSize: `${Math.max(14, 270 / compactDisplay.length)}px` }
+                : undefined
+            }
+            aria-label="Elapsed time"
+          >
+            {compactDisplay}
+          </output>
+          <span className="timer-label">Dedicated time</span>
+          {schedule && <p className="timer-schedule">{schedule}</p>}
+        </div>
       </div>
-      {schedule && <p className="timer-schedule">{schedule}</p>}
       <p className="timer-help" id="timer-help">
         Start the timer while you work. Check in when you finish.
       </p>

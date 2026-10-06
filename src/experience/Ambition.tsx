@@ -1,7 +1,7 @@
 import { MilestonePath } from "./MilestonePath";
 import { Paused } from "./Paused";
 import { completedEvent, completionRecord } from "./ChallengeRecord";
-import { Stage } from "./Stage";
+import { Stage, Landscape } from "./Stage";
 import { displaySchedule, displayDate } from "../data/time";
 import { currentSchedule } from "../data/domain";
 import { repeatLabel } from "../data/recurrence";
@@ -67,7 +67,7 @@ export function Ambition({
       </section>
       {section === "overview" && (
         <section className="plan-overview">
-          <MilestonePath goal={g} snapshot={s} />
+          <Landscape />
           {!m && !ended && (
             <button
               className="button secondary"
@@ -260,6 +260,7 @@ export function Ambition({
                 ))}
             </div>
           </section>
+          <MilestonePath goal={g} snapshot={s} />
           {!["completed", "changed_direction", "abandoned"].includes(
             g.status,
           ) && (
@@ -446,6 +447,7 @@ export function ProofList({
   );
   return (
     <Stage title="Your Proof" navigate={navigate} tone="proof">
+      <Landscape />
       {completed.length > 0 && (
         <section
           className="completed-proof-list"

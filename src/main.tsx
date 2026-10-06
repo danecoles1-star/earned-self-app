@@ -30,3 +30,5 @@ start().catch(() => {
 });
 
 import "./experience/ivory-orb.css";
+
+import "./experience/complete-journey.css";

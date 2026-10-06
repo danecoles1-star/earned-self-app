@@ -24,7 +24,10 @@ test("first visit through first action, failure recovery, accomplishment and nex
   };
   await p.goto("/");
   await shot("01-home-mobile");
-  await click("Begin");
+  await p
+    .locator(".how-opening")
+    .getByRole("button", { name: "Build my challenge", exact: true })
+    .click();
   assert(
     await p.getByRole("button", { name: "Continue", exact: true }).isDisabled(),
   );
@@ -176,7 +179,10 @@ test("small screen keyboard entry, required answer and reload recovery", async (
 }) => {
   await p.setViewportSize({ width: 375, height: 812 });
   await p.goto("/");
-  await p.getByRole("button", { name: "Begin", exact: true }).focus();
+  await p
+    .locator(".how-opening")
+    .getByRole("button", { name: "Build my challenge", exact: true })
+    .focus();
   await p.keyboard.press("Enter");
   await expect(
     p.getByRole("button", { name: "Continue", exact: true }),
@@ -213,7 +219,9 @@ test("responsive opening keeps the primary action visible on phones and desktop"
   ]) {
     await page.setViewportSize({ width, height });
     await page.goto("/");
-    const begin = page.getByRole("button", { name: "Begin", exact: true });
+    const begin = page
+      .locator(".how-opening")
+      .getByRole("button", { name: "Build my challenge", exact: true });
     await expect(begin).toBeVisible();
     const box = await begin.boundingBox();
     expect(box!.y + box!.height).toBeLessThanOrEqual(height);
@@ -233,7 +241,10 @@ test("phone preview works when HTTP does not provide randomUUID", async ({
     });
   });
   await page.goto("/");
-  await page.getByRole("button", { name: "Begin", exact: true }).click();
+  await page
+    .locator(".how-opening")
+    .getByRole("button", { name: "Build my challenge", exact: true })
+    .click();
   await page
     .getByRole("button", { name: "I’m ready to take on more", exact: true })
     .click();
