@@ -71,16 +71,6 @@ export function MemberHome({
           <span>Challenge</span> {goal.words}
           <span aria-hidden="true"> ›</span>
         </button>
-        {milestone && !ended && (
-          <button
-            className="quiet milestone-context"
-            onClick={() => navigate("/milestone/" + goal.id)}
-          >
-            <span>Current milestone</span>
-            {milestone.title}
-            <span aria-hidden="true"> ›</span>
-          </button>
-        )}
       </div>
       {paused && <Paused goal={goal} navigate={navigate} />}
       {ended ? (
@@ -170,6 +160,16 @@ export function MemberHome({
             {goal.status === "draft" ? "Continue preparation" : "Add a step"}
           </button>
         </section>
+      )}
+      {milestone && !ended && (
+        <button
+          className="quiet milestone-context"
+          onClick={() => navigate("/milestone/" + goal.id)}
+        >
+          <span>Current milestone</span>
+          {milestone.title}
+          <span aria-hidden="true"> ›</span>
+        </button>
       )}
       <div className="stage-secondary-links">
         <button className="quiet" onClick={() => navigate("/manage")}>

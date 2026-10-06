@@ -2,7 +2,7 @@ import type { Goal, Snapshot } from "../data/types";
 import { resultLabel } from "../data/types";
 import { currentReport, definition } from "../data/domain";
 import { displayDate } from "../data/time";
-import { Stage } from "./Stage";
+import { Stage, Landscape } from "./Stage";
 export function completedEvent(s: Snapshot, id: string) {
   return s.events
     .filter(
@@ -54,17 +54,28 @@ export function ChallengeRecord({
         <h2>{completed.words}</h2>
         <p>Done meant: {completed.outcome || "Criterion not recorded."}</p>
       </section>
-      <p className="vision-distinction">
-        Your vision describes who you wanted to become. Your reflections below
-        describe what you recorded.
-      </p>
-      {field(
-        original ? "Your original vision" : "Your saved vision",
-        original?.vision ?? g.vision,
-      )}
-      {field("What actually happened", event?.data.detail)}
-      {field("What changed", event?.data.reflection)}
-      {field("What you’ll carry forward", event?.data.next)}
+      <Landscape scene="completed" />
+      <div className="transformation-highlight">
+        {field("What changed", event?.data.reflection)}
+        {field("What you’ll carry forward", event?.data.next)}
+      </div>
+      <button className="button" onClick={() => navigate("/new")}>
+        Choose my next challenge
+      </button>
+      <section
+        className="transformation-details"
+        aria-label="Your full transformation record"
+      >
+        <p className="vision-distinction">
+          Your vision describes who you wanted to become. Your reflections below
+          describe what you recorded.
+        </p>
+        {field(
+          original ? "Your original vision" : "Your saved vision",
+          original?.vision ?? g.vision,
+        )}
+        {field("What actually happened", event?.data.detail)}
+      </section>
       <details className="supporting-proof">
         <summary>Steps and milestone attempts</summary>
         <p className="small">
@@ -118,9 +129,6 @@ export function ChallengeRecord({
           ) && <p>No supporting entries were recorded.</p>}
       </details>
       <div className="record-next">
-        <button className="button" onClick={() => navigate("/new")}>
-          Choose my next challenge
-        </button>
         <button className="quiet" onClick={() => navigate("/proof")}>
           Return to Your Proof
         </button>

@@ -1,4 +1,10 @@
-import { useEffect, useState, type ReactNode } from "react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import ring from "../assets/art/mineral-ring.webp";
 type Clock = { elapsed: number; started: number | null };
 export function elapsedTime(clock: Clock, now = Date.now()) {
@@ -65,6 +71,31 @@ export function StepTimer({
     const id = window.setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(id);
   }, []);
+  const orbit = useRef<HTMLSpanElement>(null);
+  useLayoutEffect(() => {
+    const media = window.matchMedia?.("(prefers-reduced-motion: reduce)");
+    let frame = 0;
+    const paint = () => {
+      if (orbit.current) {
+        const angle = media?.matches
+          ? 35
+          : 35 + ((elapsedTime(clock) % 16000) / 16000) * 360;
+        orbit.current.style.transform = `rotate(${angle}deg)`;
+      }
+      if (clock.started !== null && !media?.matches)
+        frame = requestAnimationFrame(paint);
+    };
+    const restart = () => {
+      cancelAnimationFrame(frame);
+      paint();
+    };
+    paint();
+    media?.addEventListener("change", restart);
+    return () => {
+      cancelAnimationFrame(frame);
+      media?.removeEventListener("change", restart);
+    };
+  }, [clock]);
   const seconds = Math.floor(elapsedTime(clock, now) / 1000);
   const display = [
     Math.floor(seconds / 3600),
@@ -100,7 +131,7 @@ export function StepTimer({
       )}
       <div className="timer-face">
         <img className="timer-ring" src={ring} alt="" draggable={false} />
-        <span className="timer-orbit" aria-hidden="true">
+        <span ref={orbit} className="timer-orbit" aria-hidden="true">
           <span className="timer-marker" />
         </span>
         <div className="timer-readout">

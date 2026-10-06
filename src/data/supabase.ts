@@ -45,6 +45,34 @@ export function createSupabaseAdapter(): Adapter {
       );
       return () => data.subscription.unsubscribe();
     },
+    async getProfilePhoto() {
+      const auth = await requireClient().auth.getUser();
+      if (auth.error || !auth.data.user)
+        throw new Error("Sign in to load your photo.");
+      const { data, error } = await requireClient()
+        .storage.from("profile-photos")
+        .download(auth.data.user.id + "/avatar.webp");
+      if (error) {
+        if (/not found|does not exist/i.test(error.message)) return null;
+        throw error;
+      }
+      return data;
+    },
+    async setProfilePhoto(photo) {
+      const auth = await requireClient().auth.getUser();
+      if (auth.error || !auth.data.user)
+        throw new Error("Sign in to save your photo.");
+      const path = auth.data.user.id + "/avatar.webp";
+      const bucket = requireClient().storage.from("profile-photos");
+      const result = photo
+        ? await bucket.upload(path, photo, {
+            upsert: true,
+            contentType: photo.type,
+            cacheControl: "0",
+          })
+        : await bucket.remove([path]);
+      if (result.error) throw result.error;
+    },
     async signIn(email) {
       const { error } = await requireClient().auth.signInWithOtp({
         email,

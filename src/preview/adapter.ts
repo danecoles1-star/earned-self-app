@@ -59,6 +59,26 @@ export function createPreviewAdapter(): Adapter {
         listeners.delete(cb);
       };
     },
+    async getProfilePhoto() {
+      check();
+      const value = localStorage.getItem(storeKey + ":photo:" + user.id);
+      return value ? await (await fetch(value)).blob() : null;
+    },
+    async setProfilePhoto(photo) {
+      check();
+      const key = storeKey + ":photo:" + user.id;
+      if (!photo) {
+        localStorage.removeItem(key);
+        return;
+      }
+      const value = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result));
+        reader.onerror = reject;
+        reader.readAsDataURL(photo);
+      });
+      localStorage.setItem(key, value);
+    },
     async signIn() {
       throw new Error("Preview does not send email.");
     },

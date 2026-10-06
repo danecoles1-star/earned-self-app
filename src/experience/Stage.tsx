@@ -1,6 +1,11 @@
 import { useEffect, useRef, type ReactNode } from "react";
 import { Brand } from "../components/Brand";
-import mountains from "../assets/art/quiet-mountains.webp";
+import basecampScene from "../assets/art/basecamp-landscape.webp";
+import planScene from "../assets/art/plan-landscape.webp";
+import completedScene from "../assets/art/completed-landscape.webp";
+import proofScene from "../assets/art/proof-landscape.webp";
+import { useContext } from "react";
+import { ProfileContext } from "./ProfilePhoto";
 import account from "../assets/icons/user-round.svg";
 
 export function Stage({
@@ -18,6 +23,7 @@ export function Stage({
   back?: () => void;
   backLabel?: string;
 }) {
+  const { photo } = useContext(ProfileContext);
   const heading = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
     heading.current?.focus();
@@ -32,7 +38,11 @@ export function Stage({
           aria-label="Account"
           onClick={() => navigate("/settings")}
         >
-          <img src={account} alt="" />
+          <img
+            className={photo ? "profile-photo" : undefined}
+            src={photo || account}
+            alt=""
+          />
         </button>
       </header>
       <main id="main" className="stage-main">
@@ -54,11 +64,22 @@ export function Stage({
   );
 }
 
-export function Landscape() {
+export function Landscape({
+  scene = "basecamp",
+}: {
+  scene?: "basecamp" | "plan" | "proof" | "completed";
+}) {
   return (
     <img
-      className="stage-landscape"
-      src={mountains}
+      className={`stage-landscape landscape-${scene}`}
+      src={
+        {
+          basecamp: basecampScene,
+          plan: planScene,
+          proof: proofScene,
+          completed: completedScene,
+        }[scene]
+      }
       alt=""
       aria-hidden="true"
     />

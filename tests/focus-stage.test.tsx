@@ -33,7 +33,7 @@ function setup() {
   send("goal", { ...foundation, id: "g" });
   return { send, get: () => store.snapshot };
 }
-it("completed transformations lead Proof and stay visible while filtering a newer active challenge", () => {
+it("completed transformations remain accessible from all evidence when another challenge is active", () => {
   const t = setup();
   t.send("status", {
     goalId: "g",
@@ -52,6 +52,7 @@ it("completed transformations lead Proof and stay visible while filtering a newe
   s.goals.find((g) => g.id === "new")!.status = "active";
   const navigate = vi.fn();
   render(<ProofList snapshot={s} navigate={navigate} />);
+  fireEvent.click(screen.getByRole("button", { name: "View all evidence" }));
   const completed = screen.getByRole("region", {
     name: "Completed challenges",
   });
@@ -67,7 +68,9 @@ it("completed transformations lead Proof and stay visible while filtering a newe
   });
   expect(within(completed).getByText("I trust my craft")).toBeVisible();
   expect(within(support).getByText("Exhibit my next collection")).toBeVisible();
-  fireEvent.click(within(completed).getByRole("button"));
+  fireEvent.click(
+    within(completed).getByRole("button", { name: /Revisit what changed/ }),
+  );
   expect(navigate).toHaveBeenCalledWith("/proof/challenge/g");
 });
 it("ongoing Proof keeps missed attempts honest and does not claim challenge completion", () => {
@@ -91,12 +94,12 @@ it("ongoing Proof keeps missed attempts honest and does not claim challenge comp
     detail: "Two pieces remain",
   });
   render(<ProofList snapshot={t.get()} navigate={() => {}} />);
-  expect(screen.getByText(resultLabel.did_not_happen)).toBeVisible();
-  expect(screen.getByText("Milestone attempted")).toBeVisible();
+  expect(screen.getByText("Step missed")).toBeVisible();
+  expect(screen.getByText("Milestone attempt")).toBeVisible();
   expect(screen.queryByText("Challenge completed")).toBeNull();
   expect(screen.queryByText("What changed")).toBeNull();
   expect(screen.queryByText(foundation.vision)).toBeNull();
-  fireEvent.click(screen.getByText("Milestone attempted"));
+  fireEvent.click(screen.getByText("Milestone attempt"));
   expect(screen.getByText("Two pieces remain")).toBeVisible();
 });
 it("older completed records do not invent transformation and link to the full record", () => {

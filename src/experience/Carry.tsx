@@ -1,3 +1,4 @@
+import { ProfilePhotoEditor } from "./ProfilePhoto";
 import { displaySchedule, displayDate } from "../data/time";
 import { useEffect, useState } from "react";
 import type { Goal, Snapshot } from "../data/types";
@@ -435,6 +436,7 @@ export function Settings({
         <span className="section-label">Signed in as</span>
         <p>{email || "Local preview account"}</p>
       </section>
+      <ProfilePhotoEditor />
       <h2>Support that fits.</h2>
       <Choice
         selected={snapshot.supportMode === "guided"}

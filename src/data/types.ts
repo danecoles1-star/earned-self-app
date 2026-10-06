@@ -168,6 +168,8 @@ export interface Adapter {
   readonly preview: boolean;
   readonly configured: boolean;
   getUser(): Promise<User | null>;
+  getProfilePhoto?(): Promise<Blob | null>;
+  setProfilePhoto?(photo: Blob | null): Promise<void>;
   subscribe(cb: (user: User | null) => void): () => void;
   signIn(email: string): Promise<void>;
   passwordSignIn?(email: string, password: string): Promise<void>;

@@ -93,7 +93,7 @@ for (const width of [390, 1440])
       fullPage: true,
     });
     await p.getByRole("button", { name: "Plan", exact: true }).click();
-    await expect(p.locator(".plan-focus > summary small")).toHaveText(
+    await expect(p.locator(".plan-focus-stage > .section-label")).toHaveText(
       "Current milestone",
     );
     await p.locator("summary").filter({ hasText: "Manage challenge" }).click();

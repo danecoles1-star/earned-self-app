@@ -49,12 +49,21 @@ for (const width of [390, 1440]) {
       await page.setViewportSize({ width, height: 844 });
       await page.goto("/manage");
       await expect(page).toHaveTitle("Earned Self");
-      await page
-        .getByRole("button", {
-          name: mode === "pending" ? "Review milestone" : "Review milestones",
+      if (mode === "pending") {
+        await page
+          .getByRole("button", { name: "Review milestone", exact: true })
+          .click();
+      } else {
+        await page
+          .getByRole("button", { name: "All milestones & steps", exact: true })
+          .click();
+        const review = page.getByRole("button", {
+          name: "Review milestones",
           exact: true,
-        })
-        .click();
+        });
+        await expect(review).toBeVisible();
+        await review.click();
+      }
       await expect(page).toHaveURL(new RegExp(`/milestone/${g}$`));
       if (mode === "pending") {
         await page

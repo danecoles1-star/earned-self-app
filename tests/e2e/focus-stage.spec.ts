@@ -123,7 +123,7 @@ for (const width of [320, 390, 1440]) {
     await expect(p.getByText("Who I am becoming", { exact: true })).toHaveCount(
       0,
     );
-    await expect(p.locator(".plan-focus > summary strong")).toHaveText(
+    await expect(p.locator(".plan-focus-stage > h2")).toHaveText(
       "Validate collection",
     );
     await capture(p, "plan", width);
@@ -139,6 +139,9 @@ for (const width of [320, 390, 1440]) {
     await expect(
       p.getByRole("heading", { name: "Your Proof", exact: true }),
     ).toBeVisible();
+    await p
+      .getByRole("button", { name: "View all evidence", exact: true })
+      .click();
     await expect(
       p.getByText("I can make work that people value"),
     ).toBeVisible();
@@ -206,7 +209,9 @@ test("Ivory orb follows timer state, respects reduced motion and keeps every dig
   await p.emulateMedia({ reducedMotion: "no-preference" });
   await seed(p, fixture());
   const orb = p.locator(".timer-orbit");
-  await expect(orb).toHaveCSS("animation-play-state", "paused");
+  const initialAngle = await orb.evaluate(
+    (el) => (el as HTMLElement).style.transform,
+  );
   await expect(p.locator(".stage-focus")).toHaveCSS(
     "background-color",
     "rgb(246, 241, 232)",
@@ -217,14 +222,26 @@ test("Ivory orb follows timer state, respects reduced motion and keeps every dig
     "DETAILS",
   );
   await p.getByRole("button", { name: "Start timer", exact: true }).click();
-  await expect(orb).toHaveCSS("animation-play-state", "running");
+  await expect
+    .poll(() => orb.evaluate((el) => (el as HTMLElement).style.transform))
+    .not.toBe(initialAngle);
   await expect(p.getByLabel("Elapsed time")).not.toHaveText("00:00");
   await p.reload();
   await expect(
     p.getByRole("button", { name: "Pause timer", exact: true }),
   ).toBeVisible();
   await p.getByRole("button", { name: "Pause timer", exact: true }).click();
-  await expect(orb).toHaveCSS("animation-play-state", "paused");
+  const pausedAngle = await orb.evaluate(
+    (el) => (el as HTMLElement).style.transform,
+  );
+  await p.waitForTimeout(200);
+  expect(await orb.evaluate((el) => (el as HTMLElement).style.transform)).toBe(
+    pausedAngle,
+  );
+  await p.getByRole("button", { name: "Resume timer", exact: true }).click();
+  await expect
+    .poll(() => orb.evaluate((el) => (el as HTMLElement).style.transform))
+    .not.toBe(pausedAngle);
   await p.emulateMedia({ reducedMotion: "reduce" });
   await expect(orb).toHaveCSS("animation-name", "none");
   await p.evaluate(() =>

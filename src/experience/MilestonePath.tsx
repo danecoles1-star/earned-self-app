@@ -6,9 +6,11 @@ import { currentMilestone } from "../data/domain";
 export function MilestonePath({
   goal,
   snapshot,
+  onReview,
 }: {
   goal: Goal;
   snapshot: Snapshot;
+  onReview?: (id: string) => void;
 }) {
   const listRef = useRef<HTMLOListElement>(null);
   const [curve, setCurve] = useState("");
@@ -47,6 +49,10 @@ export function MilestonePath({
     goal.status,
   );
   const review = (id: string) => {
+    if (onReview) {
+      onReview(id);
+      return;
+    }
     const target = document.getElementById(
       "milestone-" + id,
     ) as HTMLDetailsElement | null;
@@ -67,8 +73,8 @@ export function MilestonePath({
           strokeLinecap="round"
         />
       </svg>
-      <ol ref={listRef} reversed>
-        {[...goal.milestones].reverse().map((milestone, index) => {
+      <ol ref={listRef}>
+        {goal.milestones.map((milestone, index) => {
           const done = snapshot.events.some(
             (e) =>
               e.goal_id === goal.id &&
@@ -98,7 +104,7 @@ export function MilestonePath({
               >
                 <span className="path-marker" aria-hidden="true" />
                 <span className="path-number" aria-hidden="true">
-                  {goal.milestones.length - index}
+                  {index + 1}
                 </span>
                 <span className="path-copy">
                   <small>{state}</small>

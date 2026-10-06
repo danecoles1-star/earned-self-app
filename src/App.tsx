@@ -1,3 +1,4 @@
+import { ProfileProvider } from "./experience/ProfilePhoto";
 import { Auth } from "./experience/Auth";
 import { ResumeEntry } from "./experience/ResumeEntry";
 import { PlanStep } from "./experience/PlanStep";
@@ -914,9 +915,15 @@ export function App({ adapter }: { adapter: Adapter }) {
         </div>
       )}
       <div inert={saving} aria-busy={saving}>
-        <SupportMode.Provider value={snapshot.supportMode}>
-          {screen}
-        </SupportMode.Provider>
+        <ProfileProvider
+          key={user?.id || "guest"}
+          adapter={adapter}
+          owner={user?.id || null}
+        >
+          <SupportMode.Provider value={snapshot.supportMode}>
+            {screen}
+          </SupportMode.Provider>
+        </ProfileProvider>
         {user &&
           ![
             "/",

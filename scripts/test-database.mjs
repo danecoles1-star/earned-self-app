@@ -11,6 +11,13 @@ const pass = (name) => {
 await db.exec(
   `CREATE SCHEMA auth; CREATE ROLE authenticated; CREATE ROLE anon; GRANT USAGE ON SCHEMA public,auth TO authenticated,anon; CREATE TABLE auth.users(id uuid PRIMARY KEY); CREATE FUNCTION auth.jwt() RETURNS jsonb LANGUAGE sql STABLE AS $$ SELECT jsonb_build_object('is_anonymous',coalesce(nullif(current_setting('request.jwt.claim.is_anonymous',true),''),'false')::boolean) $$; CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS $$ SELECT nullif(current_setting('request.jwt.claim.sub',true),'')::uuid $$;`,
 );
+// Minimal Storage schema fixture; production schema is owned by Supabase Storage.
+await db.exec(`CREATE SCHEMA storage;
+CREATE TABLE storage.buckets(id text PRIMARY KEY, name text, public boolean, file_size_limit bigint, allowed_mime_types text[]);
+CREATE TABLE storage.objects(id uuid PRIMARY KEY DEFAULT gen_random_uuid(), bucket_id text REFERENCES storage.buckets(id), name text, UNIQUE(bucket_id,name));
+ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
+GRANT USAGE ON SCHEMA storage TO authenticated,anon;
+GRANT SELECT,INSERT,UPDATE,DELETE ON storage.objects TO authenticated,anon;`);
 for (const file of fs.readdirSync("supabase/migrations").sort())
   await db.exec(fs.readFileSync("supabase/migrations/" + file, "utf8"));
 pass("All migrations compile in embedded PostgreSQL");
@@ -1071,7 +1078,58 @@ assert.equal(
   0,
 );
 pass("Account deletion cascades owned data and receipts");
+
+await as(a);
+await db.query(
+  "INSERT INTO storage.objects(bucket_id,name) VALUES ('profile-photos',$1)",
+  [a + "/avatar.webp"],
+);
+assert.equal((await db.query("SELECT * FROM storage.objects")).rows.length, 1);
+pass("Owner can create and read their private profile photo");
+await as(b);
+assert.equal((await db.query("SELECT * FROM storage.objects")).rows.length, 0);
+await rejected(
+  () =>
+    db.query(
+      "INSERT INTO storage.objects(bucket_id,name) VALUES ('profile-photos',$1)",
+      [a + "/other.webp"],
+    ),
+  /row-level security/,
+);
+assert.equal(
+  (
+    await db.query(
+      "UPDATE storage.objects SET name=name WHERE name=$1 RETURNING id",
+      [a + "/avatar.webp"],
+    )
+  ).rows.length,
+  0,
+);
+assert.equal(
+  (
+    await db.query("DELETE FROM storage.objects WHERE name=$1 RETURNING id", [
+      a + "/avatar.webp",
+    ])
+  ).rows.length,
+  0,
+);
+pass("Other accounts cannot read, overwrite, or remove profile photos");
+await as(null, "anon");
+assert.equal((await db.query("SELECT * FROM storage.objects")).rows.length, 0);
+pass("Anonymous profile photo access blocked");
+await as(a);
+assert.equal(
+  (
+    await db.query("DELETE FROM storage.objects WHERE name=$1 RETURNING id", [
+      a + "/avatar.webp",
+    ])
+  ).rows.length,
+  1,
+);
+pass("Owner can remove their profile photo");
+
 await db.close();
+
 console.log(
-  `DATABASE ${checks} checks passed. Ephemeral local PostgreSQL only; no remote Supabase connection.`,
+  `DATABASE ${checks} checks passed. Ephemeral local PostgreSQL only.`,
 );
