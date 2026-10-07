@@ -1,3 +1,4 @@
+export type GrowthArea = "physical" | "professional" | "personal";
 export type Result = "done" | "partly" | "did_not_happen";
 export type PursuitState =
   | "draft"
@@ -30,6 +31,7 @@ export interface Foundation {
   milestones: Milestone[];
 }
 export interface Goal extends Foundation {
+  area?: GrowthArea | null;
   id: string;
   owner_id: string;
   kind: "goal" | "vision";
@@ -115,6 +117,7 @@ export interface PursuitEvent {
   id: string;
   goal_id: string;
   kind:
+    | "area"
     | "vision"
     | "stop_repeat"
     | "planned_step"
@@ -143,6 +146,7 @@ export interface Command {
   operationId: string;
   actorId: string;
   kind:
+    | "area"
     | "vision"
     | "stop_repeat"
     | "planned_step"

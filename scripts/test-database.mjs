@@ -1065,6 +1065,69 @@ pass(
   "Completion records retain reflection, carry-forward answer and exact goal revision",
 );
 
+// Workshop area is explicit; assigning it never rewrites challenge or Proof.
+await as(a);
+const legacyBefore = (await state()).goals.find((g) => g.id === completedGoal);
+assert.equal(legacyBefore.area, null);
+const areaOperation = randomUUID();
+const areaPayload = {
+  goalId: completedGoal,
+  version: legacyBefore.version,
+  area: "professional",
+};
+const assigned = await command(a, "area", areaPayload, areaOperation);
+assert.deepEqual(
+  await command(a, "area", areaPayload, areaOperation),
+  assigned,
+);
+const legacyAfter = (await state()).goals.find((g) => g.id === completedGoal);
+assert.equal(legacyAfter.area, "professional");
+assert.equal(legacyAfter.words, legacyBefore.words);
+assert.equal(legacyAfter.vision, legacyBefore.vision);
+assert.equal(legacyAfter.revision, legacyBefore.revision);
+assert.equal(
+  (await state()).events.find(
+    (e) => e.goal_id === completedGoal && e.kind === "status",
+  ).data.reflection,
+  "Own words",
+);
+pass(
+  "Legacy area assignment is explicit, idempotent and preserves completed Proof",
+);
+await rejected(
+  () => command(a, "area", { ...areaPayload, area: "physical" }),
+  /changed|version|refresh/i,
+);
+await rejected(
+  () =>
+    command(a, "area", {
+      ...areaPayload,
+      version: legacyAfter.version,
+      area: "inferred",
+    }),
+  /area/i,
+);
+pass("Area updates reject stale versions and unknown values");
+await as(b);
+await rejected(
+  () => command(b, "area", { ...areaPayload, version: legacyAfter.version }),
+  /unavailable/i,
+);
+assert.equal(
+  (await state()).goals.some((g) => g.id === completedGoal),
+  false,
+);
+pass("Another account cannot assign or read an area-owned challenge");
+await as(a);
+for (const area of ["physical", "professional", "personal"]) {
+  const id = randomUUID();
+  await command(a, "goal", { ...payload, id, area });
+  assert.equal((await state()).goals.find((g) => g.id === id).area, area);
+}
+assert.equal((await state()).goals.filter((g) => g.area).length, 4);
+pass(
+  "Three independently owned areas coexist without replacing older challenges",
+);
 await db.exec("RESET ROLE");
 await db.query("DELETE FROM auth.users WHERE id=$1", [a]);
 assert.equal(

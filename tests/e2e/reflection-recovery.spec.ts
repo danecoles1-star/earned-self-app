@@ -81,7 +81,7 @@ for (const width of [390, 1440]) {
       .fill("I delivered the talk and answered three audience questions.");
     await p.getByRole("button", { name: "Continue", exact: true }).click();
     await p
-      .getByLabel("What has changed?")
+      .getByLabel("What does this show you about yourself?")
       .fill("I can speak clearly even when I feel nervous.");
     await p
       .getByLabel("What will you carry forward?")
@@ -93,7 +93,7 @@ for (const width of [390, 1440]) {
     ).toBeVisible();
     await snap(p, "completed-record", width);
     await p
-      .getByRole("heading", { name: "Your original vision" })
+      .getByRole("heading", { name: "The vision I chose" })
       .evaluate((el) => el.scrollIntoView({ block: "start" }));
     await p.evaluate(
       () =>

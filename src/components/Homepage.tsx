@@ -1,13 +1,12 @@
 import { useState } from "react";
 import { Brand } from "./Brand";
-import hero from "../assets/art/how-hero.webp";
-import physical from "../assets/art/example-physical.webp";
-import professional from "../assets/art/example-professional.webp";
-import personal from "../assets/art/example-personal.webp";
-import ring from "../assets/art/mineral-ring.webp";
-import basecamp from "../assets/icons/earned-basecamp.svg";
-import plan from "../assets/icons/earned-plan.svg";
-import proof from "../assets/icons/earned-proof.svg";
+import physical from "../assets/workshop/area-physical.webp";
+import professional from "../assets/workshop/area-professional.webp";
+import personal from "../assets/workshop/area-personal.webp";
+import ring from "../assets/workshop/timer-ring.png";
+import basecamp from "../assets/workshop/nav-now.png";
+import plan from "../assets/workshop/nav-plan.png";
+import proof from "../assets/workshop/nav-proof.png";
 
 export const illustrativeExamples = [
   {
@@ -36,14 +35,13 @@ export const illustrativeExamples = [
   {
     name: "Personal",
     image: personal,
-    alt: "A person prepares a thoughtful invitation at a table",
-    challenge: "Bring my scattered family together for a reunion.",
-    milestone: "Agree on a date and a shared plan with my family.",
-    step: "Write the invitation I have been putting off.",
+    alt: "A writer shares a manuscript with a reader",
+    challenge: "Finish my novella and share it with three readers.",
+    milestone: "Complete the first draft.",
+    step: "Write the central idea of my story.",
     setback:
-      "Conflicting schedules? Talk through the constraints and agree on a different plan.",
-    reflection:
-      "I can bring people together when I am willing to start the conversation.",
+      "Missed a writing session? Choose a time and scope you can protect.",
+    reflection: "I can finish and share work that matters to me.",
   },
 ];
 export function Homepage({
@@ -63,17 +61,28 @@ export function Homepage({
       <section className="how-opening" aria-labelledby="how-title">
         <img
           className="how-hero-image"
-          src={hero}
+          src={example.image}
           alt=""
           fetchPriority="high"
         />
         <header className="how-header">
-          <Brand />
+          <Brand mineral />
           <button className="how-login" onClick={signIn}>
-            {signedIn ? "Return to Basecamp" : "Log in"}
+            {signedIn ? "Return to Now" : "Log in"}
           </button>
         </header>
         <div className="how-hero-copy">
+          <div className="area-tabs" aria-label="Explore an area">
+            {illustrativeExamples.map((e, i) => (
+              <button
+                key={e.name}
+                aria-pressed={i === selected}
+                onClick={() => setSelected(i)}
+              >
+                {e.name}
+              </button>
+            ))}
+          </div>
           <h1 id="how-title" tabIndex={-1}>
             Become You.
           </h1>
@@ -127,8 +136,8 @@ export function Homepage({
             <div>
               <h3>Act. Check in. Adjust.</h3>
               <p>
-                Basecamp brings your next step into focus. After a setback,
-                reflect and choose what changes.
+                Now brings your next step into focus. After a setback, reflect
+                and choose what changes.
               </p>
             </div>
           </li>
@@ -160,7 +169,7 @@ export function Homepage({
         </div>
         <div className="method-destinations" aria-label="Your workspace">
           {[
-            [basecamp, "Basecamp"],
+            [basecamp, "Now"],
             [plan, "Plan"],
             [proof, "Proof"],
           ].map(([src, label]) => (

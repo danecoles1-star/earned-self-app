@@ -8,12 +8,22 @@ import {
   type ReactNode,
 } from "react";
 import { Brand } from "../components/Brand";
-import steps from "../assets/art/steps.webp";
-import path from "../assets/art/path.webp";
-import mountain from "../assets/art/mountain.webp";
+import steps from "../assets/workshop/plan-doors.webp";
+import { AreaContext } from "./Areas";
+import { areaArt, preparationArt, proofArt } from "./workshopArt";
+import path from "../assets/workshop/prepare-personal.webp";
+import mountain from "../assets/workshop/proof-personal.webp";
 export const artwork = { steps, path, mountain };
 export function Art({ kind }: { kind: keyof typeof artwork }) {
-  return <img className="experience-art" src={artwork[kind]} alt="" />;
+  const { area } = useContext(AreaContext);
+  const source = area
+    ? (kind === "path"
+        ? preparationArt
+        : kind === "mountain"
+          ? proofArt
+          : areaArt)[area]
+    : steps;
+  return <img className="experience-art" src={source} alt="" />;
 }
 export function Page({
   title,

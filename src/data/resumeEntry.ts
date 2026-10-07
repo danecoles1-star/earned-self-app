@@ -55,7 +55,15 @@ export async function resumeEntry(
         "milestones",
       ].map((k) => [k, bound[k as keyof EntryDraft]]),
     );
+    if (bound.area) payload.area = bound.area;
     await execute("goal", payload, bound.operationId);
+  }
+  if (bound.experience?.supportMode && bound.experience.supportOperationId) {
+    await execute(
+      "support",
+      { mode: bound.experience.supportMode },
+      bound.experience.supportOperationId,
+    );
   }
   state = await adapter.read();
   await assertOwner();

@@ -1,8 +1,10 @@
+import { areas, areaLabel } from "./Areas";
+import { areaArt } from "./workshopArt";
 import { StepTimer, pauseTimer } from "./StepTimer";
 import { firstMoveExample } from "./guidance";
 import { useState } from "react";
 import type { EntryDraft } from "../data/drafts";
-import { Choice, Help, Input, Page } from "./ui";
+import { Choice, Help, Input, Page, SupportMode } from "./ui";
 export interface FirstMove {
   id: string;
   action: string;
@@ -16,6 +18,8 @@ export interface FirstMove {
 export interface EntryExperience {
   step: number;
   flowVersion?: number;
+  supportMode?: "guided" | "on_request";
+  supportOperationId?: string;
   pain: string;
   domain: string;
   stretch: string;
@@ -78,16 +82,16 @@ export function Onboarding({
       },
     });
   // Keep legacy numeric step identities so saved drafts never change meaning.
-  const sequence = [0, 1, 3, 4, 7, 8, 9, 10];
+  const sequence = [0, 1, 3, 4, 5, 7, 8, 9, 10];
   const step = sequence.includes(x.step) ? x.step : x.step === 2 ? 3 : 7;
   const go = (step: number) => patch({ step, flowVersion: 2 });
   const titles = [
-    "What brings you here?",
+    "Where do you want to grow?",
     "Who will you become?",
     "Where will you stretch?",
     "Choose your challenge.",
     "Why this challenge?",
-    "Make the stretch real.",
+    "What will completion look like?",
     "What gets in the way?",
     "What can you do now?",
     "Give it your attention.",
@@ -95,7 +99,7 @@ export function Onboarding({
     "Keep what you’ve started.",
   ];
   const subs = [
-    "Choose what fits best right now.",
+    "Start with one area. Add the others when you are ready.",
     "Picture yourself doing something difficult that matters to you. Who do you want to be in that moment?",
     "Choose a place to begin.",
     "What big accomplishment would help you become that person?",
@@ -108,12 +112,12 @@ export function Onboarding({
     "One real step. Something to build on.",
   ];
   const required = [
-    x.pain,
+    draft.area,
     draft.vision,
     x.domain,
     draft.words,
     draft.meaning,
-    draft.outcome.trim() && x.stretch,
+    draft.outcome.trim(),
     x.barrier,
     x.first.action.trim() && x.first.criterion,
     true,
@@ -167,234 +171,268 @@ export function Onboarding({
     go(sequence[sequence.indexOf(step) + 1]);
   };
   return (
-    <Page
-      className="onboarding-flow"
-      title={titles[step] ?? titles[0]}
-      sub={subs[step]}
-      dark={[1, 3, 8, 10].includes(step)}
-      progress={step < 8 ? [sequence.indexOf(step) + 1, 5] : undefined}
-      back={() => (step ? go(sequence[sequence.indexOf(step) - 1]) : back())}
-      footer={
-        <>
-          {error && <p role="alert">{error}</p>}
-          {step === 8 ? (
-            <>
+    <SupportMode.Provider value={x.supportMode || "on_request"}>
+      <Page
+        className="onboarding-flow"
+        title={titles[step] ?? titles[0]}
+        sub={subs[step]}
+        dark={[1, 3, 8, 10].includes(step)}
+        progress={step < 8 ? [sequence.indexOf(step) + 1, 6] : undefined}
+        back={() => (step ? go(sequence[sequence.indexOf(step) - 1]) : back())}
+        footer={
+          <>
+            {error && <p role="alert">{error}</p>}
+            {step === 8 ? (
+              <>
+                <button
+                  className="button"
+                  disabled={saving}
+                  onClick={() => {
+                    pauseTimer(`entry:${draft.id}:${x.first.id}`);
+                    go(9);
+                  }}
+                >
+                  Check in
+                </button>
+                <button className="quiet" onClick={() => go(7)}>
+                  Choose a different step
+                </button>
+              </>
+            ) : (
               <button
                 className="button"
-                disabled={saving}
-                onClick={() => {
-                  pauseTimer(`entry:${draft.id}:${x.first.id}`);
-                  go(9);
-                }}
+                disabled={
+                  saving ||
+                  !(typeof required[step] === "string"
+                    ? String(required[step]).trim()
+                    : required[step])
+                }
+                onClick={next}
               >
-                Check in
+                {saving
+                  ? "Saving…"
+                  : step === 10
+                    ? signedIn
+                      ? "Open Now"
+                      : "Sign in to save"
+                    : step === 9
+                      ? "Record what happened"
+                      : step === 7
+                        ? "Do it now"
+                        : "Continue"}
               </button>
-              <button className="quiet" onClick={() => go(7)}>
-                Choose a different step
+            )}
+            {step < 7 && (
+              <button className="quiet" disabled={saving} onClick={back}>
+                Save and exit
               </button>
-            </>
-          ) : (
-            <button
-              className="button"
-              disabled={
-                saving ||
-                !(typeof required[step] === "string"
-                  ? String(required[step]).trim()
-                  : required[step])
-              }
-              onClick={next}
-            >
-              {saving
-                ? "Saving…"
-                : step === 10
-                  ? signedIn
-                    ? "Open Basecamp"
-                    : "Sign in to save"
-                  : step === 9
-                    ? "Record what happened"
-                    : step === 7
-                      ? "Do it now"
-                      : "Continue"}
-            </button>
-          )}
-          {step >= 7 && (
+            )}
+            {step >= 7 && (
+              <button
+                className="quiet"
+                disabled={
+                  saving ||
+                  !draft.words.trim() ||
+                  !draft.vision.trim() ||
+                  !draft.meaning.trim()
+                }
+                onClick={onFinish}
+              >
+                Save and finish later
+              </button>
+            )}
             <button
               className="quiet"
-              disabled={
-                saving ||
-                !draft.words.trim() ||
-                !draft.vision.trim() ||
-                !draft.meaning.trim()
-              }
-              onClick={onFinish}
+              onClick={() => setHelp(!help)}
+              aria-expanded={help}
             >
-              Save and finish later
+              Help
             </button>
-          )}
+            {help && (
+              <p className="small">
+                Your words stay on this device until you choose to save them to
+                your account. Each answer helps you prepare for the ambition you
+                chose.
+              </p>
+            )}
+          </>
+        }
+      >
+        <div className="onboarding-support">
           <button
             className="quiet"
-            onClick={() => setHelp(!help)}
-            aria-expanded={help}
+            onClick={() =>
+              patch({
+                supportMode:
+                  x.supportMode === "guided" ? "on_request" : "guided",
+                supportOperationId: crypto.randomUUID(),
+              })
+            }
           >
-            Help
+            {x.supportMode === "guided" ? "Guide me" : "Help when I ask"}
           </button>
-          {help && (
-            <p className="small">
-              Your words stay on this device until you choose to save them to
-              your account. Each answer helps you prepare for the ambition you
-              chose.
-            </p>
-          )}
-        </>
-      }
-    >
-      {step === 0 &&
-        pick("pain", [
-          "I’m ready to take on more",
-          "I want to believe in myself",
-          "I keep putting off something big",
-          "I want to finish what I start",
-          "I want to make time for myself",
-          "I’m looking for direction",
-        ])}
-      {step === 1 && (
-        <>
-          {input("vision", "Your future self", "I want to become someone who…")}
-          <Help
-            ambition={draft.words}
-            field="what would you trust yourself to do that you hesitate to do today?"
-          />
-        </>
-      )}
-      {step === 2 &&
-        pick("domain", [
-          "Body & adventure",
-          "Work & creation",
-          "Courage & expression",
-          "Learning & mastery",
-        ])}
-      {step === 3 && (
-        <>
-          {input("words", "My challenge", "I will…")}
-          <Help
-            ambition={draft.vision}
-            field="what accomplishment would give you real evidence of that change? Name what you would do or make."
-          />
-        </>
-      )}
-      {step === 4 &&
-        input("meaning", "Your reason", "This matters to me because…")}
-      {step === 5 && (
-        <>
-          {input(
-            "outcome",
-            "I will know I have done it when…",
-            "Describe the observable finish...",
-          )}
-          <Input
-            label="What makes this a stretch?"
-            value={x.stretch}
-            onChange={(v) => patch({ stretch: v })}
-            placeholder="This will ask me to…"
-          />
-        </>
-      )}
-      {step === 6 &&
-        pick("barrier", [
-          "Time",
-          "Confidence",
-          "Skill",
-          "Making room",
-          "Fear of trying",
-        ])}
-      {step === 7 && (
-        <>
-          <Input
-            label="What will you do now?"
-            value={x.first.action}
-            onChange={(v) => first({ action: v })}
-            placeholder="My first action is..."
-          />
-          <Input
-            label="What will be done?"
-            value={x.first.criterion}
-            onChange={(v) => first({ criterion: v })}
-            placeholder="I’ll have finished this action when..."
-          />
-          <Help
-            ambition={draft.words}
-            example={firstMoveExample(draft.words)}
-            field="what useful preparation can you finish in one or two minutes? Keep it specific and achievable now."
-          />
-        </>
-      )}
-      {step === 8 && (
-        <div className="focus-move">
-          <StepTimer
-            identity={`entry:${draft.id}:${x.first.id}`}
-            title={x.first.action}
-          >
-            <h2>{x.first.action}</h2>
-          </StepTimer>
-          <p>Done means: {x.first.criterion}</p>
-          {x.first.started && (
-            <p role="status">
-              Take the time you need. Come back when you have tried.
-            </p>
-          )}
         </div>
-      )}
-      {step === 9 && (
-        <>
-          <div className="choices">
-            {(
-              [
-                ["done", "Done"],
-                ["partly", "Partly"],
-                ["did_not_happen", "Not yet"],
-              ] as const
-            ).map(([r, label]) => (
-              <Choice
-                key={r}
-                selected={x.first.result === r}
-                onClick={() => first({ result: r })}
+        {step === 0 && (
+          <div className="area-onboarding">
+            {areas.map((a) => (
+              <button
+                aria-label={areaLabel(a)}
+                className="experience-choice area-choice"
+                key={a}
+                aria-pressed={draft.area === a}
+                onClick={() => change({ area: a })}
               >
-                {label}
-              </Choice>
+                <span>
+                  <strong>{areaLabel(a)}</strong>
+                  <small>
+                    {
+                      {
+                        physical: "A stronger, more resilient you.",
+                        professional: "A more purposeful, impactful you.",
+                        personal: "A more courageous, connected you.",
+                      }[a]
+                    }
+                  </small>
+                </span>
+                <img src={areaArt[a]} alt="" />
+              </button>
             ))}
           </div>
-          <Input
-            label="What happened?"
-            value={x.first.detail}
-            onChange={(v) => first({ detail: v })}
-            placeholder="Write a short, factual account…"
-          />
-          {x.first.result && x.first.result !== "done" && (
-            <>
-              <Input
-                label="What prevented it?"
-                value={x.first.prevented}
-                onChange={(v) => first({ prevented: v })}
-              />
-              <Input
-                label="What will you change?"
-                value={x.first.adjustment}
-                onChange={(v) => first({ adjustment: v })}
-              />
-            </>
-          )}
-        </>
-      )}
-      {step === 10 && (
-        <>
-          <div className="first-win-rule" aria-hidden="true" />
-          <p className="first-proof">{x.first.detail}</p>
-          <p className="small">
-            Your first account is kept on this device. Sign in to keep it in
-            your Proof.
-          </p>
-        </>
-      )}
-    </Page>
+        )}
+
+        {step === 1 && (
+          <>
+            {input("vision", "Your future self", "I know I can be…")}
+            <Help
+              ambition={draft.words}
+              field="what would you trust yourself to do that you hesitate to do today?"
+            />
+          </>
+        )}
+        {step === 2 &&
+          pick("domain", [
+            "Body & adventure",
+            "Work & creation",
+            "Courage & expression",
+            "Learning & mastery",
+          ])}
+        {step === 3 && (
+          <>
+            {input("words", "My challenge", "I will…")}
+            <Help
+              ambition={draft.vision}
+              field="what accomplishment would give you real evidence of that change? Name what you would do or make."
+            />
+          </>
+        )}
+        {step === 4 &&
+          input("meaning", "Your reason", "This matters to me because…")}
+        {step === 5 && (
+          <>
+            {input(
+              "outcome",
+              "I will know I have done it when…",
+              "Describe the observable finish...",
+            )}
+          </>
+        )}
+        {step === 6 &&
+          pick("barrier", [
+            "Time",
+            "Confidence",
+            "Skill",
+            "Making room",
+            "Fear of trying",
+          ])}
+        {step === 7 && (
+          <>
+            <Input
+              label="What will you do now?"
+              value={x.first.action}
+              onChange={(v) => first({ action: v })}
+              placeholder="My first action is..."
+            />
+            <Input
+              label="What will be done?"
+              value={x.first.criterion}
+              onChange={(v) => first({ criterion: v })}
+              placeholder="I’ll have finished this action when..."
+            />
+            <Help
+              ambition={draft.words}
+              example={firstMoveExample(draft.words)}
+              field="what useful preparation can you finish in one or two minutes? Keep it specific and achievable now."
+            />
+          </>
+        )}
+        {step === 8 && (
+          <div className="focus-move">
+            <StepTimer
+              identity={`entry:${draft.id}:${x.first.id}`}
+              title={x.first.action}
+            >
+              <h2>{x.first.action}</h2>
+            </StepTimer>
+            <p>Done means: {x.first.criterion}</p>
+            {x.first.started && (
+              <p role="status">
+                Take the time you need. Come back when you have tried.
+              </p>
+            )}
+          </div>
+        )}
+        {step === 9 && (
+          <>
+            <div className="choices">
+              {(
+                [
+                  ["done", "Done"],
+                  ["partly", "Partly"],
+                  ["did_not_happen", "Not yet"],
+                ] as const
+              ).map(([r, label]) => (
+                <Choice
+                  key={r}
+                  selected={x.first.result === r}
+                  onClick={() => first({ result: r })}
+                >
+                  {label}
+                </Choice>
+              ))}
+            </div>
+            <Input
+              label="What happened?"
+              value={x.first.detail}
+              onChange={(v) => first({ detail: v })}
+              placeholder="Write a short, factual account…"
+            />
+            {x.first.result && x.first.result !== "done" && (
+              <>
+                <Input
+                  label="What prevented it?"
+                  value={x.first.prevented}
+                  onChange={(v) => first({ prevented: v })}
+                />
+                <Input
+                  label="What will you change?"
+                  value={x.first.adjustment}
+                  onChange={(v) => first({ adjustment: v })}
+                />
+              </>
+            )}
+          </>
+        )}
+        {step === 10 && (
+          <>
+            <div className="first-win-rule" aria-hidden="true" />
+            <p className="first-proof">{x.first.detail}</p>
+            <p className="small">
+              Your first account is kept on this device. Sign in to keep it in
+              your Proof.
+            </p>
+          </>
+        )}
+      </Page>
+    </SupportMode.Provider>
   );
 }

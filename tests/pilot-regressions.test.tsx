@@ -176,7 +176,7 @@ it("starting another ambition does not reuse a stale entry draft or erase saved 
   await userEvent.click(
     await screen.findByRole("button", { name: "Begin a fresh challenge" }),
   );
-  await screen.findByRole("heading", { name: "What brings you here?" });
+  await screen.findByRole("heading", { name: "Where do you want to grow?" });
   expect(loadDraft().words).toBe("");
   expect(loadDraft().meaning).toBe("");
   expect(archivedDrafts(null)[0].words).toBe(old.words);

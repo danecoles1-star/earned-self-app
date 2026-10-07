@@ -1,3 +1,4 @@
+import { WorkshopPath } from "./WorkshopPath";
 import { PlanFocus } from "./PlanFocus";
 import { MilestonePath } from "./MilestonePath";
 import { Paused } from "./Paused";
@@ -63,7 +64,7 @@ export function Ambition({
       backLabel="Back to Your Plan"
     >
       {g.status === "paused" && <Paused goal={g} navigate={navigate} />}
-      <details className="challenge-breadcrumb">
+      <details open className="challenge-breadcrumb">
         <summary>Challenge · {g.words}</summary>
         <p>
           Done means: {g.outcome || "Define your finish during preparation."}
@@ -79,7 +80,15 @@ export function Ambition({
       </details>
       {section === "overview" && (
         <section className="plan-overview">
-          <Landscape scene="plan" />
+          <WorkshopPath
+            key={g.id}
+            goal={g}
+            snapshot={s}
+            onReview={(id) => {
+              setShowDetails(true);
+              setFocusedMilestone(id);
+            }}
+          />
           <PlanFocus goal={g} snapshot={s} navigate={navigate} />
           <MilestonePath
             goal={g}
@@ -531,14 +540,14 @@ export function ProofList({
                     : ""}
                 </span>
                 <h2>{record.completed.words}</h2>
-                <Landscape scene="completed" />
+                <Landscape scene="completed" area={g.area} />
                 <p className="proof-fact">
                   {record.event?.data.detail ||
                     "Accomplishment details were not recorded in this earlier entry."}
                 </p>
                 {record.event?.data.reflection?.trim() && (
                   <>
-                    <span className="section-label">What changed</span>
+                    <span className="section-label">What this showed me</span>
                     <blockquote>{record.event.data.reflection}</blockquote>
                   </>
                 )}
@@ -615,7 +624,7 @@ export function ProofList({
         {showAll ? "Show recent evidence" : "View all evidence"}
       </button>
       <button className="quiet proof-back" onClick={() => navigate("/app")}>
-        Back to Basecamp
+        Back to Now
       </button>
     </Stage>
   );
@@ -773,7 +782,7 @@ export function ProofEntry({
         ) : (
           <>
             <button className="button" onClick={() => navigate("/app")}>
-              Return to Basecamp
+              Return to Now
             </button>
             <button
               className="button secondary"

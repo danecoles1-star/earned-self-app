@@ -113,7 +113,7 @@ for (const width of [390, 1440])
       }),
     ).toBeVisible();
     await p.reload();
-    await p.getByRole("button", { name: "Basecamp", exact: true }).click();
+    await p.getByRole("button", { name: "Now", exact: true }).click();
     await expect(
       p.getByText("Healthy enough to climb mountains into my 70s", {
         exact: true,
@@ -127,24 +127,24 @@ for (const width of [390, 1440])
     await p.getByRole("button", { name: /Morning stretching/ }).click();
     await expect(p.getByText("Ten minutes completed")).toBeVisible();
     await expect(
-      p.getByRole("button", { name: "Return to Basecamp" }),
+      p.getByRole("button", { name: "Return to Now" }),
     ).toBeVisible();
     await p.screenshot({
       path: `/tmp/pilot-proof-${width}.png`,
       fullPage: true,
     });
-    await p.getByRole("button", { name: "Return to Basecamp" }).click();
+    await p.getByRole("button", { name: "Return to Now" }).click();
     await expect(
       p.getByRole("region", { name: "Step details & calendar" }),
     ).toBeVisible();
     await p.getByRole("button", { name: /Add to calendar/ }).click();
     await expect(
-      p.getByRole("button", { name: "Return to Basecamp" }),
+      p.getByRole("button", { name: "Return to Now" }),
     ).toBeVisible();
     const download = p.waitForEvent("download");
     await p.getByRole("button", { name: "Apple Calendar" }).click();
     expect((await download).suggestedFilename()).toBe("Earned_Self_Move.ics");
-    await p.getByRole("button", { name: "Return to Basecamp" }).click();
+    await p.getByRole("button", { name: "Return to Now" }).click();
     await p.getByRole("button", { name: /Take your vision with you/ }).click();
     await p.getByRole("button", { name: "Use my own vision" }).click();
     await p.getByRole("button", { name: "Mineral", exact: true }).click();

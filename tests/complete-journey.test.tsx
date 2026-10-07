@@ -15,17 +15,17 @@ it("public examples switch without creating or selecting a user's challenge", ()
   expect(screen.getByRole("heading", { name: "Become You." })).toBeVisible();
   expect(screen.getByText("Complete my first triathlon.")).toBeVisible();
   fireEvent.click(
-    screen.getByRole("button", { name: "Professional", exact: true }),
+    screen.getAllByRole("button", { name: "Professional", exact: true })[0],
   );
   expect(
     screen.getByText("Deliver a keynote at an industry conference."),
   ).toBeVisible();
   expect(screen.queryByText("Complete my first triathlon.")).toBeNull();
   fireEvent.click(
-    screen.getByRole("button", { name: "Personal", exact: true }),
+    screen.getAllByRole("button", { name: "Personal", exact: true })[0],
   );
   expect(
-    screen.getByText("Bring my scattered family together for a reunion."),
+    screen.getByText("Finish my novella and share it with three readers."),
   ).toBeVisible();
   expect(start).not.toHaveBeenCalled();
   for (const button of screen.getAllByRole("button", {
@@ -34,7 +34,9 @@ it("public examples switch without creating or selecting a user's challenge", ()
   }))
     fireEvent.click(button);
   fireEvent.click(screen.getByRole("button", { name: "Take your first step" }));
-  expect(screen.queryByRole("button", { name: "Begin my challenge" })).toBeNull();
+  expect(
+    screen.queryByRole("button", { name: "Begin my challenge" }),
+  ).toBeNull();
   fireEvent.click(screen.getByRole("button", { name: "Make it mine" }));
   expect(start.mock.calls).toEqual(Array.from({ length: 4 }, () => ["vision"]));
   fireEvent.click(screen.getByRole("button", { name: "Log in" }));
@@ -43,7 +45,7 @@ it("public examples switch without creating or selecting a user's challenge", ()
 it("returning members have a direct Basecamp entry", () => {
   const signIn = vi.fn();
   render(<Homepage start={vi.fn()} signIn={signIn} signedIn />);
-  fireEvent.click(screen.getByRole("button", { name: "Return to Basecamp" }));
+  fireEvent.click(screen.getByRole("button", { name: "Return to Now" }));
   expect(signIn).toHaveBeenCalledOnce();
 });
 it("first-action stage carries the authored title into the timer without changing the answer", () => {

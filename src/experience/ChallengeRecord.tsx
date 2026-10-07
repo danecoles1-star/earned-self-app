@@ -46,35 +46,39 @@ export function ChallengeRecord({
       navigate={navigate}
       back={() => navigate("/proof")}
     >
+      <Landscape scene="completed" area={g.area} />
+      <p className="illustration-caption">
+        Illustration · Your accomplishment is recorded in your own words.
+      </p>
       <section className="accomplishment-summary">
         <span className="section-label">
           Challenge completed
           {event ? " · " + displayDate(event.recorded_at.slice(0, 10)) : ""}
         </span>
         <h2>{completed.words}</h2>
-        <p>Done meant: {completed.outcome || "Criterion not recorded."}</p>
       </section>
-      <Landscape scene="completed" />
-      <div className="transformation-highlight">
-        {field("What changed", event?.data.reflection)}
-        {field("What you’ll carry forward", event?.data.next)}
-      </div>
-      <button className="button" onClick={() => navigate("/new")}>
-        Choose my next challenge
-      </button>
+      <section className="earned-statement">
+        <span className="section-label">What this showed me</span>
+        {event?.data.reflection?.trim() ? (
+          <>
+            <blockquote>{event.data.reflection}</blockquote>
+            <p>In your words</p>
+          </>
+        ) : (
+          <p>Not recorded in this earlier entry.</p>
+        )}
+      </section>
       <section
         className="transformation-details"
         aria-label="Your full transformation record"
       >
-        <p className="vision-distinction">
-          Your vision describes who you wanted to become. Your reflections below
-          describe what you recorded.
-        </p>
         {field(
-          original ? "Your original vision" : "Your saved vision",
+          original ? "The vision I chose" : "My saved vision",
           original?.vision ?? g.vision,
         )}
-        {field("What actually happened", event?.data.detail)}
+        {field("Completion criterion", completed.outcome)}
+        {field("What I did", event?.data.detail)}
+        {field("What I will carry forward", event?.data.next)}
       </section>
       <details className="supporting-proof">
         <summary>Steps and milestone attempts</summary>
@@ -129,6 +133,15 @@ export function ChallengeRecord({
           ) && <p>No supporting entries were recorded.</p>}
       </details>
       <div className="record-next">
+        <button
+          className="button"
+          onClick={() => navigate("/wallpaper/" + g.id)}
+        >
+          Carry this forward
+        </button>
+        <button className="button" onClick={() => navigate("/new")}>
+          Choose my next challenge
+        </button>
         <button className="quiet" onClick={() => navigate("/proof")}>
           Return to Your Proof
         </button>

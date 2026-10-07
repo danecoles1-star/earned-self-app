@@ -34,3 +34,5 @@ import "./experience/ivory-orb.css";
 import "./experience/complete-journey.css";
 
 import "./experience/focus-refinement.css";
+
+import "./experience/workshop.css";

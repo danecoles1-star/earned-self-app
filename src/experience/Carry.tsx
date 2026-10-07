@@ -1,4 +1,5 @@
-import wallpaperScene from "../assets/art/plan-landscape.webp";
+import { areaArt, proofArt, preparationArt } from "./workshopArt";
+import { completedEvent } from "./ChallengeRecord";
 import { ProfilePhotoEditor } from "./ProfilePhoto";
 import { displaySchedule, displayDate } from "../data/time";
 import { useEffect, useState } from "react";
@@ -33,7 +34,7 @@ export function Calendar({
       back={() => navigate("/app")}
       footer={
         <button className="button" onClick={() => navigate("/app")}>
-          Return to Basecamp
+          Return to Now
         </button>
       }
     >
@@ -109,9 +110,11 @@ export function Calendar({
 }
 export function Wallpaper({
   goal,
+  snapshot,
   navigate,
 }: {
   goal: Goal;
+  snapshot?: Snapshot;
   navigate: (p: string) => void;
 }) {
   const [step, setStep] = useState(0),
@@ -119,11 +122,45 @@ export function Wallpaper({
     [reason, setReason] = useState(false),
     [date, setDate] = useState(false),
     [brand, setBrand] = useState(true),
-    [style, setStyle] = useState("mountain"),
+    [style, setStyle] = useState(goal.area ? "courage" : "light"),
     [error, setError] = useState(""),
     [saved, setSaved] = useState(false),
     [busy, setBusy] = useState(false);
-  const light = style === "light" || style === "mountain";
+  const art = goal.area
+    ? (
+        {
+          courage: areaArt[goal.area],
+          preparation: preparationArt[goal.area],
+          possibility: proofArt[goal.area],
+        } as Record<string, string>
+      )[style]
+    : undefined;
+  const light = !!art || ["light", "blue", "ember"].includes(style);
+  const reflection = snapshot
+    ? completedEvent(snapshot, goal.id)?.data.reflection
+    : undefined;
+  const styles = [
+    ...(goal.area
+      ? [
+          { id: "courage", label: "Courage", image: areaArt[goal.area] },
+          {
+            id: "preparation",
+            label: "Preparation",
+            image: preparationArt[goal.area],
+          },
+          {
+            id: "possibility",
+            label: "Possibility",
+            image: proofArt[goal.area],
+          },
+        ]
+      : []),
+    { id: "ink", label: "Summit Ink" },
+    { id: "mineral", label: "Prepared Mineral" },
+    { id: "light", label: "Proof Ivory" },
+    { id: "ember", label: "Challenge Ember" },
+    { id: "blue", label: "Mineral Paper" },
+  ];
   const [previewUrl, setPreviewUrl] = useState("");
   const [imageBlob, setImageBlob] = useState<Blob | null>(null);
   useEffect(() => {
@@ -140,15 +177,21 @@ export function Wallpaper({
         canvas.width = 1170;
         canvas.height = 2532;
         const ctx = canvas.getContext("2d")!;
-        ctx.fillStyle = light
+        ctx.fillStyle = art
           ? "#F6F1E8"
-          : style === "mineral"
-            ? "#5E7783"
-            : "#101A20";
+          : (
+              {
+                light: "#F6F1E8",
+                mineral: "#537889",
+                ember: "#E45D3D",
+                blue: "#F1F3F1",
+                ink: "#172329",
+              } as Record<string, string>
+            )[style] || "#172329";
         ctx.fillRect(0, 0, 1170, 2532);
-        if (style === "mountain") {
+        if (art) {
           const image = new Image();
-          image.src = wallpaperScene;
+          image.src = art;
           await image.decode();
           const layer = document.createElement("canvas");
           layer.width = 1170;
@@ -273,7 +316,7 @@ export function Wallpaper({
       alive = false;
       if (url) URL.revokeObjectURL(url);
     };
-  }, [words, reason, date, brand, style, goal.meaning]);
+  }, [words, reason, date, brand, style, goal.meaning, art]);
   async function save() {
     if (!imageBlob) return;
     const file = new File([imageBlob], "Earned_Self_Lock_Screen.png", {
@@ -343,7 +386,7 @@ export function Wallpaper({
                 Download image
               </button>
               <button className="quiet" onClick={() => navigate("/app")}>
-                Return to Basecamp
+                Return to Now
               </button>
             </div>
           )}
@@ -367,30 +410,30 @@ export function Wallpaper({
           <button className="quiet" onClick={() => setWords(goal.vision)}>
             Use my own vision
           </button>
+          {reflection && (
+            <button className="quiet" onClick={() => setWords(reflection)}>
+              Use my own reflection
+            </button>
+          )}
           <fieldset className="wallpaper-styles">
             <legend>Choose a style</legend>
-            {["mountain", "ink", "mineral", "light"].map((name) => (
+            {styles.map((choice) => (
               <button
-                key={name}
-                className={"wallpaper-swatch " + name}
-                aria-pressed={style === name}
-                aria-label={name === "mineral" ? "Mineral" : undefined}
-                onClick={() => setStyle(name)}
+                key={choice.id}
+                className={"wallpaper-swatch " + choice.id}
+                aria-pressed={style === choice.id}
+                aria-label={choice.id === "mineral" ? "Mineral" : choice.label}
+                onClick={() => setStyle(choice.id)}
               >
-                {name === "mountain" && <img src={wallpaperScene} alt="" />}
-                <span>
-                  {
-                    {
-                      mountain: "Focus landscape",
-                      ink: "Summit Ink",
-                      mineral: "Prepared Mineral",
-                      light: "Proof Ivory",
-                    }[name]
-                  }
-                </span>
+                {"image" in choice && <img src={choice.image} alt="" />}
+                <span>{choice.label}</span>
               </button>
             ))}
           </fieldset>
+          <p className="small">
+            Illustrated scenes are inspiration, not a record of your
+            achievement.
+          </p>
           {[
             ["Add my reason", reason, setReason],
             ["Show date", date, setDate],
@@ -480,7 +523,7 @@ export function Settings({
       </button>
       {snapshot.goals.length > 1 && (
         <label>
-          Open an ambition
+          Open a challenge
           <select
             value={snapshot.selectedGoal ?? ""}
             disabled={saving}
@@ -495,7 +538,7 @@ export function Settings({
         </label>
       )}
       <button className="experience-choice" onClick={() => navigate("/new")}>
-        Begin another ambition
+        Begin another challenge
       </button>
       <button className="quiet" disabled={saving} onClick={signOut}>
         Sign out

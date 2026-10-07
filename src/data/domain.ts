@@ -23,6 +23,7 @@ export function required(value: unknown, label: string, max = 10000): string {
 }
 export const foundationKeys = Object.keys(emptyFoundation());
 const allowed: Record<Command["kind"], string[]> = {
+  area: ["goalId", "version", "area"],
   vision: ["goalId", "version", "vision"],
   stop_repeat: ["goalId", "commitmentId", "version"],
   planned_step: ["goalId", "id", "milestoneId", "action", "criterion"],
@@ -36,7 +37,7 @@ const allowed: Record<Command["kind"], string[]> = {
     "prevented",
     "adjustment",
   ],
-  goal: ["id", ...foundationKeys],
+  goal: ["id", "area", ...foundationKeys],
   plan: ["goalId", "version", ...foundationKeys],
   commitment: [
     "id",
@@ -207,6 +208,14 @@ export function validateCommand(c: Command) {
       throw new Error(
         `${k} must be 10,000 characters or fewer. Your text has not been shortened.`,
       );
+  if (
+    (c.kind === "area" || c.kind === "goal") &&
+    p.area !== undefined &&
+    !["physical", "professional", "personal"].includes(String(p.area))
+  )
+    throw new Error("Choose Physical, Professional, or Personal.");
+  if (c.kind === "area" && p.area === undefined)
+    throw new Error("Choose an area.");
   if (c.kind === "goal" || c.kind === "plan") {
     for (const k of foundationKeys.filter(
       (k) => !["milestones", "affirmed"].includes(k),
@@ -324,6 +333,7 @@ export function applyLocal(
       ...foundation(),
       id,
       owner_id: owner,
+      area: (p.area as Goal["area"]) || null,
       kind: "goal",
       created_at: now,
       version: 1,
@@ -352,7 +362,14 @@ export function applyLocal(
       if (g.version !== p.version)
         throw new Error("This pursuit changed. Reload before saving.");
     };
-    if (c.kind === "vision") {
+    if (c.kind === "area") {
+      version();
+      const previous = g.area || "";
+      g.area = p.area as Goal["area"];
+      g.version++;
+      event(g.id, "area", { from: previous, to: String(p.area) });
+      receipt = { id: g.id, version: g.version };
+    } else if (c.kind === "vision") {
       version();
       g.vision = required(p.vision, "Your vision");
       g.version++;

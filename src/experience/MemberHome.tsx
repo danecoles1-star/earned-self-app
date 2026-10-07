@@ -2,10 +2,10 @@ import { useEffect } from "react";
 import { Paused } from "./Paused";
 import { displaySchedule } from "../data/time";
 import { repeatLabel } from "../data/recurrence";
-import wallpaperScene from "../assets/art/plan-landscape.webp";
-import homeIcon from "../assets/icons/earned-basecamp.svg";
-import planIcon from "../assets/icons/earned-plan.svg";
-import proofIcon from "../assets/icons/earned-proof.svg";
+import { artFor } from "./workshopArt";
+import homeIcon from "../assets/workshop/nav-now.png";
+import planIcon from "../assets/workshop/nav-plan.png";
+import proofIcon from "../assets/workshop/nav-proof.png";
 import type { Goal, Snapshot } from "../data/types";
 import {
   currentAction,
@@ -58,14 +58,14 @@ export function MemberHome({
     navigate("/report/" + goal.id);
   };
   return (
-    <Stage title="Basecamp" tone="focus" navigate={navigate}>
+    <Stage title="Now" tone="focus" navigate={navigate}>
       {goal.vision && (
         <section className="identity-reminder">
           <span className="section-label">Who I am becoming</span>
           <p>{goal.vision}</p>
         </section>
       )}
-      <Landscape />
+
       <div
         className="stage-context context-pair"
         data-has-milestone={!!milestone && !ended}
@@ -227,7 +227,7 @@ export function MemberHome({
         className="wallpaper-card"
         onClick={() => navigate("/wallpaper/" + goal.id)}
       >
-        <img src={wallpaperScene} alt="" />
+        <img src={artFor(goal.area)} alt="" />
         <span>
           <strong>Take your vision with you</strong>
           <small>Create wallpaper →</small>
@@ -246,7 +246,7 @@ export function AppNavigation({
   return (
     <nav className="app-tabs" aria-label="Main navigation">
       {[
-        ["/app", "Basecamp", homeIcon],
+        ["/app", "Now", homeIcon],
         ["/manage", "Plan", planIcon],
         ["/proof", "Proof", proofIcon],
       ].map(([href, label, icon]) => (

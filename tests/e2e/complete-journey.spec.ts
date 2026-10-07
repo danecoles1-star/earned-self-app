@@ -13,15 +13,22 @@ for (const width of [390, 1440]) {
     ).toBeVisible();
     await page
       .getByRole("button", { name: "Professional", exact: true })
+      .first()
       .click();
     await expect(
       page.getByText("Deliver a keynote at an industry conference."),
     ).toBeVisible();
-    await page.getByRole("button", { name: "Personal", exact: true }).click();
+    await page
+      .getByRole("button", { name: "Personal", exact: true })
+      .first()
+      .click();
     await expect(
-      page.getByText("Bring my scattered family together for a reunion."),
+      page.getByText("Finish my novella and share it with three readers."),
     ).toBeVisible();
-    await page.getByRole("button", { name: "Physical", exact: true }).click();
+    await page
+      .getByRole("button", { name: "Physical", exact: true })
+      .first()
+      .click();
     await expect(page.getByText("Complete my first triathlon.")).toBeVisible();
     expect(
       await page.evaluate(() => document.documentElement.scrollWidth),
@@ -32,7 +39,7 @@ for (const width of [390, 1440]) {
       .click();
     await expect(page).toHaveURL(/\/start$/);
     await expect(
-      page.getByRole("heading", { name: "What brings you here?" }),
+      page.getByRole("heading", { name: "Where do you want to grow?" }),
     ).toBeVisible();
     await expect(
       page.getByRole("button", { name: "Continue", exact: true }),

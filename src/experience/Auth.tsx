@@ -188,7 +188,7 @@ export function Auth({
             <>
               <p>You are signed in as {user.email}.</p>
               <button className="button" onClick={finish}>
-                Continue to Basecamp
+                Continue to Now
               </button>
             </>
           ) : (

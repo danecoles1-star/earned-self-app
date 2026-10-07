@@ -14,6 +14,7 @@ test("production headers permit the real wallpaper preview and download without 
       id: g,
       owner_id: owner,
       kind: "goal",
+      area: "physical",
       words: "My ambition",
       vision: "Become someone who follows through",
       meaning: "My own reason",
@@ -31,7 +32,33 @@ test("production headers permit the real wallpaper preview and download without 
   await page.route("https://*.supabase.co/**", async (route) => {
     if (route.request().url().endsWith("/rest/v1/rpc/es_read_state"))
       await route.fulfill({ json: s });
-    else await route.abort();
+    else if (route.request().url().endsWith("/auth/v1/user"))
+      await route.fulfill({
+        json: {
+          id: owner,
+          aud: "authenticated",
+          role: "authenticated",
+          email: "test@example.invalid",
+          app_metadata: {},
+          user_metadata: {},
+          created_at: "2026-01-01",
+        },
+      });
+    else if (route.request().url().includes("/storage/v1/object/"))
+      await route.fulfill({
+        contentType: "image/png",
+        body: Buffer.from(
+          "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=",
+          "base64",
+        ),
+      });
+    else {
+      violations.push(
+        "Unexpected backend request: " +
+          new URL(route.request().url()).pathname,
+      );
+      await route.abort();
+    }
   });
   await page.addInitScript(
     ({ owner }) => {
@@ -76,6 +103,7 @@ test("production headers permit the real wallpaper preview and download without 
   await page
     .getByLabel("Words to carry", { exact: true })
     .fill("Keep showing up.");
+  await page.getByRole("button", { name: "Preparation", exact: true }).click();
   const picture = page.getByRole("img", {
     name: "Your lock-screen image preview",
   });
@@ -87,7 +115,9 @@ test("production headers permit the real wallpaper preview and download without 
     .getByRole("button", { name: "Preview lock screen", exact: true })
     .click();
   const download = page.waitForEvent("download");
-  await page.getByRole("button", { name: "Save image", exact: true }).click();
+  await page
+    .getByRole("button", { name: "Download image", exact: true })
+    .click();
   expect((await download).suggestedFilename()).toBe(
     "Earned_Self_Lock_Screen.png",
   );

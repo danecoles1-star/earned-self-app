@@ -1,9 +1,7 @@
+import { AreaTabs, AreaContext } from "./Areas";
+import { artFor } from "./workshopArt";
 import { useEffect, useRef, type ReactNode } from "react";
 import { Brand } from "../components/Brand";
-import basecampScene from "../assets/art/basecamp-landscape.webp";
-import planScene from "../assets/art/plan-landscape.webp";
-import completedScene from "../assets/art/completed-landscape.webp";
-import proofScene from "../assets/art/proof-landscape.webp";
 import { useContext } from "react";
 import { ProfileContext } from "./ProfilePhoto";
 import account from "../assets/icons/user-round.svg";
@@ -50,6 +48,7 @@ export function Stage({
         </button>
       </header>
       <main id="main" className="stage-main">
+        <AreaTabs />
         {back && (
           <button className="quiet stage-back" onClick={back}>
             {backLabel}
@@ -78,20 +77,19 @@ export function Stage({
 
 export function Landscape({
   scene = "basecamp",
+  area,
 }: {
   scene?: "basecamp" | "plan" | "proof" | "completed";
+  area?: import("../data/types").GrowthArea | null;
 }) {
+  const context = useContext(AreaContext);
   return (
     <img
       className={`stage-landscape landscape-${scene}`}
-      src={
-        {
-          basecamp: basecampScene,
-          plan: planScene,
-          proof: proofScene,
-          completed: completedScene,
-        }[scene]
-      }
+      src={artFor(
+        area === undefined ? context.area : area,
+        scene === "completed",
+      )}
       alt=""
       aria-hidden="true"
     />

@@ -1,3 +1,6 @@
+import { AreaContext, AreaTabs, areas, areaLabel } from "./experience/Areas";
+import { Stage } from "./experience/Stage";
+import type { GrowthArea } from "./data/types";
 import { isAppRoute } from "./data/routes";
 import { ProfileProvider } from "./experience/ProfilePhoto";
 import { Auth } from "./experience/Auth";
@@ -87,6 +90,7 @@ function Privacy() {
   );
 }
 export function App({ adapter }: { adapter: Adapter }) {
+  const [areaView, setAreaView] = useState<GrowthArea | null>(null);
   const [path, setPath] = useState(location.pathname),
     [user, setUser] = useState<User | null>(null),
     [boot, setBoot] = useState(true),
@@ -184,6 +188,7 @@ export function App({ adapter }: { adapter: Adapter }) {
   useEffect(() => {
     epoch.current++;
     setSnapshot(emptySnapshot());
+    setAreaView(null);
     setLoadError("");
     setNotice("");
     if (user) void refresh();
@@ -315,9 +320,35 @@ export function App({ adapter }: { adapter: Adapter }) {
       setError(message(e));
     }
   }
-  const selected =
+  const storedSelected =
     snapshot.goals.find((g) => g.id === snapshot.selectedGoal) ??
     snapshot.goals[0];
+  const effectiveArea = areaView || storedSelected?.area || null;
+  const areaGoals = snapshot.goals.filter((g) => g.area === effectiveArea);
+  const selected =
+    !areaView || storedSelected?.area === areaView
+      ? storedSelected
+      : [...areaGoals].sort(
+          (a, b) =>
+            Number(["draft", "active", "paused"].includes(b.status)) -
+              Number(["draft", "active", "paused"].includes(a.status)) ||
+            b.created_at.localeCompare(a.created_at),
+        )[0];
+  const chooseArea = (area: GrowthArea) => {
+    setAreaView(area);
+    if (!["/app", "/manage", "/proof"].includes(path))
+      navigate(path.startsWith("/proof") ? "/proof" : "/app");
+    const goal = [...snapshot.goals]
+      .filter((g) => g.area === area)
+      .sort(
+        (a, b) =>
+          Number(["draft", "active", "paused"].includes(b.status)) -
+            Number(["draft", "active", "paused"].includes(a.status)) ||
+          b.created_at.localeCompare(a.created_at),
+      )[0];
+    if (goal && goal.id !== snapshot.selectedGoal)
+      void save("select", { goalId: goal.id });
+  };
   let screen;
   if (path === "/")
     screen = (
@@ -344,7 +375,7 @@ export function App({ adapter }: { adapter: Adapter }) {
             className="button"
             onClick={() => navigate(user ? "/app" : "/")}
           >
-            {user ? "Return to Basecamp" : "Return to Earned Self"}
+            {user ? "Return to Now" : "Return to Earned Self"}
           </button>
         }
       >
@@ -364,7 +395,12 @@ export function App({ adapter }: { adapter: Adapter }) {
               try {
                 archiveDraft(draft);
                 clearDraft();
-                setDraft(loadDraft());
+                const fresh = {
+                  ...loadDraft(),
+                  ...(effectiveArea ? { area: effectiveArea } : {}),
+                };
+                saveDraft(fresh);
+                setDraft(fresh);
                 setDraftError("");
                 navigate("/start");
               } catch {
@@ -379,7 +415,7 @@ export function App({ adapter }: { adapter: Adapter }) {
         }
       >
         <p>
-          Your saved ambitions and Proof stay in your account. Start with your
+          Your saved challenges and Proof stay in your account. Start with your
           own words on a blank page.
         </p>
         {(draft.words || draft.vision) && (
@@ -533,6 +569,7 @@ export function App({ adapter }: { adapter: Adapter }) {
           )
             return;
           setSnapshot(state);
+          setAreaView(null);
           const currentDraft = loadDraft();
           if (
             currentDraft.id === draft.id &&
@@ -559,8 +596,7 @@ export function App({ adapter }: { adapter: Adapter }) {
         <main id="main" className="workspace narrow">
           <h1>Keep your progress.</h1>
           <p>
-            {first?.detail ||
-              "Your challenge is saved. Open Basecamp to continue."}
+            {first?.detail || "Your challenge is saved. Open Now to continue."}
           </p>
           <button
             className="button"
@@ -678,7 +714,43 @@ export function App({ adapter }: { adapter: Adapter }) {
       <Unavailable navigate={navigate} />
     );
   } else if (path === "/proof")
-    screen = <ProofList snapshot={snapshot} navigate={navigate} />;
+    screen = (
+      <ProofList
+        snapshot={
+          effectiveArea
+            ? {
+                ...snapshot,
+                goals: snapshot.goals.filter((g) => g.area === effectiveArea),
+                selectedGoal: selected?.id || null,
+              }
+            : snapshot
+        }
+        navigate={navigate}
+      />
+    );
+  else if (["/app", "/manage"].includes(path) && !selected)
+    screen = (
+      <Stage title="Your next challenge" navigate={navigate}>
+        <section className="area-empty">
+          <p className="section-label">
+            {effectiveArea
+              ? areaLabel(effectiveArea)
+              : "Your own starting point"}
+          </p>
+          <h2>What could you become here?</h2>
+          <p>
+            Start one meaningful challenge. Your work in other areas stays
+            available.
+          </p>
+          <button
+            className="button"
+            onClick={() => navigate(snapshot.goals.length ? "/new" : "/start")}
+          >
+            Create a challenge
+          </button>
+        </section>
+      </Stage>
+    );
   else if (path.startsWith("/manage") && selected)
     screen = (
       <Ambition
@@ -732,9 +804,10 @@ export function App({ adapter }: { adapter: Adapter }) {
         snapshot={snapshot}
         navigate={navigate}
         save={(mode) => void save("support", { mode })}
-        selectAmbition={(goalId) =>
-          void save("select", { goalId }, () => navigate("/app"))
-        }
+        selectAmbition={(goalId) => {
+          setAreaView(null);
+          void save("select", { goalId }, () => navigate("/app"));
+        }}
         signOut={() => void signOut()}
         saving={saving}
       />
@@ -745,7 +818,7 @@ export function App({ adapter }: { adapter: Adapter }) {
       path.startsWith("/calendar/") ? (
         <Calendar goal={g} snapshot={snapshot} navigate={navigate} />
       ) : (
-        <Wallpaper goal={g} navigate={navigate} />
+        <Wallpaper goal={g} snapshot={snapshot} navigate={navigate} />
       )
     ) : (
       <Unavailable navigate={navigate} />
@@ -938,9 +1011,46 @@ export function App({ adapter }: { adapter: Adapter }) {
           adapter={adapter}
           owner={user?.id || null}
         >
-          <SupportMode.Provider value={snapshot.supportMode}>
-            {screen}
-          </SupportMode.Provider>
+          <AreaContext.Provider
+            value={{
+              area: path === "/start" ? draft.area || null : effectiveArea,
+              choose: chooseArea,
+              goals: snapshot.goals,
+              busy: saving,
+            }}
+          >
+            <SupportMode.Provider value={snapshot.supportMode}>
+              {screen}
+              {user &&
+                selected &&
+                !selected.area &&
+                ["/app", "/manage", "/proof"].includes(path) && (
+                  <section className="assign-area">
+                    <h2>Choose this challenge’s area</h2>
+                    <p>Your existing words and Proof stay unchanged.</p>
+                    {areas.map((a) => (
+                      <button
+                        className="button secondary"
+                        key={a}
+                        onClick={() =>
+                          void save(
+                            "area",
+                            {
+                              goalId: selected.id,
+                              version: selected.version,
+                              area: a,
+                            },
+                            () => setAreaView(a),
+                          )
+                        }
+                      >
+                        {areaLabel(a)}
+                      </button>
+                    ))}
+                  </section>
+                )}
+            </SupportMode.Provider>
+          </AreaContext.Provider>
         </ProfileProvider>
         {user &&
           ![

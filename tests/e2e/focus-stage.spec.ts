@@ -96,7 +96,7 @@ for (const width of [320, 390, 1440]) {
     );
     await expect(p.locator(".wallpaper-card")).toHaveCSS(
       "color",
-      "rgb(16, 26, 32)",
+      "rgb(23, 35, 41)",
     );
     const ring = p.locator(".timer-face"),
       start = p.getByRole("button", { name: "Start timer", exact: true });
@@ -155,7 +155,7 @@ for (const width of [320, 390, 1440]) {
       p.getByText("Keep testing ideas with real customers"),
     ).toBeVisible();
     await expect(
-      p.getByRole("heading", { name: "Your original vision" }),
+      p.getByRole("heading", { name: "The vision I chose" }),
     ).toBeVisible();
     await capture(p, "completed-record", width);
     await expect(
@@ -214,7 +214,7 @@ test("Ivory orb follows timer state, respects reduced motion and keeps every dig
   );
   await expect(p.locator(".stage-focus")).toHaveCSS(
     "background-color",
-    "rgb(246, 241, 232)",
+    "rgba(0, 0, 0, 0)",
   );
   await expect(p.locator(".stage-focus")).toHaveCSS("background-image", "none");
   await expect(p.locator(".stage-details")).not.toHaveJSProperty(

@@ -31,7 +31,7 @@ test("first visit through first action, failure recovery, accomplishment and nex
   assert(
     await p.getByRole("button", { name: "Continue", exact: true }).isDisabled(),
   );
-  await click("I’m ready to take on more");
+  await click("Personal");
   await next();
   await fill("Your future self", "Become a confident published writer");
   await shot("03-identity-mobile");
@@ -39,6 +39,11 @@ test("first visit through first action, failure recovery, accomplishment and nex
   await fill("My challenge", "Publish a researched essay");
   await next();
   await fill("Your reason", "Share a perspective I have kept to myself");
+  await next();
+  await fill(
+    "I will know I have done it when…",
+    "My essay is published and available to read",
+  );
   await next();
   await fill("What will you do now?", "Write one opening sentence");
   await fill("What will be done?", "One sentence is on the page");
@@ -60,8 +65,6 @@ test("first visit through first action, failure recovery, accomplishment and nex
     p.getByText("Saved to your account.", { exact: true }),
   ).toBeVisible();
   await click("Continue preparation");
-  await fill("Done means", "My essay is published and available to read");
-  await next();
   await fill("What I need to plan for", "Thirty minutes after work");
   await next();
   await fill("What I need to build", "Research and revise an argument");
@@ -98,7 +101,7 @@ test("first visit through first action, failure recovery, accomplishment and nex
   await click("Apple Calendar");
   const dl = await download;
   assert.equal(dl.suggestedFilename(), "Earned_Self_Move.ics");
-  await click("Return to Basecamp");
+  await click("Return to Now");
   await shot("30-now-mobile");
   await click("Step check-in");
   await click("Partly");
@@ -140,7 +143,10 @@ test("first visit through first action, failure recovery, accomplishment and nex
   await click("I accomplished it");
   await fill("What actually happened?", "The essay has been published");
   await next();
-  await fill("What has changed?", "I can share my writing despite uncertainty");
+  await fill(
+    "What does this show you about yourself?",
+    "I can share my writing despite uncertainty",
+  );
   await fill("What will you carry forward?", "Make time to write every week");
   await click("Confirm accomplishment");
   await p
@@ -150,7 +156,7 @@ test("first visit through first action, failure recovery, accomplishment and nex
   await expect(
     p.getByText("I can share my writing despite uncertainty"),
   ).toBeVisible();
-  await click("Basecamp");
+  await click("Now");
   await p.getByRole("button", { name: /Take your vision with you/ }).click();
   await fill("Words to carry", "Keep writing.");
   await click("Preview lock screen");
@@ -165,9 +171,16 @@ test("first visit through first action, failure recovery, accomplishment and nex
   await click("Go back");
   await click("Choose my next challenge");
   await click("Begin a fresh challenge");
-  assert(
-    await p.getByRole("button", { name: "Continue", exact: true }).isDisabled(),
+  await expect(
+    p.getByRole("button", { name: "Personal", exact: true }),
+  ).toHaveAttribute("aria-pressed", "true");
+  await next();
+  await expect(p.getByLabel("Your future self", { exact: true })).toHaveValue(
+    "",
   );
+  await expect(
+    p.getByRole("button", { name: "Continue", exact: true }),
+  ).toBeDisabled();
   await p.setViewportSize({ width: 1440, height: 1000 });
   await p.goto("/");
   await shot("01-home-desktop");
@@ -187,9 +200,7 @@ test("small screen keyboard entry, required answer and reload recovery", async (
   await expect(
     p.getByRole("button", { name: "Continue", exact: true }),
   ).toBeDisabled();
-  await p
-    .getByRole("button", { name: "I’m ready to take on more", exact: true })
-    .click();
+  await p.getByRole("button", { name: "Personal", exact: true }).click();
   await p.getByRole("button", { name: "Continue", exact: true }).click();
   await p.getByLabel("Your future self", { exact: true }).fill("   ");
   await expect(
@@ -245,9 +256,7 @@ test("phone preview works when HTTP does not provide randomUUID", async ({
     .locator(".how-opening")
     .getByRole("button", { name: "Build my challenge", exact: true })
     .click();
-  await page
-    .getByRole("button", { name: "I’m ready to take on more", exact: true })
-    .click();
+  await page.getByRole("button", { name: "Personal", exact: true }).click();
   await page.getByRole("button", { name: "Continue", exact: true }).click();
   await page
     .getByLabel("Your future self", { exact: true })

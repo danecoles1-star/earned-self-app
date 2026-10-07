@@ -632,7 +632,7 @@ export function MilestoneComplete({
               I’m ready
             </button>
             <button className="quiet" onClick={() => navigate("/app")}>
-              Not yet · Return to Basecamp
+              Not yet · Return to Now
             </button>
           </>
         }
@@ -983,7 +983,7 @@ export function Decision({ goal: g, snapshot, save, saving, navigate }: Props) {
               <p className="small">The vision you chose</p>
               <h2>{g.vision}</h2>
               <Input
-                label="What has changed?"
+                label="What does this show you about yourself?"
                 value={v.reflection}
                 onChange={(v) => set("reflection", v)}
                 placeholder="How do you see yourself now?"
