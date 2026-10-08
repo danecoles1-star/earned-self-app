@@ -1,7 +1,8 @@
+import plus from "../assets/icons/plus.svg";
 import { AreaAssignment } from "./Areas";
 import { WorkshopPath } from "./WorkshopPath";
-import { PlanFocus } from "./PlanFocus";
-import { MilestonePath } from "./MilestonePath";
+import { WallpaperCard } from "./WallpaperCard";
+
 import { Paused } from "./Paused";
 import { completedEvent, completionRecord } from "./ChallengeRecord";
 import { Stage, Landscape } from "./Stage";
@@ -9,7 +10,7 @@ import { displaySchedule, displayDate } from "../data/time";
 import { currentSchedule } from "../data/domain";
 import { repeatLabel } from "../data/recurrence";
 import { pendingSteps } from "./PlanStep";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { Goal, Snapshot } from "../data/types";
 import {
   currentAction,
@@ -33,14 +34,6 @@ export function Ambition({
   snapshot: Snapshot;
   navigate: (p: string) => void;
 }) {
-  const [showDetails, setShowDetails] = useState(false);
-  const [focusedMilestone, setFocusedMilestone] = useState<string | null>(null);
-  useEffect(() => {
-    if (!showDetails || !focusedMilestone) return;
-    const target = document.getElementById("milestone-" + focusedMilestone);
-    target?.scrollIntoView({ block: "start" });
-    target?.querySelector("summary")?.focus({ preventScroll: true });
-  }, [showDetails, focusedMilestone]);
   const [editingVision, setEditingVision] = useState(false);
   const [vision, setVision] = useState(g.vision);
   const [section, setSection] = useState(
@@ -83,28 +76,12 @@ export function Ambition({
             goal={g}
             snapshot={s}
             onReview={(id) => {
-              setShowDetails(true);
-              setFocusedMilestone(id);
+              const target = document.getElementById("milestone-" + id);
+              target?.scrollIntoView({ block: "start" });
+              target?.focus({ preventScroll: true });
             }}
           />
-          <PlanFocus goal={g} snapshot={s} navigate={navigate} />
-          <button
-            className="quiet all-plan-link"
-            onClick={() => setShowDetails(!showDetails)}
-            aria-expanded={showDetails}
-          >
-            {showDetails ? "Close planning details" : "All milestones & steps"}
-          </button>
-          <div hidden={!showDetails} className="plan-detail-tools">
-            <MilestonePath
-              goal={g}
-              snapshot={s}
-              onReview={(id) => {
-                setShowDetails(true);
-                setFocusedMilestone(id);
-              }}
-            />
-
+          <div className="plan-detail-tools">
             {!m && !ended && (
               <button
                 className="button secondary"
@@ -120,208 +97,181 @@ export function Ambition({
               <h2>Milestones & steps</h2>
               {!g.milestones.length && <p>No milestones planned yet.</p>}
               <div className="milestone-path">
-                {[...g.milestones]
-                  .sort(
-                    (a, b) => Number(b.id === m?.id) - Number(a.id === m?.id),
-                  )
-                  .map((m) => (
-                    <details
-                      className={
-                        !ended && m.id === currentMilestone(s, g)?.id
-                          ? "plan-stage current plan-focus"
-                          : "plan-stage"
-                      }
-                      key={m.id}
-                      id={"milestone-" + m.id}
-                      open={
-                        m.id === currentMilestone(s, g)?.id ||
-                        m.id === focusedMilestone
-                      }
-                    >
-                      <summary>
-                        <span className="stage-number">
-                          {g.milestones.findIndex((item) => item.id === m.id) +
-                            1}
-                        </span>
-                        <span>
-                          <small>
-                            {s.events.some(
-                              (e) =>
-                                e.goal_id === g.id &&
-                                e.kind === "milestone" &&
-                                e.data.milestoneId === m.id,
-                            )
-                              ? "Completed"
-                              : m.id === currentMilestone(s, g)?.id
-                                ? g.status === "paused"
-                                  ? "Paused milestone"
-                                  : ended
-                                    ? "Not completed"
-                                    : "Current milestone"
+                {g.milestones.map((m) => (
+                  <section
+                    className={
+                      !ended && m.id === currentMilestone(s, g)?.id
+                        ? "plan-stage current plan-focus"
+                        : "plan-stage"
+                    }
+                    key={m.id}
+                    id={"milestone-" + m.id}
+                    tabIndex={-1}
+                  >
+                    <header className="milestone-heading">
+                      <span className="stage-number">
+                        {g.milestones.findIndex((item) => item.id === m.id) + 1}
+                      </span>
+                      <span>
+                        <small>
+                          {s.events.some(
+                            (e) =>
+                              e.goal_id === g.id &&
+                              e.kind === "milestone" &&
+                              e.data.milestoneId === m.id,
+                          )
+                            ? "Completed"
+                            : m.id === currentMilestone(s, g)?.id
+                              ? g.status === "paused"
+                                ? "Paused milestone"
                                 : ended
                                   ? "Not completed"
-                                  : "Upcoming"}
+                                  : "Current milestone"
+                              : ended
+                                ? "Not completed"
+                                : "Upcoming"}
+                        </small>
+                        <strong>{m.title}</strong>
+                      </span>
+                    </header>
+                    <p>{m.criterion}</p>
+                    <p className="small">
+                      {displaySchedule(m.localDate, m.localTime, m.timeZone)}
+                    </p>
+                    {pendingSteps(s, g)
+                      .filter((e) => e.data.milestoneId === m.id)
+                      .map((e) => (
+                        <div key={e.id}>
+                          <p>{e.data.action}</p>
+                          <button
+                            className="quiet"
+                            onClick={() =>
+                              navigate(
+                                "/commitment/" + g.id + "/" + e.data.stepId,
+                              )
+                            }
+                          >
+                            Schedule this step
+                          </button>
+                        </div>
+                      ))}
+                    {s.commitments
+                      .filter(
+                        (c) =>
+                          c.goal_id === g.id &&
+                          c.milestone_id === m.id &&
+                          c.state === "active",
+                      )
+                      .map((c) => (
+                        <div
+                          className={
+                            currentAction(s, g.id)?.id === c.id
+                              ? "plan-step-row plan-current-step"
+                              : "plan-step-row"
+                          }
+                          key={c.id}
+                        >
+                          {currentAction(s, g.id)?.id === c.id && (
+                            <small className="section-label">
+                              Current step
+                            </small>
+                          )}
+                          <button
+                            className="quiet plan-step-title"
+                            onClick={() =>
+                              navigate(
+                                currentAction(s, g.id)?.id === c.id
+                                  ? "/app"
+                                  : "/revise/" + g.id + "/" + c.id,
+                              )
+                            }
+                          >
+                            {definition(s, c.id, c.revision)?.action}
+                          </button>
+                          <small className="step-state">
+                            {c.state === "active"
+                              ? g.status === "paused"
+                                ? "Paused · date retained"
+                                : "Scheduled"
+                              : c.state === "cancelled"
+                                ? "Ended without a check-in"
+                                : "Check-in recorded"}
                           </small>
-                          <strong>{m.title}</strong>
-                        </span>
-                      </summary>
-                      <p>{m.criterion}</p>
-                      <p className="small">
-                        {displaySchedule(m.localDate, m.localTime, m.timeZone)}
-                      </p>
-                      {pendingSteps(s, g)
-                        .filter((e) => e.data.milestoneId === m.id)
-                        .map((e) => (
-                          <div key={e.id}>
-                            <p>{e.data.action}</p>
+                          <small className="step-metadata">
+                            {displaySchedule(
+                              currentSchedule(s, c.id)?.local_date,
+                              currentSchedule(s, c.id)?.local_time,
+                              currentSchedule(s, c.id)?.time_zone,
+                            )}{" "}
+                            · {repeatLabel(c.recurrence)}
+                          </small>
+                          <button
+                            className="quiet step-edit"
+                            onClick={() =>
+                              navigate("/revise/" + g.id + "/" + c.id)
+                            }
+                          >
+                            Revise this step
+                          </button>
+                          {c.state === "active" && c.recurrence && (
                             <button
-                              className="quiet"
+                              className="quiet stop-repeat"
+                              disabled={saving}
                               onClick={() =>
-                                navigate(
-                                  "/commitment/" + g.id + "/" + e.data.stepId,
+                                void save(
+                                  "stop_repeat",
+                                  {
+                                    goalId: g.id,
+                                    commitmentId: c.id,
+                                    version: c.version,
+                                  },
+                                  () => {},
                                 )
                               }
                             >
-                              Schedule this step
+                              Stop future repetitions
                             </button>
-                          </div>
-                        ))}
-                      {s.commitments
-                        .filter(
+                          )}
+                        </div>
+                      ))}
+                    {m.id === currentMilestone(s, g)?.id && (
+                      <button
+                        className="button secondary"
+                        onClick={() => navigate("/milestone/" + g.id)}
+                      >
+                        Review milestone
+                      </button>
+                    )}
+                    <p className="small">
+                      {
+                        s.commitments.filter(
                           (c) =>
                             c.goal_id === g.id &&
                             c.milestone_id === m.id &&
-                            c.state === "active",
-                        )
-                        .map((c) => (
-                          <div
-                            className={
-                              currentAction(s, g.id)?.id === c.id
-                                ? "plan-step-row plan-current-step"
-                                : "plan-step-row"
-                            }
-                            key={c.id}
-                          >
-                            {currentAction(s, g.id)?.id === c.id && (
-                              <small className="section-label">
-                                Current step
-                              </small>
-                            )}
-                            <button
-                              className="quiet plan-step-title"
-                              onClick={() =>
-                                navigate(
-                                  currentAction(s, g.id)?.id === c.id
-                                    ? "/app"
-                                    : "/revise/" + g.id + "/" + c.id,
-                                )
-                              }
-                            >
-                              {definition(s, c.id, c.revision)?.action}
-                            </button>
-                            <small className="step-state">
-                              {c.state === "active"
-                                ? g.status === "paused"
-                                  ? "Paused · date retained"
-                                  : "Scheduled"
-                                : c.state === "cancelled"
-                                  ? "Ended without a check-in"
-                                  : "Check-in recorded"}
-                            </small>
-                            <small className="step-metadata">
-                              {displaySchedule(
-                                currentSchedule(s, c.id)?.local_date,
-                                currentSchedule(s, c.id)?.local_time,
-                                currentSchedule(s, c.id)?.time_zone,
-                              )}{" "}
-                              · {repeatLabel(c.recurrence)}
-                            </small>
-                            <button
-                              className="button secondary"
-                              onClick={() =>
-                                navigate("/revise/" + g.id + "/" + c.id)
-                              }
-                            >
-                              Revise this step
-                            </button>
-                            {c.state === "active" && c.recurrence && (
-                              <button
-                                className="button secondary"
-                                disabled={saving}
-                                onClick={() =>
-                                  void save(
-                                    "stop_repeat",
-                                    {
-                                      goalId: g.id,
-                                      commitmentId: c.id,
-                                      version: c.version,
-                                    },
-                                    () => {},
-                                  )
-                                }
-                              >
-                                Stop future repetitions
-                              </button>
-                            )}
-                          </div>
-                        ))}
-                      {m.id === currentMilestone(s, g)?.id && (
-                        <button
-                          className="button secondary"
-                          onClick={() => navigate("/milestone/" + g.id)}
-                        >
-                          Review milestone
-                        </button>
-                      )}
-                      <p className="small">
-                        {
-                          s.commitments.filter(
-                            (c) =>
-                              c.goal_id === g.id &&
-                              c.milestone_id === m.id &&
-                              c.state === "reported",
-                          ).length
-                        }{" "}
-                        check-ins recorded in Proof
-                      </p>
-                      {!s.events.some(
-                        (e) =>
-                          e.goal_id === g.id &&
-                          e.kind === "milestone" &&
-                          e.data.milestoneId === m.id,
-                      ) && (
-                        <button
-                          className="button secondary"
-                          onClick={() =>
-                            navigate("/add-step/" + g.id + "?milestone=" + m.id)
-                          }
-                        >
-                          Add step
-                        </button>
-                      )}
-                    </details>
-                  ))}
+                            c.state === "reported",
+                        ).length
+                      }{" "}
+                      check-ins recorded in Proof
+                    </p>
+                  </section>
+                ))}
               </div>
             </section>
-            {!["completed", "changed_direction", "abandoned"].includes(
-              g.status,
-            ) && (
-              <button
-                className="button secondary"
-                onClick={() => navigate("/add-step/" + g.id)}
-              >
-                Add step
-              </button>
-            )}
-            {!["completed", "changed_direction", "abandoned"].includes(
-              g.status,
-            ) && (
-              <button
-                className="button secondary"
-                onClick={() => navigate("/add-milestone/" + g.id)}
-              >
-                Add milestone
-              </button>
+            {!ended && (
+              <div className="plan-create-actions">
+                <button
+                  className="add-control"
+                  onClick={() => navigate("/add-step/" + g.id)}
+                >
+                  <img src={plus} alt="" /> Add step
+                </button>
+                <button
+                  className="add-control"
+                  onClick={() => navigate("/add-milestone/" + g.id)}
+                >
+                  <img src={plus} alt="" /> Add milestone
+                </button>
+              </div>
             )}
           </div>
         </section>
@@ -344,15 +294,7 @@ export function Ambition({
               </button>
             )}
           </section>
-          <button
-            className="wallpaper-card"
-            aria-label="Create wallpaper"
-            onClick={() => navigate("/wallpaper/" + g.id)}
-          >
-            <span>
-              <strong>Create wallpaper</strong>
-            </span>
-          </button>
+          <WallpaperCard goal={g} navigate={navigate} />
           <details className="manage-challenge">
             <summary>Review challenge</summary>
             <AreaAssignment />
@@ -496,12 +438,12 @@ export function ProofList({
       tone="proof"
     >
       {s.goals.find((g) => g.id === s.selectedGoal) && (
-        <details className="challenge-breadcrumb">
-          <summary>
+        <section className="proof-context">
+          <strong>
             Challenge · {s.goals.find((g) => g.id === s.selectedGoal)?.words}
-          </summary>
+          </strong>
           <p>{s.goals.find((g) => g.id === s.selectedGoal)?.outcome}</p>
-        </details>
+        </section>
       )}
       <p className="proof-intro">
         A record of your steps, attempts and accomplishments.
@@ -616,7 +558,7 @@ export function ProofList({
         )}
       </section>
       <button
-        className="button proof-all-button"
+        className="button secondary proof-all-button"
         onClick={() => setShowAll(!showAll)}
       >
         {showAll ? "Show recent evidence" : "View all evidence"}
@@ -683,8 +625,13 @@ export function ProofHistory({
               </span>
               <strong>{d?.action || "Earlier step"}</strong>
               {r?.detail && <p className="proof-detail">{r.detail}</p>}
+              <time
+                className="proof-date"
+                dateTime={(r?.occurred_on || e.recorded_at).slice(0, 10)}
+              >
+                {displayDate((r?.occurred_on || e.recorded_at).slice(0, 10))}
+              </time>
               <small>
-                {displayDate((r?.occurred_on || e.recorded_at).slice(0, 10))} ·{" "}
                 <span className="evidence-link">View check-in</span> ›
               </small>
             </button>
@@ -708,8 +655,13 @@ export function ProofHistory({
                 {g.milestones.find((m) => m.id === e.data.milestoneId)?.title ||
                   "Earlier milestone"}
               </strong>
+              <time
+                className="proof-date"
+                dateTime={e.recorded_at.slice(0, 10)}
+              >
+                {displayDate(e.recorded_at.slice(0, 10))}
+              </time>
               <small>
-                {displayDate(e.recorded_at.slice(0, 10))} ·{" "}
                 <span className="evidence-link">View reflection</span> ›
               </small>
             </summary>
@@ -717,7 +669,15 @@ export function ProofHistory({
           </details>
         );
       })}
-      {!entries.length && <p>No Proof yet. Record a check-in when you act.</p>}
+      {!entries.length && (
+        <p>
+          {kind === "milestones"
+            ? "No milestone attempts recorded yet."
+            : kind === "steps"
+              ? "No step check-ins recorded yet."
+              : "No Proof yet. Record a check-in when you act."}
+        </p>
+      )}
     </div>
   );
 }

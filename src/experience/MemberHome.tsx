@@ -1,3 +1,4 @@
+import { WallpaperCard } from "./WallpaperCard";
 import { useEffect } from "react";
 import { Paused } from "./Paused";
 import { displaySchedule } from "../data/time";
@@ -201,6 +202,13 @@ export function MemberHome({
       {c && d && !ended && (
         <section className="stage-details" aria-label="Step details & calendar">
           <h3>Step details & calendar</h3>
+          {time?.starts_at &&
+            new Date(time.starts_at).getTime() < Date.now() && (
+              <p className="notice">
+                This scheduled time has passed. Check in on what happened, or
+                revise the next session.
+              </p>
+            )}
           <p>Done means: {d.criterion}</p>
           <p>{repeatLabel(c.recurrence)}</p>
           {time && (
@@ -225,16 +233,7 @@ export function MemberHome({
           </button>
         </section>
       )}
-      <button
-        className="wallpaper-card"
-        onClick={() => navigate("/wallpaper/" + goal.id)}
-      >
-        <img src={artFor(goal.area)} alt="" />
-        <span>
-          <strong>Take your vision with you</strong>
-          <small>Create wallpaper →</small>
-        </span>
-      </button>
+      <WallpaperCard goal={goal} navigate={navigate} />
     </Stage>
   );
 }

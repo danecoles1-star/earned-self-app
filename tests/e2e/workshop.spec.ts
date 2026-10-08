@@ -162,17 +162,11 @@ for (const width of [320, 390, 1440])
     ).toBeVisible();
     await capture("plan");
     await expect(
-      p.getByRole("navigation", { name: "Your milestone path" }),
-    ).toBeHidden();
-    await p
-      .getByRole("button", { name: "All milestones & steps", exact: true })
-      .click();
+      p.getByRole("button", { name: "All milestones & steps", exact: true }),
+    ).toHaveCount(0);
     await expect(
-      p.getByRole("navigation", { name: "Your milestone path" }),
+      p.getByRole("region", { name: "All milestones & steps" }),
     ).toBeVisible();
-    await p
-      .getByRole("button", { name: "Close planning details", exact: true })
-      .click();
     await p.getByRole("button", { name: "Proof", exact: true }).click();
     await expect(
       p.getByText("No Proof yet. Record a check-in when you act."),
@@ -270,7 +264,7 @@ for (const width of [390, 1440]) {
     await p.getByRole("button", { name: "Proof", exact: true }).click();
     // Active Proof is authored evidence, not a repeated decorative area illustration.
     await expect(p.locator(".landscape-proof")).toHaveCount(0);
-    await expect(p.locator(".challenge-breadcrumb")).toContainText(
+    await expect(p.locator(".proof-context")).toContainText(
       "Complete my first triathlon",
     );
     await p.getByRole("button", { name: "Now", exact: true }).click();

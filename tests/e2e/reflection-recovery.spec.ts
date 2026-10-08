@@ -267,7 +267,7 @@ for (const width of [390, 1440]) {
     await p.getByRole("button", { name: "Help me find the words" }).click();
     await expect(
       p.getByRole("region", { name: "Writing guidance" }),
-    ).toContainText("Rehearse");
+    ).toContainText("Complete the full rehearsal and answer two questions");
     await snap(p, "guided-help", width);
     const saved = await state(p);
     saved.supportMode = "on_request";
@@ -281,7 +281,7 @@ for (const width of [390, 1440]) {
     await p.getByRole("button", { name: "Help me find the words" }).click();
     await expect(
       p.getByRole("region", { name: "Writing guidance" }),
-    ).toContainText("Rehearse");
+    ).toContainText("Complete the full rehearsal and answer two questions");
     expect(errors).toEqual([]);
   });
 }

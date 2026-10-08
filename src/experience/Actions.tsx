@@ -316,9 +316,17 @@ export function MoveEditor({
               </p>
               <Help
                 example={
-                  guidanceExample(g.words, "step") +
+                  guidanceExample(
+                    g.milestones.find((m) => m.id === v.milestoneId)?.title ||
+                      g.words,
+                    "step",
+                  ) +
                   " Done means: " +
-                  guidanceExample(g.words, "criterion")
+                  guidanceExample(
+                    g.milestones.find((m) => m.id === v.milestoneId)?.title ||
+                      g.words,
+                    "criterion",
+                  )
                 }
                 ambition={g.words}
                 field={`what action would give you evidence toward “${m?.criterion}”?`}

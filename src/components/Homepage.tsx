@@ -70,7 +70,10 @@ export function Homepage({
   signIn,
   signedIn,
 }: {
-  start: (kind: "goal" | "vision") => void;
+  start: (
+    kind: "goal" | "vision",
+    area?: "physical" | "professional" | "personal",
+  ) => void;
   signIn: () => void;
   signedIn: boolean;
 }) {
@@ -196,7 +199,15 @@ export function Homepage({
             </dl>
           </div>
         </article>
-        <button className="button example-cta" onClick={begin}>
+        <button
+          className="button example-cta"
+          onClick={() =>
+            start(
+              "vision",
+              (["physical", "professional", "personal"] as const)[selected],
+            )
+          }
+        >
           Make it mine <span aria-hidden="true">›</span>
         </button>
       </section>

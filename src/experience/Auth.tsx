@@ -31,7 +31,9 @@ export function Auth({
   adapter,
   user,
   onContinue,
+  initialMode = "login",
 }: {
+  initialMode?: "login" | "signup";
   adapter: Adapter;
   user: User | null;
   onContinue: () => void;
@@ -42,7 +44,7 @@ export function Auth({
       ? initial.verifiedOwner && initial.verifiedOwner === user?.id
         ? "password"
         : "code"
-      : "login",
+      : initialMode,
   );
   const [verifiedOwner, setVerifiedOwner] = useState(
     initial?.verifiedOwner || "",

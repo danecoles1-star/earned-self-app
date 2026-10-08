@@ -527,12 +527,13 @@ h1:focus {
 .wallpaper-card {
   display: flex;
   align-items: center;
-  gap: 22px;
-  text-align: left;
+  gap: 24px;
   width: 100%;
+  text-align: left;
+  margin: 36px 0;
   padding: 24px 0;
   border-block: 1px solid var(--rule);
-  margin: 28px 0;
+  background: none;
   color: var(--ink);
 }
 .wallpaper-card img {
@@ -669,147 +670,29 @@ h1:focus {
   text-transform: uppercase;
   color: var(--paper);
 }
-.door-scene {
-  position: relative;
-  aspect-ratio: 3/2;
-  overflow: hidden;
-}
-.doors-art {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  mix-blend-mode: normal;
-  opacity: 1;
-  mask-image: linear-gradient(transparent, #000 18%, #000 78%, transparent);
-}
-.door-labels button {
-  position: absolute;
-  top: 3%;
-  transform: translateX(-50%);
-  width: 27%;
-  padding: 3px 0;
-  min-height: 44px;
-  color: var(--paper);
-  font: 400 clamp(14px, 2vw, 20px) / 1.2 var(--font-editorial);
-  max-height: 24%;
-  overflow: auto;
-}
-.door-labels button span {
-  display: block;
-  font: 400 10px/1.5 var(--font-interface);
-  margin-bottom: 4px;
-}
-.door-labels button[aria-current="step"] {
-  color: #ffb49f;
-}
-.door-current {
-  position: absolute;
-  top: 26%;
-  width: 23%;
-  height: 2px;
-  background: var(--ember);
-  transform: translateX(-50%);
-  transition: left 1s ease;
-}
-.door-walker {
-  position: absolute;
-  top: 54%;
-  height: 22%;
-  width: auto;
-  transform: translateX(-50%);
-  transition: left 1s ease;
-  filter: brightness(0) invert(1);
-}
-.workshop-path[data-moving="true"] .door-walker {
-  animation: walking 1s ease;
-}
-@keyframes walking {
-  25%,
-  75% {
-    translate: 0 -3px;
-  }
-  50%,
-  100% {
-    translate: 0 0;
-  }
-}
-.path-caption {
-  padding: 0 var(--gutter);
-  font: 600 10px/1.6 var(--font-interface);
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  margin: 10px 0;
-}
-.workshop-milestone {
-  padding: 0 var(--gutter);
-  color: var(--paper);
-}
-.workshop-milestone h2 {
-  font-size: clamp(28px, 5vw, 36px);
-  margin: 0 0 12px;
-}
-.workshop-milestone p {
-  font-size: 14px;
-  margin: 0;
-  line-height: 1.6;
-}
-.workshop-path-empty {
-  padding: 28px 0 40px;
-}
-.plan-focus-stage {
-  padding: 0 0 26px;
-}
-.plan-focus-stage > .section-label,
-.plan-focus-stage > h2,
-.plan-focus-stage > .milestone-criterion {
-  display: none;
-}
-.focus-step-path {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 28px;
-}
-.focus-step-path li {
-  padding: 30px 0;
-  border-bottom: 1px solid var(--rule);
-}
-.focus-step-path button {
-  display: grid;
-  gap: 12px;
-  text-align: left;
-  text-decoration: none;
-  justify-content: stretch;
-  width: 100%;
-  padding: 0;
-}
-.focus-step-path strong {
-  font: 400 27px/1.22 var(--font-editorial);
-  color: var(--ink);
-}
-.plan-focus-stage > .button {
-  width: 100%;
-}
 .plan-create-actions {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 18px;
-  margin-top: 26px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 28px 0 36px;
 }
-.plan-create-actions button {
-  min-height: 52px;
-  border: 1px solid var(--ember);
-  background: var(--mineral) var(--button-art) center/cover;
-  color: white;
-  border-radius: 4px;
-  text-decoration: none;
+.add-control {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 9px 16px;
+  border: 1px solid var(--rule);
+  border-radius: 5px;
+  background: white;
+  color: var(--mineral);
   font-size: 14px;
 }
-.all-plan-link {
-  width: 100%;
-  justify-content: space-between;
-  padding: 20px 0;
-  border-block: 1px solid var(--rule);
-  text-decoration: none;
+.add-control span {
+  font-size: 22px;
+  font-weight: 400;
+  line-height: 1;
 }
 .plan-tools {
   margin-top: 30px;
@@ -843,12 +726,12 @@ summary {
   padding: 22px 0;
   scroll-margin-top: 20px;
 }
-.plan-stage summary {
+.plan-stage .milestone-heading {
   display: flex;
   gap: 18px;
   align-items: baseline;
 }
-.plan-stage summary strong {
+.plan-stage .milestone-heading strong {
   display: block;
   font: 400 25px/1.25 var(--font-editorial);
   margin-top: 7px;
@@ -869,32 +752,6 @@ summary {
   justify-content: flex-start;
   text-decoration: none;
   font: 400 22px/1.3 var(--font-editorial);
-}
-.journey-path {
-  position: relative;
-  padding: 20px 0;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-.journey-path button {
-  text-align: left;
-  display: flex;
-  gap: 16px;
-  padding: 12px 0;
-}
-.path-copy strong {
-  font: 400 23px/1.3 var(--font-editorial);
-  display: block;
-}
-.path-marker,
-.path-number {
-  font-size: 12px;
-  min-width: 20px;
-  color: var(--mineral);
-}
-.path-copy small {
-  display: block;
 }
 .stage-landscape {
   width: 100%;
@@ -1215,7 +1072,7 @@ input[type="range"] {
 }
 .area-choice strong {
   display: block;
-  font: 400 clamp(20px, 6.4vw, 25px)/1.2 var(--font-editorial);
+  font: 400 clamp(20px, 6.4vw, 25px) / 1.2 var(--font-editorial);
   margin-bottom: 9px;
 }
 .area-choice small {
@@ -1936,17 +1793,6 @@ fieldset {
   color: var(--mineral);
   font-size: 12px;
 }
-.plan-tools .wallpaper-card {
-  min-height: 50px;
-  padding: 14px 20px;
-  border: 1px solid var(--ember);
-  background: var(--mineral) var(--button-art) center/cover;
-  color: white;
-  margin: 20px 0;
-}
-.plan-tools .wallpaper-card strong {
-  font: inherit;
-}
 .plan-tools .manage-challenge > summary {
   padding: 14px 20px;
   border: 1px solid var(--rule);
@@ -1975,5 +1821,257 @@ fieldset {
   .how-hero-image {
     width: 100%;
     margin-left: 0;
+  }
+}
+
+/* Workshop refinement: one visible plan and a clear hierarchy of actions. */
+.route-map-stage {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 16px var(--gutter) 32px;
+}
+.route-map-icon {
+  width: 100px;
+  flex: 0 0 100px;
+}
+.route-map-stage .section-label,
+.route-map-stage small {
+  color: #f1f3f1;
+}
+.route-map-stage .path-caption {
+  padding: 0;
+  margin: 8px 0 16px;
+  text-align: left;
+  color: #e2e9e8;
+  font-size: 13px;
+}
+.route-current {
+  display: block;
+  text-align: left;
+  padding: 0;
+  color: white;
+}
+.route-current small {
+  display: block;
+}
+.route-current strong {
+  display: block;
+  font: 400 25px/1.2 var(--font-editorial);
+  margin-top: 8px;
+}
+.plan-detail-tools {
+  margin-top: 32px;
+}
+.all-plan-details > h2 {
+  font-size: 24px;
+  margin-bottom: 24px;
+}
+.plan-stage {
+  padding: 28px 0;
+}
+.plan-stage.current {
+  border-left: 2px solid var(--ember);
+  padding-left: 20px;
+}
+.milestone-heading {
+  margin-bottom: 20px;
+}
+.plan-stage .stage-number {
+  min-width: 18px;
+}
+.plan-stage .plan-step-row {
+  margin: 20px 0;
+  padding: 22px 0;
+}
+.plan-stage .step-edit,
+.plan-stage .stop-repeat {
+  align-self: flex-start;
+  min-height: 44px;
+  margin: 0;
+  padding: 8px 0;
+}
+.plan-stage .stop-repeat {
+  font-size: 12px;
+  color: var(--muted);
+}
+.plan-stage > .button {
+  margin: 8px 0 20px;
+}
+.plan-tools .preparation-card {
+  padding-top: 0;
+}
+.wallpaper-miniature {
+  position: relative;
+  display: block;
+  flex: 0 0 94px;
+  width: 94px;
+  height: 164px;
+  overflow: hidden;
+  border-radius: 10px;
+  border: 1px solid var(--rule);
+  background: var(--paper);
+}
+.wallpaper-miniature img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.75;
+}
+.wallpaper-miniature > span {
+  position: absolute;
+  inset: auto 8px 12px;
+  font: 400 13px/1.2 var(--font-editorial);
+  color: var(--ink);
+  background: #f1f3f1e8;
+  padding: 5px;
+}
+.wallpaper-card > span:last-child {
+  flex: 1;
+}
+.wallpaper-card strong {
+  display: block;
+  font: 400 24px/1.2 var(--font-editorial);
+  margin: 0 0 12px;
+}
+.wallpaper-card small {
+  color: var(--mineral);
+  font-size: 14px;
+}
+.proof-kind-tabs {
+  border: 0;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+.proof-kind-tabs button {
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  padding: 9px 5px;
+  color: var(--mineral);
+}
+.proof-kind-tabs button[aria-pressed="true"] {
+  background: var(--mineral);
+  color: white;
+  border-color: var(--mineral);
+}
+.proof-context {
+  padding: 0 0 18px;
+  border-top: 0;
+}
+.proof-context strong {
+  font: 400 18px/1.4 var(--font-editorial);
+}
+.proof-context p {
+  font-size: 13px;
+  margin: 8px 0 0;
+}
+.proof-row,
+.proof-attempt {
+  padding: 24px 0 24px 46px;
+  min-height: 108px;
+}
+.proof-row strong,
+.proof-attempt strong {
+  font-size: 21px;
+  margin: 8px 0;
+}
+.evidence-marker {
+  top: 27px;
+  width: 28px;
+  height: 28px;
+}
+[data-result="done"] .evidence-marker {
+  background: var(--mineral);
+  border-color: var(--mineral);
+}
+[data-result="done"] .evidence-marker:after {
+  line-height: 26px;
+  font-size: 18px;
+  color: white;
+}
+[data-result="did_not_happen"] .evidence-marker {
+  background: var(--ember);
+  border-color: var(--ember);
+}
+[data-result="did_not_happen"] .evidence-marker:after {
+  line-height: 25px;
+  font-size: 20px;
+  color: white;
+}
+[data-result="partly"] .evidence-marker,
+[data-result="attempt"] .evidence-marker {
+  border: 2px solid var(--ember);
+}
+[data-result="partly"] .evidence-marker:after,
+[data-result="attempt"] .evidence-marker:after {
+  content: none;
+}
+.proof-row .section-label,
+.proof-attempt .section-label {
+  font-size: 10px;
+  letter-spacing: 0.04em;
+}
+.proof-detail {
+  color: var(--muted);
+  font-size: 14px;
+  margin: 8px 0;
+}
+.completed-proof-entry {
+  padding-top: 12px;
+}
+@media (max-width: 360px) {
+  .route-map-icon {
+    width: 72px;
+    flex-basis: 72px;
+  }
+  .route-map-stage {
+    gap: 18px;
+  }
+  .plan-create-actions {
+    gap: 10px;
+  }
+  .add-control {
+    padding-inline: 12px;
+  }
+}
+
+.plan-tools .preparation-card .button,
+.proof-all-button {
+  background: white;
+  color: var(--mineral);
+  border-color: var(--rule);
+}
+.plan-mineral-surface {
+  background: #285d6d var(--mineral-art) center/700px;
+}
+
+.add-control img {
+  width: 16px;
+  height: 16px;
+  opacity: 0.7;
+}
+
+.proof-row .section-label,
+.proof-attempt .section-label {
+  padding-right: 70px;
+}
+.proof-date {
+  position: absolute;
+  right: 0;
+  top: 25px;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.6;
+}
+.plan-tools .preparation-card {
+  border-bottom: 0;
+}
+@media (max-width: 340px) {
+  .proof-kind-tabs {
+    gap: 5px;
+  }
+  .proof-kind-tabs button {
+    font-size: 10px;
+    padding-inline: 3px;
   }
 }

@@ -54,9 +54,6 @@ for (const width of [390, 1440]) {
           .getByRole("button", { name: "Review milestone", exact: true })
           .click();
       } else {
-        await page
-          .getByRole("button", { name: "All milestones & steps", exact: true })
-          .click();
         const review = page.getByRole("button", {
           name: "Review milestones",
           exact: true,

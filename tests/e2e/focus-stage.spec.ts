@@ -123,19 +123,16 @@ for (const width of [320, 390, 1440]) {
     await expect(p.getByText("Who I am becoming", { exact: true })).toHaveCount(
       0,
     );
-    await expect(p.locator(".plan-focus-stage > h2")).toHaveText(
+    await expect(p.locator(".route-current strong")).toHaveText(
       "Validate collection",
     );
     await capture(p, "plan", width);
-    await p
-      .getByRole("button", { name: "All milestones & steps", exact: true })
-      .click();
     await expect(
-      p.getByRole("navigation", { name: "Your milestone path" }),
+      p.getByRole("region", { name: "All milestones & steps" }),
     ).toBeVisible();
     await expect(
       p
-        .getByRole("navigation", { name: "Your milestone path" })
+        .getByRole("region", { name: "All milestones & steps" })
         .getByText("Launch shop", { exact: true }),
     ).toBeVisible();
     await p.getByRole("button", { name: "Proof", exact: true }).click();
@@ -150,10 +147,15 @@ for (const width of [320, 390, 1440]) {
     ).toBeVisible();
     const types = p.getByRole("navigation", { name: "Evidence type" });
     await types.getByRole("button", { name: "Steps", exact: true }).click();
-    await expect(p.getByText("I can make work that people value")).toHaveCount(0);
-    await types.getByRole("button", { name: "Challenges", exact: true }).click();
-    await expect(types.getByRole("button", { name: "Challenges", exact: true }))
-      .toHaveAttribute("aria-pressed", "true");
+    await expect(p.getByText("I can make work that people value")).toHaveCount(
+      0,
+    );
+    await types
+      .getByRole("button", { name: "Challenges", exact: true })
+      .click();
+    await expect(
+      types.getByRole("button", { name: "Challenges", exact: true }),
+    ).toHaveAttribute("aria-pressed", "true");
     await expect(
       p.getByText("I can make work that people value"),
     ).toBeVisible();
@@ -270,16 +272,13 @@ test("Ivory orb follows timer state, respects reduced motion and keeps every dig
   ).toBeLessThanOrEqual(320);
   await capture(p, "100-hour", 320);
   await p.getByRole("button", { name: "Plan", exact: true }).click();
-  await p
-    .getByRole("button", { name: "All milestones & steps", exact: true })
-    .click();
   await expect(
-    p.getByRole("navigation", { name: "Your milestone path" }),
+    p.getByRole("region", { name: "All milestones & steps" }),
   ).toBeVisible();
-  await expect(p.locator('.journey-path [aria-current="step"]')).toContainText(
-    "Validate collection",
-  );
   await expect(
-    p.locator(".journey-path").getByText("Launch shop", { exact: true }),
+    p.locator('.route-map-stage [aria-current="step"]'),
+  ).toContainText("Validate collection");
+  await expect(
+    p.locator(".all-plan-details").getByText("Launch shop", { exact: true }),
   ).toBeVisible();
 });

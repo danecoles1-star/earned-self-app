@@ -299,7 +299,7 @@ it("moves the Plan marker only with milestone completion and keeps vision editin
   };
   const view = render(<Ambition {...props} />);
   const current = () =>
-    document.querySelector('.journey-path [aria-current="step"]');
+    document.querySelector('.route-map-stage [aria-current="step"]');
   const initialPosition = current()?.getAttribute("aria-controls");
   expect(current()).toHaveTextContent(g.milestones[0].title);
   expect(

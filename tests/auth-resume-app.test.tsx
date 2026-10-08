@@ -59,6 +59,10 @@ it("requires confirmation after sign-in before saving an onboarding draft and pe
   const u = userEvent.setup();
   render(<App adapter={adapter} />);
   await u.click(await screen.findByRole("button", { name: "Sign in to save" }));
+  expect(
+    await screen.findByRole("button", { name: "Create account", exact: true }),
+  ).toBeVisible();
+  await u.click(screen.getByRole("button", { name: "Back to login" }));
   await u.type(
     await screen.findByLabelText("Email address"),
     "member@example.invalid",

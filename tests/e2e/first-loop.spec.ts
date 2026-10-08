@@ -157,7 +157,7 @@ test("first visit through first action, failure recovery, accomplishment and nex
     p.getByText("I can share my writing despite uncertainty"),
   ).toBeVisible();
   await click("Now");
-  await p.getByRole("button", { name: /Take your vision with you/ }).click();
+  await p.getByRole("button", { name: "Create wallpaper", exact: true }).click();
   await fill("Words to carry", "Keep writing.");
   await click("Preview lock screen");
   const wallpaper = p.waitForEvent("download");

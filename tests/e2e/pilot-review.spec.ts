@@ -84,7 +84,10 @@ for (const width of [390, 1440])
     await expect(p.locator(".timer-schedule")).toHaveText(
       "11/03/2030 · 6:00 AM",
     );
-    const obstacleControl = p.getByRole("button", { name: "Why & obstacles", exact: true });
+    const obstacleControl = p.getByRole("button", {
+      name: "Why & obstacles",
+      exact: true,
+    });
     await expect(obstacleControl).toBeVisible();
     const bounds = await obstacleControl.boundingBox();
     expect(bounds).not.toBeNull();
@@ -97,12 +100,16 @@ for (const width of [390, 1440])
       fullPage: true,
     });
     await p.getByRole("button", { name: "Plan", exact: true }).click();
-    const milestonePath = p.getByRole("region", { name: "Current milestone illustration" });
-    await expect(milestonePath.getByRole("button", { name: /Validate collection/ }))
-      .toHaveAttribute("aria-current", "step");
-    await expect(milestonePath.getByRole("heading", { name: "Validate collection", exact: true }))
-      .toBeVisible();
-    await expect(milestonePath.getByText("Milestone 1 of 2", { exact: true })).toBeVisible();
+    const milestonePath = p.getByRole("region", {
+      name: "Your milestone progression",
+    });
+    await expect(
+      milestonePath.getByRole("button", { name: /Validate collection/ }),
+    ).toHaveAttribute("aria-current", "step");
+    await expect(milestonePath.locator(".route-current strong")).toBeVisible();
+    await expect(
+      milestonePath.getByText("0 of 2 milestones completed", { exact: true }),
+    ).toBeVisible();
     await p.locator("summary").filter({ hasText: "Review challenge" }).click();
     await p
       .getByRole("button", { name: "Refine my vision", exact: true })
@@ -122,9 +129,9 @@ for (const width of [390, 1440])
     await p.reload();
     await p.getByRole("button", { name: "Now", exact: true }).click();
     await expect(
-      p.getByText("Healthy enough to climb mountains into my 70s", {
-        exact: true,
-      }),
+      p
+        .getByRole("paragraph")
+        .filter({ hasText: "Healthy enough to climb mountains into my 70s" }),
     ).toBeVisible();
     await p.screenshot({
       path: `${process.env.ES_EVIDENCE_DIR || "test-results"}/pilot-plan-${width}.png`,
@@ -152,7 +159,7 @@ for (const width of [390, 1440])
     await p.getByRole("button", { name: "Apple Calendar" }).click();
     expect((await download).suggestedFilename()).toBe("Earned_Self_Move.ics");
     await p.getByRole("button", { name: "Return to Now" }).click();
-    await p.getByRole("button", { name: /Take your vision with you/ }).click();
+    await p.getByRole("button", { name: "Create wallpaper", exact: true }).click();
     await p.getByRole("button", { name: "Use my own vision" }).click();
     await p.getByRole("button", { name: "Mineral", exact: true }).click();
     await p.getByRole("button", { name: "Preview lock screen" }).click();

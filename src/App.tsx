@@ -236,7 +236,8 @@ export function App({ adapter }: { adapter: Adapter }) {
       );
     }
   }
-  function start(_kind: "goal" | "vision") {
+  function start(_kind: "goal" | "vision", area?: GrowthArea) {
+    if (area && !draft.words && !draft.vision) changeDraft({ area });
     navigate("/start");
   }
   const save: Save = async (kind, payload, after) => {
@@ -488,6 +489,11 @@ export function App({ adapter }: { adapter: Adapter }) {
       <Auth
         adapter={adapter}
         user={user}
+        initialMode={
+          sessionStorage.getItem("earned-self:save-after-auth") === draft.id
+            ? "signup"
+            : "login"
+        }
         onContinue={() => {
           void adapter
             .getUser()
@@ -730,7 +736,12 @@ export function App({ adapter }: { adapter: Adapter }) {
     );
   else if (["/app", "/manage"].includes(path) && !selected)
     screen = (
-      <Stage title="Your next challenge" navigate={navigate}>
+      <Stage
+        title="Your next challenge"
+        tone="proof"
+        statement=""
+        navigate={navigate}
+      >
         <section className="area-empty">
           <p className="section-label">
             {effectiveArea
