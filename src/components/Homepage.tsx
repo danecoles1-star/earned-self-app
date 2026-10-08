@@ -3,7 +3,9 @@ import { Brand } from "./Brand";
 import physical from "../assets/workshop/area-physical.webp";
 import professional from "../assets/workshop/area-professional.webp";
 import personal from "../assets/workshop/area-personal.webp";
-import ring from "../assets/workshop/timer-sketch.svg";
+import hero from "../assets/workshop/hero-professional.webp";
+import { preparationArt, proofArt } from "../experience/workshopArt";
+import ring from "../assets/workshop/timer-ring.webp";
 import basecamp from "../assets/workshop/nav-now.png";
 import plan from "../assets/workshop/nav-plan.png";
 import proof from "../assets/workshop/nav-proof.png";
@@ -59,12 +61,6 @@ export function Homepage({
   return (
     <main id="main" className="how-page">
       <section className="how-opening" aria-labelledby="how-title">
-        <img
-          className="how-hero-image"
-          src={example.image}
-          alt=""
-          fetchPriority="high"
-        />
         <header className="how-header">
           <Brand mineral />
           <button className="how-login" onClick={signIn}>
@@ -72,37 +68,22 @@ export function Homepage({
           </button>
         </header>
         <div className="how-hero-copy">
-          <div className="area-tabs" aria-label="Explore an area">
-            {illustrativeExamples.map((e, i) => (
-              <button
-                key={e.name}
-                aria-pressed={i === selected}
-                onClick={() => setSelected(i)}
-              >
-                {e.name}
-              </button>
-            ))}
-          </div>
           <h1 id="how-title" tabIndex={-1}>
             Become You.
           </h1>
           <p className="how-promise">
             Who you become starts with what you dare to do.
           </p>
-          <p className="how-description">
-            Choose a meaningful challenge.
-            <br />
-            Prepare for it. Take action.
-            <br />
-            See what changes.
-          </p>
           <button className="button how-primary" onClick={begin}>
             Build my challenge <span aria-hidden="true">›</span>
           </button>
         </div>
-        <div className="how-hero-end">
-          <p>A clear path. One next step.</p>
-        </div>
+        <img
+          className="how-hero-image"
+          src={hero}
+          alt=""
+          fetchPriority="high"
+        />
       </section>
       <section className="how-method" aria-labelledby="method-title">
         <h2 id="method-title">
@@ -110,38 +91,44 @@ export function Homepage({
           <br />
           Clear next step.
         </h2>
-        <ol className="method-list">
-          <li>
-            <span aria-hidden="true">01</span>
-            <div>
-              <h3>Choose what matters</h3>
-              <p>
-                Name who you want to become and a challenge that asks more of
-                you.
-              </p>
-            </div>
-          </li>
-          <li>
-            <span aria-hidden="true">02</span>
-            <div>
-              <h3>Prepare for reality</h3>
-              <p>
-                Build milestones over weeks or months. Give each preparation
-                step a time and plan for obstacles.
-              </p>
-            </div>
-          </li>
-          <li>
-            <span aria-hidden="true">03</span>
-            <div>
-              <h3>Act. Check in. Adjust.</h3>
-              <p>
-                Now brings your next step into focus. After a setback, reflect
-                and choose what changes.
-              </p>
-            </div>
-          </li>
-        </ol>
+        <p>Break what you want to become into a plan you can work on now.</p>
+        <div
+          className="method-plan"
+          aria-label="Illustrative challenge, milestone and step"
+        >
+          <span className="section-label">Illustrative plan</span>
+          <ol>
+            <li>
+              <span className="section-label">Challenge</span>
+              <p>Deliver my first keynote.</p>
+            </li>
+            <li>
+              <span className="section-label">Current milestone</span>
+              <p>Present to three peers.</p>
+            </li>
+            <li>
+              <span className="section-label">Next step</span>
+              <p>Record a full rehearsal.</p>
+            </li>
+          </ol>
+          <button className="button method-cta" onClick={begin}>
+            Build my plan
+          </button>
+        </div>
+        <img
+          className="method-image"
+          src={
+            preparationArt[
+              (["physical", "professional", "personal"] as const)[selected]
+            ]
+          }
+          alt="Illustration of preparation"
+          loading="lazy"
+        />
+      </section>
+      <section className="how-method" aria-labelledby="attention-title">
+        <h2 id="attention-title">Give it your attention.</h2>
+        <p>Start your work. Check in when you’re done.</p>
         <div
           className="method-timer"
           aria-label="Illustrative timer: fifteen minutes"
@@ -157,15 +144,10 @@ export function Homepage({
             </span>
           </div>
         </div>
-        <div className="method-last">
-          <span aria-hidden="true">04</span>
-          <div>
-            <h3>Keep the proof</h3>
-            <p>
-              Revisit what happened, what changed, and what you will carry into
-              your next challenge.
-            </p>
-          </div>
+        <div className="method-recovery">
+          <span className="section-label">A setback is part of the record</span>
+          <h3>Missed a step?</h3>
+          <p>Reflect on what got in the way. Choose what changes next.</p>
         </div>
         <div className="method-destinations" aria-label="Your workspace">
           {[
@@ -237,6 +219,16 @@ export function Homepage({
           Make it mine <span aria-hidden="true">›</span>
         </button>
         <div className="how-invitation">
+          <img
+            className="method-image"
+            src={
+              proofArt[
+                (["physical", "professional", "personal"] as const)[selected]
+              ]
+            }
+            alt="Illustrative accomplishment"
+            loading="lazy"
+          />
           <h2>
             The challenge ends.
             <br />

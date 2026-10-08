@@ -136,6 +136,7 @@ export function MemberHome({
                 }
               >
                 <h2>{d.action}</h2>
+                <p>{d.criterion}</p>
               </StepTimer>
               <button
                 className="button secondary focus-check-in"
@@ -147,6 +148,7 @@ export function MemberHome({
           ) : (
             <>
               <h2>{d.action}</h2>
+              <p>{d.criterion}</p>
               <p>Resume when you’re ready. Your next step is saved.</p>
             </>
           )}

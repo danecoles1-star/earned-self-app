@@ -5,7 +5,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import ring from "../assets/workshop/timer-sketch.svg";
+import ring from "../assets/workshop/timer-ring.webp";
 type Clock = { elapsed: number; started: number | null };
 export function elapsedTime(clock: Clock, now = Date.now()) {
   return Math.max(
