@@ -4,7 +4,8 @@ import physical from "../assets/workshop/area-physical.webp";
 import professional from "../assets/workshop/area-professional.webp";
 import personal from "../assets/workshop/area-personal.webp";
 import hero from "../assets/workshop/hero-professional.webp";
-import { preparationArt, proofArt } from "../experience/workshopArt";
+import { proofArt } from "../experience/workshopArt";
+import notebook from "../assets/workshop/method-notebook.webp";
 import ring from "../assets/workshop/timer-ring.webp";
 import basecamp from "../assets/workshop/nav-now.png";
 import plan from "../assets/workshop/nav-plan.png";
@@ -13,6 +14,12 @@ import proof from "../assets/workshop/nav-proof.png";
 export const illustrativeExamples = [
   {
     name: "Physical",
+    vision: "Be capable of taking on a demanding endurance challenge.",
+    milestones: [
+      "Build a consistent swim, bike and run routine.",
+      "Complete a 400 m open-water swim.",
+      "Complete a full practice course.",
+    ],
     image: physical,
     alt: "A swimmer prepares for open water",
     challenge: "Complete my first triathlon.",
@@ -24,8 +31,14 @@ export const illustrativeExamples = [
   },
   {
     name: "Professional",
+    vision: "Be a confident voice in my field.",
+    milestones: [
+      "Shape the full talk.",
+      "Rehearse with three peers.",
+      "Deliver the keynote.",
+    ],
     image: professional,
-    alt: "A speaker rehearses in an empty auditorium",
+    alt: "A speaker with her notes in a small, dark auditorium",
     challenge: "Deliver a keynote at an industry conference.",
     milestone: "Deliver the full talk to three peers.",
     step: "Record the first two minutes of my opening.",
@@ -36,8 +49,14 @@ export const illustrativeExamples = [
   },
   {
     name: "Personal",
+    vision: "Become someone who finishes and shares meaningful creative work.",
+    milestones: [
+      "Complete the first draft.",
+      "Revise with reader feedback.",
+      "Share the finished novella.",
+    ],
     image: personal,
-    alt: "A writer shares a manuscript with a reader",
+    alt: "A writer works on her story beside a window",
     challenge: "Finish my novella and share it with three readers.",
     milestone: "Complete the first draft.",
     step: "Write the central idea of my story.",
@@ -117,14 +136,69 @@ export function Homepage({
         </div>
         <img
           className="method-image"
-          src={
-            preparationArt[
-              (["physical", "professional", "personal"] as const)[selected]
-            ]
-          }
+          src={notebook}
           alt="Illustration of preparation"
           loading="lazy"
         />
+      </section>
+      <section className="how-examples" aria-labelledby="examples-title">
+        <h2 id="examples-title">Make it yours.</h2>
+        <p className="section-label">Illustrative examples</p>
+        <div
+          className="example-selector"
+          role="group"
+          aria-label="Choose an example"
+        >
+          {illustrativeExamples.map((item, i) => (
+            <button
+              key={item.name}
+              aria-pressed={selected === i}
+              onClick={() => setSelected(i)}
+            >
+              {item.name}
+            </button>
+          ))}
+        </div>
+        <article
+          className="example-story"
+          aria-live="polite"
+          aria-atomic="true"
+        >
+          <img
+            src={example.image}
+            alt={example.alt}
+            loading="lazy"
+            width="1200"
+            height="800"
+          />
+          <div className="example-plan">
+            <dl>
+              <div>
+                <dt>Who I am becoming</dt>
+                <dd>{example.vision}</dd>
+              </div>
+              <div>
+                <dt>Challenge</dt>
+                <dd>{example.challenge}</dd>
+              </div>
+            </dl>
+            <span className="section-label">Milestones</span>
+            <ol className="example-milestones">
+              {example.milestones.map((milestone) => (
+                <li key={milestone}>{milestone}</li>
+              ))}
+            </ol>
+            <dl>
+              <div>
+                <dt>First step</dt>
+                <dd>{example.step}</dd>
+              </div>
+            </dl>
+          </div>
+        </article>
+        <button className="button example-cta" onClick={begin}>
+          Make it mine <span aria-hidden="true">›</span>
+        </button>
       </section>
       <section className="how-method" aria-labelledby="attention-title">
         <h2 id="attention-title">Give it your attention.</h2>
@@ -165,60 +239,30 @@ export function Homepage({
           Take your first step <span aria-hidden="true">›</span>
         </button>
       </section>
-      <section className="how-examples" aria-labelledby="examples-title">
-        <h2 id="examples-title">Make it yours.</h2>
-        <p className="section-label">Illustrative examples</p>
-        <div
-          className="example-selector"
-          role="group"
-          aria-label="Choose an example"
-        >
-          {illustrativeExamples.map((item, i) => (
-            <button
-              key={item.name}
-              aria-pressed={selected === i}
-              onClick={() => setSelected(i)}
-            >
-              {item.name}
-            </button>
-          ))}
-        </div>
-        <article
-          className="example-story"
-          aria-live="polite"
-          aria-atomic="true"
-        >
-          <img
-            src={example.image}
-            alt={example.alt}
-            loading="lazy"
-            width="1200"
-            height="800"
-          />
-          <h3>Become capable of more.</h3>
-          <p className="example-intro">
-            Months of preparation. One step at a time.
-          </p>
-          <dl>
-            {[
-              ["Challenge", example.challenge],
-              ["Milestone", example.milestone],
-              ["Next step", example.step],
-              ["Setback", example.setback],
-            ].map(([label, value]) => (
-              <div key={label}>
-                <dt>{label}</dt>
-                <dd>{value}</dd>
-              </div>
-            ))}
-          </dl>
-          <p className="section-label">Example reflection</p>
-          <blockquote>“{example.reflection}”</blockquote>
-        </article>
-        <button className="button example-cta" onClick={begin}>
-          Make it mine <span aria-hidden="true">›</span>
-        </button>
+      <section className="how-examples" aria-label="Your evidence">
         <div className="how-invitation">
+          <h2>The evidence is stacking up, keep going.</h2>
+          <p>Reflect on what changed. Choose what comes next.</p>
+          <section
+            className="illustrative-proof"
+            aria-label="Illustrative Proof record"
+          >
+            <span className="section-label">
+              Illustrative example, not a member story
+            </span>
+            <div className="illustrative-proof-row">
+              <span className="section-label">Step completed</span>
+              <p>{example.step}</p>
+            </div>
+            <div className="illustrative-proof-row">
+              <span className="section-label">A later step was missed</span>
+              <p>{example.setback}</p>
+            </div>
+            <div className="illustrative-proof-row">
+              <span className="section-label">What changed</span>
+              <p>{example.reflection}</p>
+            </div>
+          </section>
           <img
             className="method-image"
             src={
@@ -229,12 +273,6 @@ export function Homepage({
             alt="Illustrative accomplishment"
             loading="lazy"
           />
-          <h2>
-            The challenge ends.
-            <br />
-            The evidence stays.
-          </h2>
-          <p>Keep what you learned. Choose what comes next.</p>
           <button className="button how-primary" onClick={begin}>
             Build my challenge <span aria-hidden="true">›</span>
           </button>

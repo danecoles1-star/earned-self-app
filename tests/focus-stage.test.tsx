@@ -63,13 +63,19 @@ it("completed transformations remain accessible from all evidence when another c
   ).toBeTruthy();
   expect(within(completed).getByText("Three orders delivered")).toBeVisible();
   expect(within(completed).getByText("I trust my craft")).toBeVisible();
-  fireEvent.change(screen.getByLabelText("Show supporting history"), {
-    target: { value: "active" },
-  });
-  expect(within(completed).getByText("I trust my craft")).toBeVisible();
-  expect(within(support).getByText("Exhibit my next collection")).toBeVisible();
+  fireEvent.click(screen.getByRole("button", { name: "Steps", exact: true }));
+  expect(
+    screen.queryByRole("region", { name: "Completed challenges" }),
+  ).toBeNull();
   fireEvent.click(
-    within(completed).getByRole("button", { name: /Revisit what changed/ }),
+    screen.getByRole("button", { name: "Challenges", exact: true }),
+  );
+  const revisited = screen.getByRole("region", {
+    name: "Completed challenges",
+  });
+  expect(within(revisited).getByText("I trust my craft")).toBeVisible();
+  fireEvent.click(
+    within(revisited).getByRole("button", { name: /Revisit what changed/ }),
   );
   expect(navigate).toHaveBeenCalledWith("/proof/challenge/g");
 });

@@ -78,6 +78,7 @@ export function WorkshopPath({
       aria-label="Current milestone illustration"
       data-moving={moving}
     >
+      <h2 className="path-heading">Your milestones</h2>
       <div className="door-scene">
         <img src={doors} alt="" className="doors-art" />
         <div className="door-labels">

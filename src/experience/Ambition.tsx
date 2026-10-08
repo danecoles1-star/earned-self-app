@@ -1,3 +1,4 @@
+import { AreaAssignment } from "./Areas";
 import { WorkshopPath } from "./WorkshopPath";
 import { PlanFocus } from "./PlanFocus";
 import { MilestonePath } from "./MilestonePath";
@@ -328,10 +329,6 @@ export function Ambition({
       {section === "overview" ? (
         <div className="plan-tools">
           <section className="preparation-card">
-            <h2>Why & obstacles</h2>
-            <p className="small">
-              Keep your reason and your response within reach.
-            </p>
             <button
               className="button secondary"
               onClick={() => setSection("preparation")}
@@ -349,15 +346,16 @@ export function Ambition({
           </section>
           <button
             className="wallpaper-card"
+            aria-label="Create wallpaper"
             onClick={() => navigate("/wallpaper/" + g.id)}
           >
             <span>
-              <strong>Take your vision with you</strong>
-              <small>Create wallpaper →</small>
+              <strong>Create wallpaper</strong>
             </span>
           </button>
           <details className="manage-challenge">
-            <summary>Manage challenge</summary>
+            <summary>Review challenge</summary>
+            <AreaAssignment />
             <button
               className="button secondary"
               onClick={() => {
@@ -475,7 +473,9 @@ export function ProofList({
   snapshot: Snapshot;
   navigate: (p: string) => void;
 }) {
-  const [filter, setFilter] = useState("all");
+  const [filter, setFilter] = useState<
+    "all" | "steps" | "milestones" | "challenges"
+  >("all");
   const [showAll, setShowAll] = useState(false);
   const focused = s.goals.find((g) => g.id === s.selectedGoal) || s.goals[0];
   const completed = s.goals
@@ -487,10 +487,7 @@ export function ProofList({
         completedEvent(s, a.id)?.recorded_at || a.created_at,
       ),
     );
-  const ongoing = s.goals.filter(
-    (g) =>
-      g.status !== "completed" && (filter === "all" || g.status === filter),
-  );
+  const ongoing = s.goals.filter((g) => g.status !== "completed");
   return (
     <Stage
       title="Your Proof"
@@ -506,58 +503,62 @@ export function ProofList({
           <p>{s.goals.find((g) => g.id === s.selectedGoal)?.outcome}</p>
         </details>
       )}
-      {!completed.length && (
-        <div className="proof-introduction">
-          <span className="section-label">
-            {s.goals.find((g) => g.id === s.selectedGoal)?.status === "paused"
-              ? "Paused"
-              : focused?.status === "active"
-                ? "In progress"
-                : "Your record"}
-          </span>
-        </div>
-      )}
-      {!completed.length && <Landscape scene="proof" />}
-      {completed.length > 0 && (
-        <section
-          className="completed-proof-list"
-          aria-label="Completed challenges"
-        >
-          {completed.map((g) => {
-            const record = completionRecord(s, g);
-            return (
-              <button
-                key={g.id}
-                className="completed-proof-entry"
-                onClick={() => navigate("/proof/challenge/" + g.id)}
-              >
-                <span className="section-label completion-label">
-                  Challenge completed
-                  {record.event
-                    ? " · " + displayDate(record.event.recorded_at.slice(0, 10))
-                    : ""}
-                </span>
-                <h2>{record.completed.words}</h2>
-                <Landscape scene="completed" area={g.area} />
-                <p className="proof-fact">
-                  {record.event?.data.detail ||
-                    "Accomplishment details were not recorded in this earlier entry."}
-                </p>
-                {record.event?.data.reflection?.trim() && (
-                  <>
-                    <span className="section-label">What this showed me</span>
-                    <blockquote>{record.event.data.reflection}</blockquote>
-                  </>
-                )}
-                <span className="record-link">Revisit what changed →</span>
-              </button>
-            );
-          })}
-          <button className="button" onClick={() => navigate("/new")}>
-            Choose my next challenge
+      <p className="proof-intro">
+        A record of your steps, attempts and accomplishments.
+      </p>
+      <nav className="proof-kind-tabs" aria-label="Evidence type">
+        {(["all", "steps", "milestones", "challenges"] as const).map((kind) => (
+          <button
+            key={kind}
+            aria-pressed={filter === kind}
+            onClick={() => setFilter(kind)}
+          >
+            {kind[0].toUpperCase() + kind.slice(1)}
           </button>
-        </section>
-      )}
+        ))}
+      </nav>
+      {completed.length > 0 &&
+        (filter === "all" || filter === "challenges") && (
+          <section
+            className="completed-proof-list"
+            aria-label="Completed challenges"
+          >
+            {completed.map((g) => {
+              const record = completionRecord(s, g);
+              return (
+                <button
+                  key={g.id}
+                  className="completed-proof-entry"
+                  onClick={() => navigate("/proof/challenge/" + g.id)}
+                >
+                  <span className="section-label completion-label">
+                    Challenge completed
+                    {record.event
+                      ? " · " +
+                        displayDate(record.event.recorded_at.slice(0, 10))
+                      : ""}
+                  </span>
+                  <h2>{record.completed.words}</h2>
+                  <Landscape scene="completed" area={g.area} />
+                  <p className="proof-fact">
+                    {record.event?.data.detail ||
+                      "Accomplishment details were not recorded in this earlier entry."}
+                  </p>
+                  {record.event?.data.reflection?.trim() && (
+                    <>
+                      <span className="section-label">What this showed me</span>
+                      <blockquote>{record.event.data.reflection}</blockquote>
+                    </>
+                  )}
+                  <span className="record-link">Revisit what changed →</span>
+                </button>
+              );
+            })}
+            <button className="button" onClick={() => navigate("/new")}>
+              Choose my next challenge
+            </button>
+          </section>
+        )}
       <section
         className="proof-support"
         data-expanded={showAll}
@@ -568,18 +569,11 @@ export function ProofList({
             ? "The work behind your growth."
             : "The work you’re putting in."}
         </h2>
-        <label className="proof-filter" hidden={!showAll}>
-          Show supporting history
-          <select value={filter} onChange={(e) => setFilter(e.target.value)}>
-            <option value="all">All challenges</option>
-            <option value="active">Current challenges</option>
-            <option value="paused">Paused challenges</option>
-            <option value="draft">Preparing</option>
-          </select>
-        </label>
-        {(showAll
-          ? ongoing
-          : ongoing.filter((g) => g.id === focused?.id).slice(0, 1)
+        {(filter === "challenges"
+          ? []
+          : showAll
+            ? ongoing
+            : ongoing.filter((g) => g.id === focused?.id).slice(0, 1)
         ).map((g) => (
           <section className="proof-group" key={g.id}>
             <span className="section-label">
@@ -597,22 +591,28 @@ export function ProofList({
               snapshot={s}
               navigate={navigate}
               limit={showAll ? undefined : 3}
+              kind={filter === "challenges" ? "all" : filter}
             />
           </section>
         ))}
-        {showAll &&
-          filter === "all" &&
+        {(showAll || filter === "steps" || filter === "milestones") &&
+          filter !== "challenges" &&
           completed.map((g) => (
             <details className="supporting-proof" key={g.id}>
               <summary>Supporting history: {g.words}</summary>
-              <ProofHistory goal={g} snapshot={s} navigate={navigate} />
+              <ProofHistory
+                goal={g}
+                snapshot={s}
+                navigate={navigate}
+                kind={filter}
+              />
             </details>
           ))}
         {!s.goals.length && (
           <p>No Proof yet. Your recorded actions will appear here.</p>
         )}
-        {filter !== "all" && !ongoing.length && (
-          <p>No challenges match this filter.</p>
+        {filter === "challenges" && !completed.length && (
+          <p>Your completed challenges will appear here.</p>
         )}
       </section>
       <button
@@ -632,11 +632,13 @@ export function ProofHistory({
   snapshot: s,
   navigate,
   limit,
+  kind = "all",
 }: {
   goal: Goal;
   snapshot: Snapshot;
   navigate: (p: string) => void;
   limit?: number;
+  kind?: "all" | "steps" | "milestones";
 }) {
   const entries = [
     ...s.evidence
@@ -649,7 +651,12 @@ export function ProofHistory({
           ["milestone", "milestone_attempt"].includes(e.kind),
       )
       .map((e) => ({ date: e.recorded_at, evidence: null, event: e })),
-  ].sort((a, b) => b.date.localeCompare(a.date));
+  ]
+    .filter(
+      (item) =>
+        kind === "all" || (kind === "steps" ? !!item.evidence : !!item.event),
+    )
+    .sort((a, b) => b.date.localeCompare(a.date));
   return (
     <div className="evidence-timeline">
       {entries.slice(0, limit).map((item) => {
@@ -675,6 +682,7 @@ export function ProofHistory({
                       : "Earlier check-in"}
               </span>
               <strong>{d?.action || "Earlier step"}</strong>
+              {r?.detail && <p className="proof-detail">{r.detail}</p>}
               <small>
                 {displayDate((r?.occurred_on || e.recorded_at).slice(0, 10))} ·{" "}
                 <span className="evidence-link">View check-in</span> ›

@@ -246,28 +246,33 @@ for (const width of [390, 1440]) {
       localStorage.setItem(key, JSON.stringify(state));
     });
     await p.reload();
+    // Legacy assignment is a deliberate Plan action, never repeated across screens.
+    await expect(p.locator(".assign-area")).toHaveCount(0);
+    await p.getByRole("button", { name: "Plan", exact: true }).click();
+    await p.locator(".manage-challenge > summary").click();
     await expect(
       p.getByRole("heading", { name: "Choose this challenge’s area" }),
     ).toBeVisible();
-    const assignment = await p.locator(".assign-area").boundingBox();
-    const identity = await p.locator(".identity-reminder").boundingBox();
-    expect(assignment!.y + assignment!.height).toBeLessThan(identity!.y);
-    await p.getByRole("button", { name: "Proof", exact: true }).click();
-    await expect(p.locator(".landscape-proof")).toHaveCount(0);
     await p.screenshot({
       path: `test-results/workshop-legacy-${width}.png`,
       fullPage: true,
     });
-    // Explicit selection uses the existing guarded save, never an automatic category guess.
     await p
       .locator(".assign-area")
       .getByRole("button", { name: "Physical", exact: true })
       .click();
     await expect(p.locator(".assign-area")).toHaveCount(0);
-    await expect(p.locator(".landscape-proof")).toBeVisible();
-    const breadcrumb = await p.locator(".challenge-breadcrumb").boundingBox();
-    const picture = await p.locator(".landscape-proof").boundingBox();
-    expect(picture!.y).toBeGreaterThan(breadcrumb!.y + breadcrumb!.height);
+    await expect(
+      p
+        .getByRole("navigation", { name: "Area of growth" })
+        .getByRole("button", { name: "Physical", exact: true }),
+    ).toHaveAttribute("aria-pressed", "true");
+    await p.getByRole("button", { name: "Proof", exact: true }).click();
+    // Active Proof is authored evidence, not a repeated decorative area illustration.
+    await expect(p.locator(".landscape-proof")).toHaveCount(0);
+    await expect(p.locator(".challenge-breadcrumb")).toContainText(
+      "Complete my first triathlon",
+    );
     await p.getByRole("button", { name: "Now", exact: true }).click();
     await expect(
       p.getByRole("heading", { name: "Practise a relaxed swim stroke" }),

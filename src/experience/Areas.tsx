@@ -11,10 +11,9 @@ export const AreaContext = createContext<{
   assignment?: ReactNode;
 }>({ area: null, choose: () => {}, goals: [], busy: false });
 export function AreaTabs() {
-  const { area, choose, busy, assignment } = useContext(AreaContext);
+  const { area, choose, busy } = useContext(AreaContext);
   return (
     <>
-      {assignment}
       <nav className="area-tabs" aria-label="Area of growth">
         {areas.map((a) => (
           <button
@@ -29,4 +28,9 @@ export function AreaTabs() {
       </nav>
     </>
   );
+}
+
+export function AreaAssignment() {
+  const { assignment } = useContext(AreaContext);
+  return <>{assignment}</>;
 }

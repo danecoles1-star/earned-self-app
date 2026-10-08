@@ -58,7 +58,7 @@ for (const width of [390, 1440])
       p.locator(".local-datetime-value").filter({ hasText: "11/02/2030" }),
     ).toBeVisible();
     await p.screenshot({
-      path: `/tmp/picker-fields-${width}.png`,
+      path: `${process.env.ES_EVIDENCE_DIR || "test-results"}/picker-fields-${width}.png`,
       fullPage: true,
     });
 
@@ -84,19 +84,26 @@ for (const width of [390, 1440])
     await expect(p.locator(".timer-schedule")).toHaveText(
       "11/03/2030 · 6:00 AM",
     );
-    const padding = await p
-      .getByRole("button", { name: "Why & obstacles", exact: true })
-      .evaluate((el) => Number.parseFloat(getComputedStyle(el).paddingLeft));
-    expect(padding).toBeGreaterThanOrEqual(14);
+    const obstacleControl = p.getByRole("button", { name: "Why & obstacles", exact: true });
+    await expect(obstacleControl).toBeVisible();
+    const bounds = await obstacleControl.boundingBox();
+    expect(bounds).not.toBeNull();
+    expect(bounds!.height).toBeGreaterThanOrEqual(44);
+    expect(bounds!.width).toBeGreaterThanOrEqual(44);
+    expect(bounds!.x).toBeGreaterThanOrEqual(0);
+    expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(width);
     await p.screenshot({
-      path: `/tmp/pilot-basecamp-${width}.png`,
+      path: `${process.env.ES_EVIDENCE_DIR || "test-results"}/pilot-basecamp-${width}.png`,
       fullPage: true,
     });
     await p.getByRole("button", { name: "Plan", exact: true }).click();
-    await expect(p.locator(".plan-focus-stage > .section-label")).toHaveText(
-      "Current milestone",
-    );
-    await p.locator("summary").filter({ hasText: "Manage challenge" }).click();
+    const milestonePath = p.getByRole("region", { name: "Current milestone illustration" });
+    await expect(milestonePath.getByRole("button", { name: /Validate collection/ }))
+      .toHaveAttribute("aria-current", "step");
+    await expect(milestonePath.getByRole("heading", { name: "Validate collection", exact: true }))
+      .toBeVisible();
+    await expect(milestonePath.getByText("Milestone 1 of 2", { exact: true })).toBeVisible();
+    await p.locator("summary").filter({ hasText: "Review challenge" }).click();
     await p
       .getByRole("button", { name: "Refine my vision", exact: true })
       .click();
@@ -120,7 +127,7 @@ for (const width of [390, 1440])
       }),
     ).toBeVisible();
     await p.screenshot({
-      path: `/tmp/pilot-plan-${width}.png`,
+      path: `${process.env.ES_EVIDENCE_DIR || "test-results"}/pilot-plan-${width}.png`,
       fullPage: true,
     });
     await p.getByRole("button", { name: "Proof", exact: true }).click();
@@ -130,7 +137,7 @@ for (const width of [390, 1440])
       p.getByRole("button", { name: "Return to Now" }),
     ).toBeVisible();
     await p.screenshot({
-      path: `/tmp/pilot-proof-${width}.png`,
+      path: `${process.env.ES_EVIDENCE_DIR || "test-results"}/pilot-proof-${width}.png`,
       fullPage: true,
     });
     await p.getByRole("button", { name: "Return to Now" }).click();
@@ -153,7 +160,7 @@ for (const width of [390, 1440])
       p.getByRole("img", { name: "Your lock-screen image preview" }),
     ).toBeVisible();
     await p.screenshot({
-      path: `/tmp/pilot-wallpaper-${width}.png`,
+      path: `${process.env.ES_EVIDENCE_DIR || "test-results"}/pilot-wallpaper-${width}.png`,
       fullPage: true,
     });
     await p.evaluate(() => {

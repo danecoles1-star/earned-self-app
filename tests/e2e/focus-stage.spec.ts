@@ -148,7 +148,12 @@ for (const width of [320, 390, 1440]) {
     await expect(
       p.getByText("I can make work that people value"),
     ).toBeVisible();
-    await p.getByLabel("Show supporting history").selectOption("active");
+    const types = p.getByRole("navigation", { name: "Evidence type" });
+    await types.getByRole("button", { name: "Steps", exact: true }).click();
+    await expect(p.getByText("I can make work that people value")).toHaveCount(0);
+    await types.getByRole("button", { name: "Challenges", exact: true }).click();
+    await expect(types.getByRole("button", { name: "Challenges", exact: true }))
+      .toHaveAttribute("aria-pressed", "true");
     await expect(
       p.getByText("I can make work that people value"),
     ).toBeVisible();

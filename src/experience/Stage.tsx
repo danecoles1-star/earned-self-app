@@ -83,7 +83,7 @@ export function Stage({
         </button>
       </header>
       <main id="main" className="stage-main">
-        <AreaTabs />
+        {!back && ["focus", "plan", "proof"].includes(tone) && <AreaTabs />}
         {back && (
           <button className="quiet stage-back" onClick={back}>
             {backLabel}

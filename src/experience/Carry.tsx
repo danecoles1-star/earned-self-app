@@ -56,7 +56,7 @@ export function Calendar({
             </select>
           </label>
           <a
-            className="experience-choice"
+            className="button calendar-action"
             href={googleCalendarUrl(
               d,
               s,
@@ -70,7 +70,7 @@ export function Calendar({
             Google Calendar
           </a>
           <button
-            className="experience-choice"
+            className="button calendar-action"
             onClick={() => {
               download(
                 new Blob(

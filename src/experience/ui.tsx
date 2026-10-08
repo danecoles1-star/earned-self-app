@@ -33,6 +33,7 @@ export function Page({
   dark: _dark = true,
   footer,
   progress,
+  headerAction,
   layout = "flow",
   className = "",
 }: {
@@ -45,6 +46,7 @@ export function Page({
   dark?: boolean;
   footer?: ReactNode;
   progress?: [number, number];
+  headerAction?: ReactNode;
 }) {
   const heading = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
@@ -59,7 +61,8 @@ export function Page({
     >
       <header className="experience-header">
         <Brand mineral />
-        {back && (
+        {headerAction}
+        {back && !headerAction && (
           <button className="quiet" onClick={back} aria-label="Go back">
             Back
           </button>
@@ -67,6 +70,15 @@ export function Page({
       </header>
       <main id="main" className="experience-main">
         <div className="experience-heading">
+          {back && headerAction && (
+            <button
+              className="quiet onboarding-back"
+              onClick={back}
+              aria-label="Go back"
+            >
+              Back
+            </button>
+          )}
           {progress && (
             <div
               className="journey-progress"

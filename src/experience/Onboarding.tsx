@@ -179,6 +179,20 @@ export function Onboarding({
         dark={[1, 3, 8, 10].includes(step)}
         progress={step < 8 ? [sequence.indexOf(step) + 1, 6] : undefined}
         back={() => (step ? go(sequence[sequence.indexOf(step) - 1]) : back())}
+        headerAction={
+          <button
+            className="quiet onboarding-support"
+            onClick={() =>
+              patch({
+                supportMode:
+                  x.supportMode === "guided" ? "on_request" : "guided",
+                supportOperationId: crypto.randomUUID(),
+              })
+            }
+          >
+            {x.supportMode === "guided" ? "Guide me" : "Help when I ask"}
+          </button>
+        }
         footer={
           <>
             {error && <p role="alert">{error}</p>}
@@ -258,20 +272,6 @@ export function Onboarding({
           </>
         }
       >
-        <div className="onboarding-support">
-          <button
-            className="quiet"
-            onClick={() =>
-              patch({
-                supportMode:
-                  x.supportMode === "guided" ? "on_request" : "guided",
-                supportOperationId: crypto.randomUUID(),
-              })
-            }
-          >
-            {x.supportMode === "guided" ? "Guide me" : "Help when I ask"}
-          </button>
-        </div>
         {step === 0 && (
           <div className="area-onboarding">
             {areas.map((a) => (

@@ -138,7 +138,7 @@ test("first visit through first action, failure recovery, accomplishment and nex
   await shot("38-milestone-mobile");
   await click("See what comes next");
   await click("Plan");
-  await p.locator("summary").filter({ hasText: "Manage challenge" }).click();
+  await p.locator("summary").filter({ hasText: "Review challenge" }).click();
   await click("Pause, return or complete");
   await click("I accomplished it");
   await fill("What actually happened?", "The essay has been published");

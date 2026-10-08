@@ -3,7 +3,7 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { applyLocal, emptySnapshot, type LocalStore } from "../src/data/domain";
 import { type Command, type GrowthArea } from "../src/data/types";
 import { foundation } from "./fixtures";
-import { AreaTabs, AreaContext } from "../src/experience/Areas";
+import { AreaTabs, AreaContext, AreaAssignment } from "../src/experience/Areas";
 import { Onboarding, newEntryExperience } from "../src/experience/Onboarding";
 import { emptyFoundation } from "../src/data/types";
 beforeEach(() => {
@@ -125,4 +125,34 @@ it("onboarding requires an authored area choice and offers opt-in guidance", () 
     screen.getByRole("button", { name: "Help when I ask", exact: true }),
   );
   expect(change.mock.calls.at(-1)?.[0].experience.supportMode).toBe("guided");
+});
+
+it("keeps legacy assignment out of area navigation and available only where requested", () => {
+  const choose = vi.fn();
+  const value = {
+    area: null,
+    choose,
+    goals: [],
+    busy: false,
+    assignment: <button>Assign existing challenge</button>,
+  };
+  const view = render(
+    <AreaContext.Provider value={value}>
+      <AreaTabs />
+    </AreaContext.Provider>,
+  );
+  expect(
+    screen.queryByRole("button", { name: "Assign existing challenge" }),
+  ).toBeNull();
+  expect(choose).not.toHaveBeenCalled();
+  view.rerender(
+    <AreaContext.Provider value={value}>
+      <AreaTabs />
+      <AreaAssignment />
+    </AreaContext.Provider>,
+  );
+  expect(
+    screen.getAllByRole("button", { name: "Assign existing challenge" }),
+  ).toHaveLength(1);
+  expect(choose).not.toHaveBeenCalled();
 });

@@ -538,7 +538,7 @@ export function ReportMove({
         placeholder="Write a short, factual account…"
       />
       {c.milestone_id && (
-        <fieldset>
+        <fieldset className="readiness-choices">
           <legend>How does your preparation feel?</legend>
           {["Keep preparing", "Ready to review my milestone"].map((label) => (
             <Choice

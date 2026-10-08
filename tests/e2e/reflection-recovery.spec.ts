@@ -221,7 +221,7 @@ for (const width of [390, 1440]) {
     await p.getByRole("button", { name: "Start timer" }).click();
     await p.getByRole("button", { name: "Plan", exact: true }).click();
     await snap(p, "plan-navigation", width);
-    await p.locator("summary").filter({ hasText: "Manage challenge" }).click();
+    await p.locator("summary").filter({ hasText: "Review challenge" }).click();
     await p.getByRole("button", { name: "Pause, return or complete" }).click();
     await p.getByRole("button", { name: "Pause for now" }).click();
     await p

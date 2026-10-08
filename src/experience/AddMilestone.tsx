@@ -73,7 +73,7 @@ export function AddMilestone({
       back={() => navigate("/app")}
       footer={
         <>
-          <p role="alert">{error || issue}</p>
+          {(error || issue) && <p role="alert">{error || issue}</p>}
           <button
             className="button"
             disabled={
