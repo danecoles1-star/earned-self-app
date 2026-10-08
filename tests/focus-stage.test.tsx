@@ -185,6 +185,9 @@ it("Plan shows the current milestone first and keeps the complete plan and prepa
   );
   expect(screen.getByRole("heading", { name: "Your Plan" })).toBeVisible();
   expect(screen.queryByText("Who I am becoming")).toBeNull();
+  fireEvent.click(
+    screen.getByRole("button", { name: "All milestones & steps" }),
+  );
   expect(
     screen.getByRole("navigation", { name: "Your milestone path" }),
   ).toBeVisible();

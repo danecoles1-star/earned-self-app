@@ -21,7 +21,7 @@ export function Stage({
   statement?: string;
   children: ReactNode;
   navigate: (path: string) => void;
-  tone?: "focus" | "prepare" | "proof" | "completed";
+  tone?: "focus" | "prepare" | "plan" | "proof" | "completed";
   back?: () => void;
   backLabel?: string;
 }) {
@@ -83,6 +83,8 @@ export function Landscape({
   area?: import("../data/types").GrowthArea | null;
 }) {
   const context = useContext(AreaContext);
+  const selectedArea = area === undefined ? context.area : area;
+  if (!selectedArea) return null;
   return (
     <img
       className={`stage-landscape landscape-${scene}`}

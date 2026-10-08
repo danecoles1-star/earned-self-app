@@ -1,0 +1,10 @@
+/* Functional foundations remain available, but cannot outvote Workshop by specificity. */
+@import "./styles.css" layer(foundation);
+@import "./marketing.css" layer(foundation);
+@import "./logo.css" layer(foundation);
+@import "./experience/experience.css" layer(foundation);
+@import "./experience/focus-stage.css" layer(foundation);
+@import "./experience/ivory-orb.css" layer(foundation);
+@import "./experience/complete-journey.css" layer(foundation);
+@import "./experience/focus-refinement.css" layer(foundation);
+@import "./experience/workshop.css";

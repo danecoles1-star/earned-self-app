@@ -78,31 +78,35 @@ export function WorkshopPath({
       aria-label="Current milestone illustration"
       data-moving={moving}
     >
-      <img src={doors} alt="" className="doors-art" />
-      <div className="door-labels">
-        {visible.map((m, i) => (
-          <button
-            key={m.id}
-            onClick={() => onReview(m.id)}
-            aria-current={m.id === current?.id ? "step" : undefined}
-            style={{ left: `${visible.length === 1 ? 50 : [21, 50, 79][i]}%` }}
-          >
-            <span>{start + i + 1}</span>
-            {m.title}
-          </button>
-        ))}
+      <div className="door-scene">
+        <img src={doors} alt="" className="doors-art" />
+        <div className="door-labels">
+          {visible.map((m, i) => (
+            <button
+              key={m.id}
+              onClick={() => onReview(m.id)}
+              aria-current={m.id === current?.id ? "step" : undefined}
+              style={{
+                left: `${visible.length === 1 ? 50 : [21, 50, 79][i]}%`,
+              }}
+            >
+              <span>{start + i + 1}</span>
+              {m.title}
+            </button>
+          ))}
+        </div>
+        <span
+          className="door-current"
+          style={{ left: `${shown}%` }}
+          aria-hidden="true"
+        />
+        <img
+          src={walker}
+          alt=""
+          className="door-walker"
+          style={{ left: `${shown}%` }}
+        />
       </div>
-      <span
-        className="door-current"
-        style={{ left: `${shown}%` }}
-        aria-hidden="true"
-      />
-      <img
-        src={walker}
-        alt=""
-        className="door-walker"
-        style={{ left: `${shown}%` }}
-      />
       <p className="path-caption">
         {goal.status === "paused"
           ? "Paused"
@@ -112,6 +116,12 @@ export function WorkshopPath({
               ? `Milestone ${currentIndex + 1} of ${goal.milestones.length}`
               : "Milestones recorded"}
       </p>
+      {current && (
+        <div className="workshop-milestone">
+          <h2>{current.title}</h2>
+          <p>{current.criterion}</p>
+        </div>
+      )}
     </section>
   );
 }

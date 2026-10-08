@@ -163,7 +163,16 @@ for (const width of [320, 390, 1440])
     await capture("plan");
     await expect(
       p.getByRole("navigation", { name: "Your milestone path" }),
+    ).toBeHidden();
+    await p
+      .getByRole("button", { name: "All milestones & steps", exact: true })
+      .click();
+    await expect(
+      p.getByRole("navigation", { name: "Your milestone path" }),
     ).toBeVisible();
+    await p
+      .getByRole("button", { name: "Close planning details", exact: true })
+      .click();
     await p.getByRole("button", { name: "Proof", exact: true }).click();
     await expect(
       p.getByText("No Proof yet. Record a check-in when you act."),
@@ -222,3 +231,79 @@ for (const width of [320, 390, 1440])
     ).toHaveCount(0);
     expect(errors).toEqual([]);
   });
+
+for (const width of [390, 1440]) {
+  test(`Workshop fidelity and legacy area at ${width}`, async ({ page: p }) => {
+    await p.setViewportSize({ width, height: 900 });
+    await seed(p);
+    // A legacy challenge must not receive an inferred area or unrelated artwork.
+    await p.evaluate(() => {
+      const key = "earned-self:LOCAL-PREVIEW-ONLY:personal:v1";
+      const state = JSON.parse(localStorage.getItem(key)!);
+      state.snapshot.goals.find(
+        (g: { id: string }) => g.id === "physical",
+      ).area = null;
+      localStorage.setItem(key, JSON.stringify(state));
+    });
+    await p.reload();
+    await expect(
+      p.getByRole("heading", { name: "Choose this challenge’s area" }),
+    ).toBeVisible();
+    const assignment = await p.locator(".assign-area").boundingBox();
+    const identity = await p.locator(".identity-reminder").boundingBox();
+    expect(assignment!.y + assignment!.height).toBeLessThan(identity!.y);
+    await p.getByRole("button", { name: "Proof", exact: true }).click();
+    await expect(p.locator(".landscape-proof")).toHaveCount(0);
+    await p.screenshot({
+      path: `test-results/workshop-legacy-${width}.png`,
+      fullPage: true,
+    });
+    // Explicit selection uses the existing guarded save, never an automatic category guess.
+    await p
+      .locator(".assign-area")
+      .getByRole("button", { name: "Physical", exact: true })
+      .click();
+    await expect(p.locator(".assign-area")).toHaveCount(0);
+    await expect(p.locator(".landscape-proof")).toBeVisible();
+    const breadcrumb = await p.locator(".challenge-breadcrumb").boundingBox();
+    const picture = await p.locator(".landscape-proof").boundingBox();
+    expect(picture!.y).toBeGreaterThan(breadcrumb!.y + breadcrumb!.height);
+    await p.getByRole("button", { name: "Now", exact: true }).click();
+    await expect(
+      p.getByRole("heading", { name: "Practise a relaxed swim stroke" }),
+    ).toBeVisible();
+    const title = await p.locator(".timer-step-title").boundingBox();
+    const ring = await p.locator(".timer-face").boundingBox();
+    expect(ring!.y - title!.y - title!.height).toBeGreaterThanOrEqual(40);
+    expect(
+      await p
+        .locator(".timer-ring")
+        .evaluate(
+          (img: HTMLImageElement) => img.complete && img.naturalWidth > 0,
+        ),
+    ).toBe(true);
+    await p
+      .locator(".timer-face")
+      .evaluate((el) => el.scrollIntoView({ block: "center" }));
+    await p.screenshot({
+      path: `test-results/workshop-timer-focus-${width}.png`,
+    });
+    await p.getByRole("button", { name: /Create wallpaper/ }).click();
+    await expect(
+      p.getByRole("heading", { name: "Words worth carrying." }),
+    ).toBeVisible();
+    const label = p.locator(".wallpaper-swatch.mineral span");
+    await expect(label).toHaveCSS("color", "rgb(23, 35, 41)");
+    await expect(label).toHaveCSS("background-color", "rgb(241, 243, 241)");
+    await p.getByRole("button", { name: "Now", exact: true }).click();
+    await p.getByRole("button", { name: "Add step ›", exact: true }).click();
+    await expect(p.locator("h1")).toBeVisible();
+    await p.screenshot({
+      path: `test-results/workshop-add-step-${width}.png`,
+      fullPage: true,
+    });
+    expect(
+      await p.evaluate(() => document.documentElement.scrollWidth),
+    ).toBeLessThanOrEqual(width);
+  });
+}

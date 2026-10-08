@@ -3,7 +3,7 @@ import { Brand } from "./Brand";
 import physical from "../assets/workshop/area-physical.webp";
 import professional from "../assets/workshop/area-professional.webp";
 import personal from "../assets/workshop/area-personal.webp";
-import ring from "../assets/workshop/timer-ring.png";
+import ring from "../assets/workshop/timer-sketch.svg";
 import basecamp from "../assets/workshop/nav-now.png";
 import plan from "../assets/workshop/nav-plan.png";
 import proof from "../assets/workshop/nav-proof.png";

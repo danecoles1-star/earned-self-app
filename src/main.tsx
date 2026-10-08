@@ -1,12 +1,8 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "./App";
+import "./presentation.css";
 import type { Adapter } from "./data/types";
-import "./styles.css";
-import "./marketing.css";
-import "./logo.css";
-import "./experience/experience.css";
-import "./experience/focus-stage.css";
 async function start() {
   let adapter: Adapter;
   if (__LOCAL_PREVIEW__) {
@@ -28,11 +24,3 @@ start().catch(() => {
   document.getElementById("root")!.textContent =
     "The application configuration needs attention. No account data was loaded. Please contact the private-test organizer.";
 });
-
-import "./experience/ivory-orb.css";
-
-import "./experience/complete-journey.css";
-
-import "./experience/focus-refinement.css";
-
-import "./experience/workshop.css";

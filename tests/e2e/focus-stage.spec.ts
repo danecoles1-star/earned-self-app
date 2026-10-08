@@ -127,6 +127,9 @@ for (const width of [320, 390, 1440]) {
       "Validate collection",
     );
     await capture(p, "plan", width);
+    await p
+      .getByRole("button", { name: "All milestones & steps", exact: true })
+      .click();
     await expect(
       p.getByRole("navigation", { name: "Your milestone path" }),
     ).toBeVisible();
@@ -262,6 +265,9 @@ test("Ivory orb follows timer state, respects reduced motion and keeps every dig
   ).toBeLessThanOrEqual(320);
   await capture(p, "100-hour", 320);
   await p.getByRole("button", { name: "Plan", exact: true }).click();
+  await p
+    .getByRole("button", { name: "All milestones & steps", exact: true })
+    .click();
   await expect(
     p.getByRole("navigation", { name: "Your milestone path" }),
   ).toBeVisible();

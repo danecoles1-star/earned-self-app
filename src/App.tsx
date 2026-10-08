@@ -1017,11 +1017,7 @@ export function App({ adapter }: { adapter: Adapter }) {
               choose: chooseArea,
               goals: snapshot.goals,
               busy: saving,
-            }}
-          >
-            <SupportMode.Provider value={snapshot.supportMode}>
-              {screen}
-              {user &&
+              assignment: user &&
                 selected &&
                 !selected.area &&
                 ["/app", "/manage", "/proof"].includes(path) && (
@@ -1048,7 +1044,11 @@ export function App({ adapter }: { adapter: Adapter }) {
                       </button>
                     ))}
                   </section>
-                )}
+                ),
+            }}
+          >
+            <SupportMode.Provider value={snapshot.supportMode}>
+              {screen}
             </SupportMode.Provider>
           </AreaContext.Provider>
         </ProfileProvider>

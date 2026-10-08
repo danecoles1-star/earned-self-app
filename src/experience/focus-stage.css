@@ -454,7 +454,7 @@ body {
   margin: 20px 0 28px;
 }
 .completion-label {
-  color: #79530d !important;
+  color: #79530d;
 }
 .completed-proof-entry .proof-fact {
   font-size: 17px;
@@ -590,36 +590,36 @@ body {
   margin: 64px 0 24px;
 }
 .app-tabs {
-  min-height: 56px !important;
+  min-height: 56px;
   padding: 4px max(8px, calc((100vw - 680px) / 2))
-    calc(4px + env(safe-area-inset-bottom, 0px)) !important;
-  background: #f6f1e8f5 !important;
+    calc(4px + env(safe-area-inset-bottom, 0px));
+  background: #f6f1e8f5;
   border-top: 1px solid #101a201a;
   backdrop-filter: blur(12px);
-  gap: 0 !important;
+  gap: 0;
   color: var(--ink);
 }
 .app-tabs button {
-  display: flex !important;
-  flex-direction: row !important;
+  display: flex;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
-  gap: 8px !important;
-  min-height: 44px !important;
-  padding: 8px 4px !important;
-  font: 400 12px/1.2 var(--font-interface) !important;
-  color: var(--ink) !important;
+  gap: 8px;
+  min-height: 44px;
+  padding: 8px 4px;
+  font: 400 12px/1.2 var(--font-interface);
+  color: var(--ink);
   border-radius: 0;
 }
 .app-tabs img {
-  width: 23px !important;
-  height: 23px !important;
-  filter: none !important;
+  width: 23px;
+  height: 23px;
+  filter: none;
 }
 .app-tabs button[aria-current="page"] {
   box-shadow: inset 0 -2px var(--ember);
   border-bottom: 0;
-  background: none !important;
+  background: none;
 }
 .global-status:has(.live-status:empty):not(:has(.error)) {
   display: none;
@@ -684,12 +684,12 @@ body {
     margin-left: -8px;
   }
   .app-tabs button {
-    font-size: 11px !important;
-    gap: 5px !important;
+    font-size: 11px;
+    gap: 5px;
   }
   .app-tabs img {
-    width: 20px !important;
-    height: 20px !important;
+    width: 20px;
+    height: 20px;
   }
 }
 @media (prefers-reduced-motion: reduce) {

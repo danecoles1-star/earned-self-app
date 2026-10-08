@@ -52,11 +52,7 @@ export function Ambition({
   return (
     <Stage
       title={section === "preparation" ? "Your preparation" : "Your Plan"}
-      statement={
-        section === "overview"
-          ? "Every day, every step, every milestone brings progress"
-          : undefined
-      }
+      tone={section === "overview" ? "plan" : "prepare"}
       navigate={navigate}
       back={
         section === "preparation" ? () => setSection("overview") : undefined
@@ -64,8 +60,9 @@ export function Ambition({
       backLabel="Back to Your Plan"
     >
       {g.status === "paused" && <Paused goal={g} navigate={navigate} />}
-      <details open className="challenge-breadcrumb">
-        <summary>Challenge · {g.words}</summary>
+      <section className="challenge-breadcrumb plan-challenge">
+        <span className="section-label">Your challenge</span>
+        <h2>{g.words}</h2>
         <p>
           Done means: {g.outcome || "Define your finish during preparation."}
         </p>
@@ -77,7 +74,7 @@ export function Ambition({
             Revisit your accomplishment
           </button>
         )}
-      </details>
+      </section>
       {section === "overview" && (
         <section className="plan-overview">
           <WorkshopPath
@@ -90,14 +87,6 @@ export function Ambition({
             }}
           />
           <PlanFocus goal={g} snapshot={s} navigate={navigate} />
-          <MilestonePath
-            goal={g}
-            snapshot={s}
-            onReview={(id) => {
-              setShowDetails(true);
-              setFocusedMilestone(id);
-            }}
-          />
           <button
             className="quiet all-plan-link"
             onClick={() => setShowDetails(!showDetails)}
@@ -106,6 +95,15 @@ export function Ambition({
             {showDetails ? "Close planning details" : "All milestones & steps"}
           </button>
           <div hidden={!showDetails} className="plan-detail-tools">
+            <MilestonePath
+              goal={g}
+              snapshot={s}
+              onReview={(id) => {
+                setShowDetails(true);
+                setFocusedMilestone(id);
+              }}
+            />
+
             {!m && !ended && (
               <button
                 className="button secondary"

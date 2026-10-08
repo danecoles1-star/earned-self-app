@@ -1,4 +1,4 @@
-import { createContext, useContext } from "react";
+import { createContext, useContext, type ReactNode } from "react";
 import type { GrowthArea, Goal } from "../data/types";
 export const areas: GrowthArea[] = ["physical", "professional", "personal"];
 export const areaLabel = (area: GrowthArea) =>
@@ -8,21 +8,25 @@ export const AreaContext = createContext<{
   choose: (a: GrowthArea) => void;
   goals: Goal[];
   busy: boolean;
+  assignment?: ReactNode;
 }>({ area: null, choose: () => {}, goals: [], busy: false });
 export function AreaTabs() {
-  const { area, choose, busy } = useContext(AreaContext);
+  const { area, choose, busy, assignment } = useContext(AreaContext);
   return (
-    <nav className="area-tabs" aria-label="Area of growth">
-      {areas.map((a) => (
-        <button
-          key={a}
-          disabled={busy}
-          aria-pressed={area === a}
-          onClick={() => choose(a)}
-        >
-          {areaLabel(a)}
-        </button>
-      ))}
-    </nav>
+    <>
+      {assignment}
+      <nav className="area-tabs" aria-label="Area of growth">
+        {areas.map((a) => (
+          <button
+            key={a}
+            disabled={busy}
+            aria-pressed={area === a}
+            onClick={() => choose(a)}
+          >
+            {areaLabel(a)}
+          </button>
+        ))}
+      </nav>
+    </>
   );
 }

@@ -7,6 +7,7 @@
   --font-editorial: Georgia, "Times New Roman", serif;
   --font-interface: "Avenir Next", Avenir, Montserrat, Arial, sans-serif;
   color: var(--ink);
+  color-scheme: light;
   background: var(--paper);
 }
 body {
@@ -1012,7 +1013,7 @@ a:focus-visible {
 /* Shared component overrides retire the old pill and steel treatments. */
 body {
   background-image:
-    linear-gradient(#f1f3f1dc, #f1f3f1dc), url("../assets/workshop/paper.webp");
+    linear-gradient(#f1f3f168, #f1f3f168), url("../assets/workshop/paper.webp");
 }
 .experience.mineral,
 .focus-stage,
@@ -1027,7 +1028,7 @@ body {
 .how-page .button.how-primary {
   background-color: var(--mineral);
   background-image:
-    linear-gradient(#537889d9, #537889d9), url("../assets/workshop/paper.webp");
+    linear-gradient(#315c70a8, #315c70a8), url("../assets/workshop/paper.webp");
   background-size: auto, 220px;
   border: 1px solid var(--ember);
   border-radius: 8px 11px 7px 10px;
@@ -1272,7 +1273,7 @@ body {
 }
 .focus-stage .step-timer .button {
   background:
-    linear-gradient(#537889d9, #537889d9), url("../assets/workshop/paper.webp");
+    linear-gradient(#315c70a8, #315c70a8), url("../assets/workshop/paper.webp");
   border: 1px solid var(--ember);
   border-radius: 8px 11px 7px 10px;
   color: white;
@@ -1337,7 +1338,7 @@ body {
 .focus-stage .stage-secondary-links,
 .reflection-answer + .reflection-answer {
   border-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='5' viewBox='0 0 600 5'%3E%3Cpath d='M0 2.5 Q170 1 300 2.4 T600 2' stroke='%23537b89' stroke-opacity='.5' fill='none' stroke-width='.8'/%3E%3Cpath d='M2 3 Q200 2 390 3 T598 2.8' stroke='%23537b89' stroke-opacity='.15' fill='none' stroke-width='.7'/%3E%3C/svg%3E")
-    2 stretch;
+    0 0 5 0 stretch;
 }
 .focus-stage .stage-main {
   box-sizing: border-box;
@@ -1356,7 +1357,7 @@ body {
 }
 .step-timer .timer-readout output,
 .focus-stage .timer-face output {
-  font-family: var(--font-interface);
+  font-family: var(--font-editorial);
   font-variant-numeric: tabular-nums;
 }
 @media (max-width: 360px) {
@@ -1424,4 +1425,449 @@ body {
   max-width: 100%;
   max-height: 520px;
   aspect-ratio: 1170 / 2532;
+}
+
+/* Workshop owns geometry as well as colour. Legacy geometry is explicitly retired here. */
+.experience-main {
+  display: block;
+}
+.experience {
+  --fg: var(--ink);
+  --muted: #425b66;
+  --rule: #53788955;
+}
+.experience-heading {
+  max-width: none;
+}
+.experience .experience-heading h1 {
+  max-width: 19ch;
+  margin-top: 18px;
+}
+.experience .experience-main,
+.experience .experience-footer {
+  max-width: 600px;
+}
+.experience .experience-footer {
+  padding-bottom: 100px;
+}
+.experience .experience-content {
+  min-width: 0;
+  width: 100%;
+}
+.experience .experience-art {
+  position: static;
+  width: 100%;
+  height: auto;
+  margin: 12px 0 24px;
+}
+.experience .experience-heading {
+  margin-bottom: 32px;
+}
+.experience .experience-footer {
+  margin-top: 8px;
+}
+.experience textarea {
+  font-size: 18px;
+}
+.experience .journey-progress {
+  margin: 12px 0 30px;
+}
+.experience .choice-dot {
+  flex-shrink: 0;
+}
+.experience .experience-choice {
+  border-radius: 5px 8px 6px 9px;
+}
+.experience .experience-choice:hover {
+  color: var(--ink);
+  background: #53788918;
+}
+.experience .experience-choice[aria-pressed="true"] {
+  background: #53788918;
+  border-color: var(--mineral);
+}
+.experience .wallpaper-swatch span {
+  color: var(--ink);
+  background: #f1f3f1;
+  text-shadow: none;
+  opacity: 1;
+}
+.experience .wallpaper-swatch {
+  min-height: 150px;
+  background-image: url("../assets/workshop/paper.webp");
+  background-blend-mode: multiply;
+  background-size: 220px;
+}
+.wallpaper-styles {
+  border: 0;
+  padding: 0;
+  min-width: 0;
+}
+.wallpaper-styles legend {
+  margin-bottom: 18px;
+}
+.wallpaper-card {
+  overflow: visible;
+}
+.wallpaper-card img {
+  border-radius: 2px;
+}
+.focus-stage .stage-landscape {
+  display: block;
+  position: static;
+  inset: auto;
+  transform: none;
+  z-index: auto;
+  opacity: 1;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  max-height: none;
+  aspect-ratio: 3/2;
+  object-fit: contain;
+  margin: 24px 0 32px;
+  mask-image: none;
+}
+.proof-introduction {
+  position: static;
+  margin: 20px 0;
+  padding: 0;
+}
+.proof-support {
+  position: static;
+  margin-top: 32px;
+}
+.proof-group {
+  background: none;
+  padding: 0;
+}
+.proof-row,
+.proof-attempt {
+  position: relative;
+  padding: 24px 12px 24px 32px;
+  margin: 0;
+}
+.proof-row h3 {
+  font-size: 25px;
+}
+.proof-row::before,
+.proof-attempt::before {
+  display: none;
+}
+.proof-support .proof-group > h3,
+.proof-support .proof-group > .section-label {
+  display: none;
+}
+.completed-proof-entry .stage-landscape {
+  margin: 20px 0 28px;
+}
+.stage-completed .stage-landscape {
+  margin-top: 12px;
+}
+.identity-reminder {
+  margin: 26px 0 30px;
+}
+.focus-stage .stage-context.context-pair {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  border: 0;
+  margin-bottom: 36px;
+  padding: 0;
+}
+.focus-stage .stage-context.context-pair > .quiet {
+  width: 100%;
+  padding: 18px 0;
+  border-bottom: 1px solid #53788955;
+}
+.focus-stage .stage-context.context-pair .context-title {
+  margin-top: 8px;
+  font-size: 23px;
+}
+.focus-stage .stage-context.context-pair .context-label {
+  font-size: 10px;
+  align-self: flex-start;
+}
+.focus-stage .timer-step-title {
+  margin-bottom: 48px !important;
+}
+.focus-stage .timer-step-title h2 {
+  font-weight: 600;
+}
+.step-timer .timer-ring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.step-timer .timer-orbit {
+  position: absolute;
+  inset: 5.5%;
+  margin: 0;
+  animation: none;
+  transition: none;
+}
+.step-timer .timer-marker {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+}
+.step-timer .timer-readout {
+  z-index: 1;
+}
+.app-tabs {
+  display: flex;
+  align-items: center;
+  height: 58px;
+  min-height: 58px;
+  background: #f1f3f1f2;
+  max-width: 680px;
+}
+.app-tabs button {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  height: 50px;
+  padding: 2px 12px;
+  min-height: 44px;
+  font-size: 11px;
+  position: relative;
+}
+.app-tabs button img {
+  height: 28px;
+  width: 28px;
+}
+.app-tabs button[aria-current="page"] {
+  box-shadow: none;
+  border: 0;
+}
+.app-tabs button[aria-current="page"]::after {
+  content: "";
+  display: block;
+  position: absolute;
+  bottom: 0;
+  width: 32px;
+  height: 1px;
+  background: var(--mineral);
+  transform: rotate(-1deg);
+}
+.assign-area {
+  max-width: none;
+  margin: 18px 0 22px;
+  padding: 18px 0;
+  border-block: 1px solid #53788955;
+}
+.assign-area h2 {
+  font-size: 24px;
+  margin: 0 0 8px;
+}
+.assign-area p {
+  font-size: 13px;
+  margin: 0 0 14px;
+}
+.assign-area .button {
+  width: auto;
+  margin: 4px;
+  padding: 10px 14px;
+  min-height: 44px;
+  font-size: 12px;
+}
+.workshop-path {
+  aspect-ratio: auto;
+  margin: 28px -28px 0;
+  overflow: visible;
+  background: #315c70;
+}
+.door-scene {
+  position: relative;
+  aspect-ratio: 3/2;
+  overflow: hidden;
+}
+.doors-art {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+}
+.path-caption {
+  position: static;
+  margin: 0;
+  padding: 0 28px 10px;
+  text-align: left;
+  background: #315c70;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.workshop-milestone {
+  color: white;
+  padding: 0 28px 28px;
+  background: #315c70;
+}
+.workshop-milestone h2 {
+  font: 400 clamp(26px, 5vw, 34px) / 1.18 var(--font-editorial);
+  margin: 0 0 12px;
+  color: white;
+}
+.workshop-milestone p {
+  color: #f1f3f1;
+  font: 400 14px/1.6 var(--font-interface);
+  margin: 0;
+}
+.plan-focus-stage {
+  margin: 0;
+  padding: 0 0 28px;
+}
+.plan-focus-stage h2,
+.plan-focus-stage > .section-label,
+.plan-focus-stage > .milestone-criterion {
+  display: none;
+}
+.focus-step-path {
+  margin: 0 0 28px;
+}
+.focus-step-path li {
+  padding: 28px 0;
+  border: 0;
+  border-bottom: 1px solid #53788955;
+}
+.plan-create-actions {
+  gap: 14px;
+  margin-top: 18px;
+}
+.plan-create-actions .quiet {
+  font: 500 15px/1.4 var(--font-interface);
+  min-height: 48px;
+}
+.plan-detail-tools[hidden] {
+  display: none;
+}
+.all-plan-link {
+  width: 100%;
+  margin: 12px 0 28px;
+  padding: 14px 0;
+  text-align: left;
+  border-block: 1px solid #53788955;
+}
+.challenge-breadcrumb summary {
+  font-size: 27px;
+}
+.stage-title {
+  max-width: 100%;
+}
+.how-page .how-header {
+  max-width: none;
+}
+.how-page .example-tabs button[aria-selected="true"] {
+  color: var(--ink);
+}
+.how-page .how-method,
+.how-page .how-examples {
+  width: 100%;
+}
+.how-page .how-primary {
+  display: inline-flex;
+}
+@media (max-width: 360px) {
+  .workshop-path {
+    margin-inline: -20px;
+  }
+  .workshop-milestone {
+    padding-inline: 20px;
+  }
+  .assign-area .button {
+    padding-inline: 10px;
+    margin: 3px;
+  }
+  .plan-create-actions {
+    grid-template-columns: 1fr;
+  }
+}
+@media (min-width: 900px) {
+  .experience .experience-main {
+    display: block;
+  }
+  .experience .experience-footer {
+    width: 100%;
+  }
+  .workshop-path {
+    margin-inline: 0;
+  }
+  .focus-stage .stage-main {
+    max-width: 680px;
+  }
+}
+
+.stage-plan .stage-title {
+  font: 600 11px/1.5 var(--font-interface);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--mineral);
+  margin: 26px 0 12px;
+}
+.stage-plan .challenge-breadcrumb {
+  margin: 0 0 24px !important;
+}
+.stage-plan .challenge-breadcrumb h2 {
+  font: 600 clamp(32px, 6vw, 44px) / 1.12 var(--font-editorial);
+  letter-spacing: -0.025em;
+  margin: 12px 0 18px;
+}
+.stage-plan .challenge-breadcrumb p {
+  font-size: 14px;
+  margin: 14px 0 0;
+  padding: 0;
+}
+.focus-step-path strong {
+  color: var(--ink);
+}
+.plan-tools .preparation-card {
+  border-radius: 0;
+  box-shadow: none;
+  border: 0;
+  padding: 24px 0;
+}
+.focus-stage .context-pair > .quiet {
+  border-image: none;
+}
+.focus-stage .context-pair > .quiet,
+.all-plan-link,
+.focus-step-path li,
+.proof-row,
+.proof-attempt,
+.plan-tools section {
+  border-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='5' viewBox='0 0 600 5'%3E%3Cpath d='M0 2.5 Q170 .4 300 2.4 T600 2' stroke='%23537889' stroke-opacity='.7' fill='none' stroke-width='.8'/%3E%3Cpath d='M2 3 Q200 1.4 390 3 T598 2.8' stroke='%23537889' stroke-opacity='.4' fill='none' stroke-width='.7'/%3E%3C/svg%3E")
+    0 0 5 0 stretch;
+}
+.experience .button,
+.focus-stage .button,
+.how-page .button,
+.focus-stage .step-timer .button,
+.plan-create-actions .quiet,
+.experience .button.secondary,
+.focus-stage .button.secondary,
+.how-page .button.how-primary {
+  background-color: #537889;
+  background-image: url("../assets/workshop/pencil-grain.svg");
+  background-size: 180px 54px;
+  border-radius: 6px 9px 5px 8px;
+  border: 1px solid var(--ember);
+  color: #fff;
+  font-weight: 500;
+}
+.experience .button:hover:not(:disabled),
+.focus-stage .button:hover,
+.plan-create-actions .quiet:hover {
+  background-color: #315c70;
+}
+
+/* Draw the whole rule, rather than slicing a sketch into border-image corners. */
+.focus-stage .stage-context.context-pair > .quiet {
+  border: 0;
+  border-image: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='5' viewBox='0 0 600 5'%3E%3Cpath d='M0 2.5 Q170 1 300 2.4 T600 2' stroke='%23537889' stroke-opacity='.7' fill='none' stroke-width='.8'/%3E%3Cpath d='M2 3 Q200 2 390 3 T598 2.8' stroke='%23537889' stroke-opacity='.3' fill='none' stroke-width='.7'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-size: 100% 4px;
+  background-position: bottom;
 }
