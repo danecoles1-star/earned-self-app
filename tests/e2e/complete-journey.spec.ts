@@ -6,28 +6,40 @@ for (const width of [390, 1440]) {
   }) => {
     await page.setViewportSize({ width, height: 844 });
     await page.goto("/");
+    await page.waitForLoadState("networkidle");
     const errors: string[] = [];
     page.on("pageerror", (error) => errors.push(error.message));
     await expect(
       page.getByRole("heading", { name: "Become You." }),
     ).toBeVisible();
-    await page
-      .getByRole("button", { name: "Professional", exact: true })
-      .first()
-      .click();
+    const exampleSelector = page.getByRole("group", {
+      name: "Choose an example",
+    });
+    await exampleSelector.scrollIntoViewIfNeeded();
+    await page.locator(".example-story img").evaluate((image) => {
+      if (!(image instanceof HTMLImageElement) || image.complete) return;
+      return new Promise<void>((resolve) => {
+        image.addEventListener("load", () => resolve(), { once: true });
+        image.addEventListener("error", () => resolve(), { once: true });
+      });
+    });
+    const professional = exampleSelector.getByRole("button", {
+      name: "Professional",
+      exact: true,
+    });
+    await professional.click();
+    await expect(professional).toHaveAttribute("aria-pressed", "true");
     await expect(
       page.getByText("Deliver a keynote at an industry conference."),
     ).toBeVisible();
-    await page
+    await exampleSelector
       .getByRole("button", { name: "Personal", exact: true })
-      .first()
       .click();
     await expect(
       page.getByText("Finish my novella and share it with three readers."),
     ).toBeVisible();
-    await page
+    await exampleSelector
       .getByRole("button", { name: "Physical", exact: true })
-      .first()
       .click();
     await expect(page.getByText("Complete my first triathlon.")).toBeVisible();
     expect(

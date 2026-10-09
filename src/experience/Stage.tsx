@@ -14,6 +14,7 @@ import account from "../assets/icons/user-round.svg";
 
 export function Stage({
   title,
+  hero,
   children,
   navigate,
   tone = "prepare",
@@ -24,6 +25,7 @@ export function Stage({
     : undefined,
 }: {
   title: string;
+  hero?: ReactNode;
   statement?: string;
   children: ReactNode;
   navigate: (path: string) => void;
@@ -36,12 +38,13 @@ export function Stage({
   const surface = useRef<HTMLDivElement>(null);
   const [mineralHeight, setMineralHeight] = useState(0);
   useLayoutEffect(() => {
-    if (tone !== "plan" || !surface.current) return;
+    if ((tone !== "plan" && !hero) || !surface.current) return;
     const root = surface.current;
     const measure = () => {
       const end =
-        root.querySelector(".workshop-path, .workshop-path-empty") ||
-        root.querySelector(".plan-challenge");
+        root.querySelector(
+          ".stage-hero, .workshop-path, .workshop-path-empty",
+        ) || root.querySelector(".plan-challenge");
       if (end)
         setMineralHeight(
           end.getBoundingClientRect().bottom - root.getBoundingClientRect().top,
@@ -51,17 +54,22 @@ export function Stage({
     if (typeof ResizeObserver === "undefined") return;
     const observer = new ResizeObserver(measure);
     observer.observe(root);
-    const end = root.querySelector(".workshop-path, .workshop-path-empty");
+    const end = root.querySelector(
+      ".stage-hero, .workshop-path, .workshop-path-empty",
+    );
     if (end) observer.observe(end);
     return () => observer.disconnect();
-  }, [tone, children]);
+  }, [tone, children, hero]);
   useEffect(() => {
     heading.current?.focus();
     window.scrollTo(0, 0);
   }, [title]);
   return (
-    <div ref={surface} className={`focus-stage stage-${tone}`}>
-      {tone === "plan" && (
+    <div
+      ref={surface}
+      className={`focus-stage stage-${tone}${hero ? " has-progress-hero" : ""}`}
+    >
+      {(tone === "plan" || hero) && (
         <div
           className="plan-mineral-surface"
           style={{ height: mineralHeight }}
@@ -69,7 +77,7 @@ export function Stage({
         />
       )}
       <header className="stage-header">
-        <Brand mineral={tone !== "plan"} />
+        <Brand mineral={tone !== "plan" && !hero} />
         <button
           className="quiet account-button"
           aria-label="Account"
@@ -93,11 +101,14 @@ export function Stage({
           ref={heading}
           tabIndex={-1}
           className={
-            tone === "focus" || statement ? "visually-hidden" : "stage-title"
+            tone === "focus" || statement || hero
+              ? "visually-hidden"
+              : "stage-title"
           }
         >
           {title}
         </h1>
+        {hero}
         {statement && (
           <section className="identity-reminder page-identity">
             <span className="section-label">{title}</span>

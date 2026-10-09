@@ -1,6 +1,5 @@
 import type { Goal, Snapshot } from "../data/types";
 import { currentMilestone } from "../data/domain";
-import routeMap from "../assets/workshop/nav-plan.png";
 /** A real milestone count, never a fixed number of illustrated achievements. */
 export function WorkshopPath({
   goal,
@@ -29,7 +28,6 @@ export function WorkshopPath({
       className="workshop-path route-map-stage"
       aria-label="Your milestone progression"
     >
-      <img className="route-map-icon" src={routeMap} alt="" />
       <div>
         <span className="section-label">
           {goal.status === "paused" ? "Paused" : "Your milestones"}

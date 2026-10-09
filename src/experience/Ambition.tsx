@@ -1,3 +1,4 @@
+import { completedProgress } from "./progress";
 import plus from "../assets/icons/plus.svg";
 import { AreaAssignment } from "./Areas";
 import { WorkshopPath } from "./WorkshopPath";
@@ -430,24 +431,43 @@ export function ProofList({
       ),
     );
   const ongoing = s.goals.filter((g) => g.status !== "completed");
+  const totals = completedProgress(s);
   return (
     <Stage
       title="Your Proof"
-      statement="The evidence is stacking up, keep going"
+      statement=""
       navigate={navigate}
       tone="proof"
-    >
-      {s.goals.find((g) => g.id === s.selectedGoal) && (
-        <section className="proof-context">
-          <strong>
-            Challenge · {s.goals.find((g) => g.id === s.selectedGoal)?.words}
-          </strong>
-          <p>{s.goals.find((g) => g.id === s.selectedGoal)?.outcome}</p>
+      hero={
+        <section
+          className="stage-hero proof-hero"
+          aria-label="Completed work in this area"
+        >
+          <section className="identity-reminder page-identity">
+            <span className="section-label">Your Proof</span>
+            <p>The evidence is stacking up, keep going</p>
+          </section>
+          <p className="hero-scope">Across your recorded work in this area.</p>
+          <dl className="proof-totals">
+            {(
+              [
+                ["Steps", totals.steps],
+                ["Milestones", totals.milestones],
+                ["Challenges", totals.challenges],
+              ] as const
+            ).map(([label, count]) => (
+              <div key={label}>
+                <dt>
+                  {label}
+                  <span>completed</span>
+                </dt>
+                <dd>{count}</dd>
+              </div>
+            ))}
+          </dl>
         </section>
-      )}
-      <p className="proof-intro">
-        A record of your steps, attempts and accomplishments.
-      </p>
+      }
+    >
       <nav className="proof-kind-tabs" aria-label="Evidence type">
         {(["all", "steps", "milestones", "challenges"] as const).map((kind) => (
           <button

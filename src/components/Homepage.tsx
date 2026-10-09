@@ -1,7 +1,11 @@
 import { useState } from "react";
 import { Brand } from "./Brand";
 import physical from "../assets/workshop/area-physical.webp";
-import professional from "../assets/workshop/area-professional.webp";
+import professional from "../assets/workshop/how-after-speech.webp";
+import arrowRight from "../assets/icons/arrow-right.svg";
+import arrowDown from "../assets/icons/arrow-down.svg";
+import arrowLeft from "../assets/icons/arrow-left.svg";
+import arrowUp from "../assets/icons/arrow-up.svg";
 import personal from "../assets/workshop/area-personal.webp";
 import hero from "../assets/workshop/hero-professional.webp";
 import { proofArt } from "../experience/workshopArt";
@@ -21,7 +25,7 @@ export const illustrativeExamples = [
       "Complete a full practice course.",
     ],
     image: physical,
-    alt: "A swimmer prepares for open water",
+    alt: "A triathlon participant finishes the swim with other competitors",
     challenge: "Complete my first triathlon.",
     milestone: "Complete a 400 m open-water swim.",
     step: "Book a coached swim session.",
@@ -38,7 +42,7 @@ export const illustrativeExamples = [
       "Deliver the keynote.",
     ],
     image: professional,
-    alt: "A speaker with her notes in a small, dark auditorium",
+    alt: "The speaker is warmly congratulated by audience members after her talk",
     challenge: "Deliver a keynote at an industry conference.",
     milestone: "Deliver the full talk to three peers.",
     step: "Record the first two minutes of my opening.",
@@ -106,6 +110,31 @@ export function Homepage({
           alt=""
           fetchPriority="high"
         />
+      </section>
+      <section className="how-philosophy" aria-label="How growth becomes Proof">
+        <p>
+          Choose a difficult challenge that matters to you. Earned Self helps
+          you prepare, take the next step, and turn what you do into proof of
+          who you’re becoming.
+        </p>
+        <div
+          className="growth-cycle"
+          role="img"
+          aria-label="Challenge, then Milestone, then Step, then Proof, then back to Challenge"
+        >
+          <span className="cycle-challenge">Challenge</span>
+          <img className="cycle-right" src={arrowRight} alt="" />
+          <span className="cycle-milestone">Milestone</span>
+          <img className="cycle-down" src={arrowDown} alt="" />
+          <span className="cycle-step">Step</span>
+          <img className="cycle-left" src={arrowLeft} alt="" />
+          <span className="cycle-proof">Proof</span>
+          <img className="cycle-up" src={arrowUp} alt="" />
+        </div>
+        <p className="cycle-caption">Reflect. Grow. Choose what’s next.</p>
+        <button className="button" onClick={begin}>
+          Begin
+        </button>
       </section>
       <section className="how-method" aria-labelledby="method-title">
         <h2 id="method-title">

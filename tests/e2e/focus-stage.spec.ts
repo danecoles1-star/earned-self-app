@@ -90,7 +90,7 @@ for (const width of [320, 390, 1440]) {
     expect(timerTextBounds.y + timerTextBounds.height).toBeLessThanOrEqual(
       timerFaceBounds.y + timerFaceBounds.height,
     );
-    await expect(p.locator(".stage-context .quiet").first()).toHaveCSS(
+    await expect(p.locator(".now-hero .hero-challenge")).toHaveCSS(
       "background-color",
       "rgba(0, 0, 0, 0)",
     );
@@ -189,7 +189,7 @@ test("long step titles remain readable in details without squeezing the timer", 
   s.snapshot.definitions.find((d) => d.commitment_id === "next-step")!.action =
     title;
   await seed(p, s);
-  const timerTitle = p.locator(".timer-step-title h2"),
+  const timerTitle = p.locator(".now-hero .hero-progress h2"),
     timerOutput = p.getByLabel("Elapsed time");
   await expect(timerTitle).toHaveText(title);
   await expect(timerOutput).toBeVisible();
@@ -208,7 +208,7 @@ test("long step titles remain readable in details without squeezing the timer", 
   await expect(
     p.getByRole("region", { name: "Step details & calendar" }),
   ).toBeVisible();
-  await expect(p.locator(".timer-step-title h2")).toHaveText(title);
+  await expect(p.locator(".now-hero .hero-progress h2")).toHaveText(title);
   expect(errors).toEqual([]);
 });
 

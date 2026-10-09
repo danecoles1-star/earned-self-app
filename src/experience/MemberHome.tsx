@@ -1,3 +1,5 @@
+import plus from "../assets/icons/plus.svg";
+import { completedProgress } from "./progress";
 import { WallpaperCard } from "./WallpaperCard";
 import { useEffect } from "react";
 import { Paused } from "./Paused";
@@ -59,35 +61,50 @@ export function MemberHome({
     navigate("/report/" + goal.id);
   };
   return (
-    <Stage title="Now" tone="focus" navigate={navigate}>
-      {goal.vision && (
-        <section className="identity-reminder">
-          <span className="section-label">Who I am becoming</span>
-          <p>{goal.vision}</p>
-        </section>
-      )}
-
-      <div
-        className="stage-context context-pair"
-        data-has-milestone={!!milestone && !ended}
-      >
-        <button
-          className="quiet context-challenge"
-          onClick={() => navigate("/manage")}
+    <Stage
+      title="Now"
+      tone="focus"
+      navigate={navigate}
+      hero={
+        <section
+          className="stage-hero now-hero"
+          aria-label="Your next step and progress"
         >
-          <span className="context-label">Challenge</span>
-          <span className="context-title">{goal.words}</span>
-        </button>
-        {milestone && !ended && (
+          {goal.vision && (
+            <section className="identity-reminder">
+              <span className="section-label">Who I am becoming</span>
+              <p>{goal.vision}</p>
+            </section>
+          )}
           <button
-            className="quiet milestone-context"
-            onClick={() => navigate("/milestone/" + goal.id)}
+            className="quiet hero-challenge"
+            onClick={() => navigate("/manage")}
           >
-            <span className="context-label">Current milestone</span>
-            <span className="context-title">{milestone.title}</span>
+            <span className="visually-hidden">Challenge: </span>
+            {goal.words}
           </button>
-        )}
-      </div>
+          <div className="hero-progress">
+            <p className="completed-step-count">
+              {completedProgress(snapshot, [goal.id]).steps} steps completed
+            </p>
+            <span className="section-label">
+              {ended
+                ? "Your recorded work"
+                : paused
+                  ? "Your saved step"
+                  : "Current step"}
+            </span>
+            <h2>
+              {ended
+                ? goal.status === "completed"
+                  ? "Challenge completed"
+                  : "Your Proof stays with you"
+                : d?.action || "Choose your next step"}
+            </h2>
+          </div>
+        </section>
+      }
+    >
       {paused && <Paused goal={goal} navigate={navigate} />}
       {ended ? (
         <section className="stage-ended">
@@ -135,10 +152,7 @@ export function MemberHome({
                     time.time_zone,
                   )
                 }
-              >
-                <h2>{d.action}</h2>
-                <p>{d.criterion}</p>
-              </StepTimer>
+              />
               <button
                 className="button secondary focus-check-in"
                 onClick={checkIn}
@@ -179,6 +193,27 @@ export function MemberHome({
           </button>
         </section>
       )}
+      {!ended && (
+        <div
+          className="plan-create-actions now-create-actions"
+          aria-label="Add to your plan"
+        >
+          <button
+            className="add-control"
+            onClick={() => navigate("/add-step/" + goal.id)}
+          >
+            <img src={plus} alt="" />
+            Add step
+          </button>
+          <button
+            className="add-control"
+            onClick={() => navigate("/add-milestone/" + goal.id)}
+          >
+            <img src={plus} alt="" />
+            Add milestone
+          </button>
+        </div>
+      )}
       <div className="stage-secondary-links">
         <button className="quiet" onClick={() => navigate("/manage")}>
           View my plan ›
@@ -190,18 +225,21 @@ export function MemberHome({
         >
           Why & obstacles ›
         </button>
-        {!ended && (
-          <button
-            className="quiet"
-            onClick={() => navigate("/add-step/" + goal.id)}
-          >
-            Add step ›
-          </button>
-        )}
       </div>
       {c && d && !ended && (
         <section className="stage-details" aria-label="Step details & calendar">
           <h3>Step details & calendar</h3>
+          {milestone && (
+            <p className="step-milestone-context">
+              Milestone:{" "}
+              <button
+                className="quiet"
+                onClick={() => navigate("/milestone/" + goal.id)}
+              >
+                {milestone.title}
+              </button>
+            </p>
+          )}
           {time?.starts_at &&
             new Date(time.starts_at).getTime() < Date.now() && (
               <p className="notice">
@@ -253,6 +291,7 @@ export function AppNavigation({
       ].map(([href, label, icon]) => (
         <button
           key={href}
+          className={href === "/app" ? "nav-now" : undefined}
           aria-current={
             path === href || (href !== "/app" && path.startsWith(href + "/"))
               ? "page"

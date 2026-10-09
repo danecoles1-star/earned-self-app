@@ -443,10 +443,9 @@ h1:focus {
   position: absolute;
   top: 0;
   left: 50%;
-  width: 10px;
-  height: 10px;
-  background: var(--ember);
-  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  background: url("./assets/workshop/timer-dot.webp") center/contain no-repeat;
   transform: translate(-50%, -50%);
 }
 .timer-readout {
@@ -1533,12 +1532,12 @@ fieldset {
 }
 .method-timer-marker {
   position: absolute;
-  top: 15%;
-  right: 20%;
-  width: 10px;
-  height: 10px;
-  background: var(--ember);
-  border-radius: 50%;
+  top: 20.7%;
+  left: 79.3%;
+  width: 24px;
+  height: 24px;
+  background: url("./assets/workshop/timer-dot.webp") center/contain no-repeat;
+  transform: translate(-50%, -50%);
 }
 .method-destinations {
   display: flex;
@@ -2073,5 +2072,233 @@ fieldset {
   .proof-kind-tabs button {
     font-size: 10px;
     padding-inline: 3px;
+  }
+}
+
+/* Approved earned-progress headers, shared with the Plan surface. */
+.has-progress-hero {
+  position: relative;
+  isolation: isolate;
+}
+.has-progress-hero .stage-header,
+.has-progress-hero .stage-main > .area-tabs,
+.has-progress-hero .stage-hero {
+  color: var(--paper);
+}
+.has-progress-hero .stage-main > .area-tabs {
+  border-color: #f1f3f140;
+}
+.has-progress-hero .stage-main > .area-tabs button {
+  color: var(--paper);
+}
+.has-progress-hero .stage-main > .area-tabs button[aria-pressed="true"] {
+  border-color: var(--ember);
+}
+.has-progress-hero .account-button img:not(.profile-photo) {
+  filter: brightness(0) invert(1);
+}
+.stage-hero {
+  padding: 0 0 36px;
+}
+.stage-hero .section-label {
+  color: inherit;
+}
+.stage-hero .identity-reminder {
+  margin: 26px 0 22px;
+  padding: 0;
+}
+.stage-hero .identity-reminder p {
+  color: inherit;
+  font-weight: 700;
+  font-size: clamp(30px, 5vw, 42px);
+  line-height: 1.15;
+}
+.hero-challenge {
+  padding: 0;
+  text-align: left;
+  font-size: 15px;
+  color: inherit;
+  min-height: 44px;
+}
+.hero-progress {
+  border-top: 1px solid #f1f3f140;
+  padding-top: 24px;
+  margin-top: 24px;
+}
+.completed-step-count {
+  font-size: 14px;
+  margin: 0 0 22px;
+}
+.hero-progress h2 {
+  font: 400 clamp(28px, 4.8vw, 36px) / 1.2 var(--font-editorial);
+  margin: 8px 0 0;
+  overflow-wrap: anywhere;
+}
+.has-progress-hero .focus-action {
+  margin-top: 44px;
+}
+.hero-scope {
+  font-size: 14px;
+  margin: 22px 0 0;
+}
+.proof-totals {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 28px 0 0;
+  padding: 28px 0 4px;
+  border-top: 1px solid #f1f3f140;
+}
+.proof-totals > div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 0 6px;
+}
+.proof-totals > div + div {
+  border-left: 1px solid #f1f3f140;
+}
+.proof-totals dt {
+  order: 2;
+  font-size: 13px;
+  line-height: 1.45;
+}
+.proof-totals dt span {
+  display: block;
+}
+.proof-totals dd {
+  order: 1;
+  margin: 0 0 8px;
+  font: 400 36px/1.1 var(--font-editorial);
+}
+.has-progress-hero .proof-kind-tabs {
+  margin-top: 24px;
+}
+.proof-kind-tabs button {
+  background: transparent;
+  color: var(--ink);
+}
+.proof-kind-tabs button[aria-pressed="true"] {
+  border: 1px solid var(--ember);
+  background: transparent;
+  color: var(--ink);
+}
+.route-map-stage {
+  display: block;
+}
+.route-map-stage > div {
+  width: 100%;
+}
+.app-tabs .nav-now img {
+  width: 34px;
+  height: 28px;
+  transform: scale(1.12);
+}
+.now-create-actions {
+  padding-top: 14px;
+  border-top: 1px solid var(--rule);
+}
+.plan-create-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+.add-control {
+  background: #fff;
+  border: 1px solid #86969c;
+  border-radius: 4px;
+  color: var(--ink);
+  padding: 10px 8px;
+  font-size: 13px;
+  gap: 6px;
+  min-width: 0;
+}
+.focus-check-in.button.secondary {
+  background: none;
+  color: var(--ink);
+  border: 0;
+  width: auto;
+  font-size: 16px;
+  padding: 12px 18px;
+  margin: 12px auto 28px;
+}
+.step-timer > .button {
+  font-family: var(--font-editorial);
+  font-size: 22px;
+}
+.step-milestone-context .quiet {
+  padding: 0;
+  text-decoration: underline;
+}
+.how-philosophy {
+  margin: 0 auto;
+  padding: 24px var(--gutter) 40px;
+  max-width: 640px;
+}
+.how-philosophy > p:first-child {
+  margin: 0 0 22px;
+}
+.growth-cycle {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) 30px minmax(0, 1fr) 24px;
+  grid-template-rows: auto 30px auto;
+  align-items: center;
+  gap: 8px 2px;
+  text-align: center;
+  margin: 30px 0;
+}
+.growth-cycle span {
+  font: italic 21px/1.4 var(--font-editorial);
+}
+.growth-cycle img {
+  width: 24px;
+  height: 24px;
+  opacity: 0.9;
+}
+.cycle-challenge {
+  grid-area: 1/2;
+}
+.cycle-milestone {
+  grid-area: 1/4;
+}
+.cycle-step {
+  grid-area: 3/4;
+}
+.cycle-proof {
+  grid-area: 3/2;
+}
+.cycle-right {
+  grid-area: 1/3;
+}
+.cycle-down {
+  grid-area: 2/5;
+}
+.cycle-left {
+  grid-area: 3/3;
+}
+.cycle-up {
+  grid-area: 2/1;
+}
+.cycle-caption {
+  text-align: center;
+  font-size: 14px;
+}
+.how-philosophy > .button {
+  width: 100%;
+  margin-top: 20px;
+}
+@media (max-width: 360px) {
+  .proof-totals dt {
+    font-size: 11px;
+  }
+  .proof-totals dd {
+    font-size: 32px;
+  }
+  .growth-cycle span {
+    font-size: 18px;
+  }
+  .add-control {
+    font-size: 12px;
+    padding-inline: 6px;
   }
 }

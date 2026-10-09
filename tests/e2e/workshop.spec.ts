@@ -264,14 +264,18 @@ for (const width of [390, 1440]) {
     await p.getByRole("button", { name: "Proof", exact: true }).click();
     // Active Proof is authored evidence, not a repeated decorative area illustration.
     await expect(p.locator(".landscape-proof")).toHaveCount(0);
-    await expect(p.locator(".proof-context")).toContainText(
-      "Complete my first triathlon",
-    );
+    const proofHero = p.getByRole("region", {
+      name: "Completed work in this area",
+    });
+    await expect(
+      proofHero.getByRole("term").filter({ hasText: "Steps" }),
+    ).toContainText("completed");
+    await expect(proofHero.getByRole("definition").first()).toHaveText("0");
     await p.getByRole("button", { name: "Now", exact: true }).click();
     await expect(
       p.getByRole("heading", { name: "Practise a relaxed swim stroke" }),
     ).toBeVisible();
-    const title = await p.locator(".timer-step-title").boundingBox();
+    const title = await p.locator(".now-hero .hero-progress").boundingBox();
     const ring = await p.locator(".timer-face").boundingBox();
     expect(ring!.y - title!.y - title!.height).toBeGreaterThanOrEqual(40);
     expect(
@@ -295,7 +299,7 @@ for (const width of [390, 1440]) {
     await expect(label).toHaveCSS("color", "rgb(23, 35, 41)");
     await expect(label).toHaveCSS("background-color", "rgb(241, 243, 241)");
     await p.getByRole("button", { name: "Now", exact: true }).click();
-    await p.getByRole("button", { name: "Add step ›", exact: true }).click();
+    await p.getByRole("button", { name: "Add step", exact: true }).click();
     await expect(p.locator("h1")).toBeVisible();
     await p.screenshot({
       path: `test-results/workshop-add-step-${width}.png`,
