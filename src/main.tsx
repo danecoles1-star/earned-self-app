@@ -1,13 +1,13 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "./App";
+import "./presentation.css";
 import type { Adapter } from "./data/types";
-import "./styles.css";
-import "./marketing.css";
-import "./logo.css";
 async function start() {
   let adapter: Adapter;
   if (__LOCAL_PREVIEW__) {
+    const { enablePhonePreview } = await import("./preview/phone");
+    enablePhonePreview();
     const { createPreviewAdapter } = await import("./preview/adapter");
     adapter = createPreviewAdapter();
   } else {

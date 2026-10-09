@@ -1,25 +1,73 @@
+export type GrowthArea = "physical" | "professional" | "personal";
 export type Result = "done" | "partly" | "did_not_happen";
-export type Mode = "deliberate" | "quick";
+export type PursuitState =
+  | "draft"
+  | "active"
+  | "paused"
+  | "changed_direction"
+  | "completed"
+  | "abandoned";
 export interface User {
   id: string;
   email?: string;
 }
-export interface Goal {
+export interface Milestone {
+  id: string;
+  title: string;
+  criterion: string;
+  localDate: string;
+  localTime: string;
+  timeZone: string;
+}
+export interface Foundation {
+  words: string;
+  vision: string;
+  outcome: string;
+  meaning: string;
+  constraints: string;
+  capabilities: string;
+  unknowns: string;
+  affirmed: boolean;
+  milestones: Milestone[];
+}
+export interface Goal extends Foundation {
+  area?: GrowthArea | null;
   id: string;
   owner_id: string;
-  words: string;
   kind: "goal" | "vision";
-  meaning: string | null;
   created_at: string;
   version: number;
+  revision: number;
+  status: PursuitState;
+}
+export interface GoalRevision extends Foundation {
+  goal_id: string;
+  revision: number;
+  recorded_at: string;
+}
+export interface Recurrence {
+  days: number[];
+  until: string;
 }
 export interface Commitment {
+  repeat_template?: {
+    action: string;
+    criterion: string;
+    local_date: string;
+    local_time: string | null;
+    time_zone: string | null;
+    location: string | null;
+  } | null;
+  recurrence?: Recurrence | null;
+  series_id?: string | null;
   id: string;
   owner_id: string;
   goal_id: string;
+  milestone_id: string | null;
+  plan_revision: number | null;
   revision: number;
   version: number;
-  state: "active" | "reported";
+  state: "active" | "reported" | "cancelled";
   created_at: string;
 }
 export interface Definition {
@@ -28,7 +76,7 @@ export interface Definition {
   revision: number;
   action: string;
   criterion: string;
-  mode: Mode;
+  mode: "deliberate" | "quick";
 }
 export interface Schedule {
   id: string;
@@ -40,6 +88,8 @@ export interface Schedule {
   time_zone: string | null;
   starts_at: string | null;
   location: string | null;
+  state: "current" | "superseded";
+  created_at: string;
 }
 export interface Evidence {
   id: string;
@@ -60,9 +110,30 @@ export interface Report {
   reflection: string | null;
   occurred_on: string | null;
   recorded_at: string;
+  prevented: string | null;
+  adjustment: string | null;
+}
+export interface PursuitEvent {
+  id: string;
+  goal_id: string;
+  kind:
+    | "area"
+    | "vision"
+    | "stop_repeat"
+    | "planned_step"
+    | "milestone_attempt"
+    | "reschedule"
+    | "milestone_schedule"
+    | "milestone"
+    | "status"
+    | "decision";
+  data: Record<string, string>;
+  recorded_at: string;
 }
 export interface Snapshot {
   goals: Goal[];
+  goalHistory: GoalRevision[];
+  events: PursuitEvent[];
   commitments: Commitment[];
   definitions: Definition[];
   schedules: Schedule[];
@@ -74,7 +145,23 @@ export interface Snapshot {
 export interface Command {
   operationId: string;
   actorId: string;
-  kind: "goal" | "commitment" | "outcome" | "detail" | "select" | "support";
+  kind:
+    | "area"
+    | "vision"
+    | "stop_repeat"
+    | "planned_step"
+    | "first_move"
+    | "goal"
+    | "plan"
+    | "commitment"
+    | "reschedule"
+    | "milestone_schedule"
+    | "milestone"
+    | "status"
+    | "outcome"
+    | "detail"
+    | "select"
+    | "support";
   payload: Record<string, unknown>;
 }
 export interface Receipt {
@@ -85,16 +172,41 @@ export interface Adapter {
   readonly preview: boolean;
   readonly configured: boolean;
   getUser(): Promise<User | null>;
+  getProfilePhoto?(): Promise<Blob | null>;
+  setProfilePhoto?(photo: Blob | null): Promise<void>;
   subscribe(cb: (user: User | null) => void): () => void;
   signIn(email: string): Promise<void>;
+  passwordSignIn?(email: string, password: string): Promise<void>;
+  signUp?(email: string, password: string): Promise<void>;
+  verifyCode?(
+    email: string,
+    token: string,
+    type: "email" | "signup" | "recovery",
+  ): Promise<void>;
+  resendSignup?(email: string): Promise<void>;
+  recoverPassword?(email: string): Promise<void>;
+  updatePassword?(password: string): Promise<void>;
   signOut(): Promise<void>;
   read(): Promise<Snapshot>;
   execute(command: Command): Promise<Receipt>;
   enterPreview?(): Promise<void>;
   failNext?(): void;
 }
+export const emptyFoundation = (): Foundation => ({
+  words: "",
+  vision: "",
+  outcome: "",
+  meaning: "",
+  constraints: "",
+  capabilities: "",
+  unknowns: "",
+  affirmed: false,
+  milestones: [],
+});
 export const emptySnapshot = (): Snapshot => ({
   goals: [],
+  goalHistory: [],
+  events: [],
   commitments: [],
   definitions: [],
   schedules: [],
@@ -105,6 +217,14 @@ export const emptySnapshot = (): Snapshot => ({
 });
 export const resultLabel: Record<Result, string> = {
   done: "Done",
-  partly: "Partly",
+  partly: "Partly done",
   did_not_happen: "Didn’t happen",
+};
+export const stateLabel: Record<PursuitState, string> = {
+  draft: "Draft pursuit",
+  active: "Active pursuit",
+  paused: "Paused pursuit",
+  changed_direction: "Changed direction",
+  completed: "Major accomplishment completed",
+  abandoned: "Abandoned pursuit",
 };

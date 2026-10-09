@@ -1,20 +1,30 @@
 import { it, expect, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { App } from "../src/App";
 import { applyLocal, emptySnapshot, type LocalStore } from "../src/data/domain";
 import type { Adapter } from "../src/data/types";
+import { foundation, action } from "./fixtures";
 beforeEach(() => {
   localStorage.clear();
   history.replaceState({}, "", "/app");
 });
-it("runs the whole authenticated component loop with saved state and a return commitment", async () => {
+it("reports a partial result, retains required explanation and offers deliberate next action", async () => {
   let data: LocalStore = { snapshot: emptySnapshot(), receipts: {} };
+  for (const [kind, payload] of [
+    ["goal", { id: "g", ...foundation }],
+    ["commitment", action],
+  ] as const)
+    data = applyLocal(
+      data,
+      { kind, payload, actorId: "a", operationId: crypto.randomUUID() },
+      "a",
+    ).store;
   const adapter: Adapter = {
     preview: false,
     configured: true,
     async getUser() {
-      return { id: "test-account", email: "test@example.invalid" };
+      return { id: "a" };
     },
     subscribe() {
       return () => {};
@@ -25,49 +35,34 @@ it("runs the whole authenticated component loop with saved state and a return co
       return structuredClone(data.snapshot);
     },
     async execute(c) {
-      const r = applyLocal(data, c, "test-account");
+      const r = applyLocal(data, c, "a");
       data = r.store;
       return r.receipt;
     },
   };
   const u = userEvent.setup();
   render(<App adapter={adapter} />);
-  await screen.findByRole("heading", { name: "Your goal belongs here." });
+  await u.click(await screen.findByRole("button", { name: "Step check-in" }));
   await u.click(
-    screen.getByRole("button", { name: "Start with a goal", exact: true }),
-  );
-  await u.type(screen.getByLabelText("Your goal"), "Finish my essay.");
-  await u.click(screen.getByRole("button", { name: "Save my goal" }));
-  await screen.findByRole("heading", { name: "Make the next move clear." });
-  await u.type(screen.getByLabelText("Your action"), "Write one paragraph.");
-  await u.type(screen.getByLabelText("Done means"), "A paragraph in my draft.");
-  await u.click(screen.getByRole("button", { name: "Review my commitment" }));
-  await u.click(screen.getByRole("button", { name: "Save my commitment" }));
-  await screen.findByRole("heading", { name: "Write one paragraph." });
-  await u.click(screen.getByRole("button", { name: "Done", exact: true }));
-  await screen.findByRole("heading", { name: "Write one paragraph." });
-  await screen.findByText("Occurrence date not specified.", { exact: false });
-  await u.click(
-    screen.getByRole("button", { name: "Add factual detail or reflection" }),
+    await screen.findByRole("button", { name: "Partly", exact: true }),
   );
   await u.type(
-    screen.getByLabelText("What happened (optional)"),
-    "The paragraph is in my draft.",
+    screen.getByLabelText("What happened?"),
+    "I completed half the planned practice.",
   );
-  await u.type(
-    screen.getByLabelText("What I learned (optional)"),
-    "A short start helped.",
-  );
-  await u.click(screen.getByRole("button", { name: "Save optional detail" }));
-  await screen.findByText("A short start helped.");
-  expect(data.snapshot.evidence).toHaveLength(1);
-  expect(data.snapshot.reports).toHaveLength(2);
+  await u.click(screen.getByRole("button", { name: "Keep preparing" }));
+  await u.type(screen.getByLabelText("What prevented it?"), "Shift ran late");
+  await u.type(screen.getByLabelText("What will you change?"), "Protect lunch");
+  await u.click(screen.getByRole("button", { name: "Save to Proof" }));
+  expect(data.snapshot.reports[0].result).toBe("partly");
+  expect(data.snapshot.goals[0].status).toBe("active");
+
   await u.click(
-    screen.getByRole("button", { name: "Make another commitment" }),
+    await screen.findByRole("button", { name: "Plan my next step" }),
   );
-  await waitFor(() =>
-    expect(
-      screen.getByRole("button", { name: "Quick", exact: true }),
-    ).toHaveAttribute("aria-pressed", "true"),
-  );
+  await screen.findByRole("heading", { name: "Choose your next step." });
+  await u.type(screen.getByLabelText("My next step"), "Finish the practice");
+  await u.type(screen.getByLabelText("Done means"), "Full rehearsal");
+  await u.click(screen.getByRole("button", { name: "Continue" }));
+  expect(screen.getByLabelText("Action time")).toBeRequired();
 });
