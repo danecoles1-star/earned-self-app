@@ -69,11 +69,8 @@ for (const width of [390, 1440])
     await expect(
       p.getByRole("heading", { name: "Morning stretching", exact: true }),
     ).toBeVisible();
-    await p.getByRole("button", { name: "Start timer", exact: true }).click();
-    await p.waitForTimeout(1100);
-    await p.reload();
-    await expect(p.getByRole("button", { name: "Pause timer" })).toBeVisible();
-    await p.getByRole("button", { name: "Step check-in" }).click();
+    await p.getByRole("button", { name: "Begin", exact: true }).click();
+    await p.getByRole("button", { name: "Check in honestly" }).click();
     await p.getByRole("button", { name: "Done", exact: true }).click();
     await p
       .getByLabel("What happened?", { exact: true })
@@ -81,20 +78,10 @@ for (const width of [390, 1440])
     await p.getByRole("button", { name: "Keep preparing" }).click();
     await p.getByRole("button", { name: "Save to Proof" }).click();
     await expect(p).toHaveURL(/\/app$/);
-    await expect(p.locator(".timer-schedule")).toHaveText(
-      "11/03/2030 · 6:00 AM",
-    );
-    const obstacleControl = p.getByRole("button", {
-      name: "Why & obstacles",
-      exact: true,
-    });
-    await expect(obstacleControl).toBeVisible();
-    const bounds = await obstacleControl.boundingBox();
-    expect(bounds).not.toBeNull();
-    expect(bounds!.height).toBeGreaterThanOrEqual(44);
-    expect(bounds!.width).toBeGreaterThanOrEqual(44);
-    expect(bounds!.x).toBeGreaterThanOrEqual(0);
-    expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(width);
+    await expect(p.getByRole("button", { name: "Begin" })).toBeVisible();
+    await expect(
+      p.getByRole("button", { name: "Why & obstacles" }),
+    ).toHaveCount(0);
     await p.screenshot({
       path: `${process.env.ES_EVIDENCE_DIR || "test-results"}/pilot-basecamp-${width}.png`,
       fullPage: true,
@@ -148,10 +135,7 @@ for (const width of [390, 1440])
       fullPage: true,
     });
     await p.getByRole("button", { name: "Return to Now" }).click();
-    await expect(
-      p.getByRole("region", { name: "Step details & calendar" }),
-    ).toBeVisible();
-    await p.getByRole("button", { name: /Add to calendar/ }).click();
+    await p.getByRole("button", { name: "Add to calendar" }).click();
     await expect(
       p.getByRole("button", { name: "Return to Now" }),
     ).toBeVisible();
@@ -159,7 +143,12 @@ for (const width of [390, 1440])
     await p.getByRole("button", { name: "Apple Calendar" }).click();
     expect((await download).suggestedFilename()).toBe("Earned_Self_Move.ics");
     await p.getByRole("button", { name: "Return to Now" }).click();
-    await p.getByRole("button", { name: "Create wallpaper", exact: true }).click();
+    await p
+      .getByRole("button", { name: "Create wallpaper", exact: true })
+      .click();
+    await p
+      .getByRole("button", { name: "Use Physical hero wallpaper", exact: true })
+      .click();
     await p.getByRole("button", { name: "Use my own vision" }).click();
     await p.getByRole("button", { name: "Mineral", exact: true }).click();
     await p.getByRole("button", { name: "Preview lock screen" }).click();

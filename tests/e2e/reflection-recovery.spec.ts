@@ -132,7 +132,10 @@ for (const width of [390, 1440]) {
       recurrence: { days: [0, 1, 2, 3, 4, 5, 6], until: "" },
     });
     await seed(p, f.get(), "/app");
-    await p.getByRole("button", { name: "Step check-in", exact: true }).click();
+    await p.getByRole("button", { name: "Begin", exact: true }).click();
+    await p
+      .getByRole("button", { name: "Check in honestly", exact: true })
+      .click();
     await p
       .getByRole("button", { name: "Did not happen", exact: true })
       .click();
@@ -181,7 +184,10 @@ for (const width of [390, 1440]) {
     expect(
       s.definitions.filter((d: any) => d.commitment_id === next.id),
     ).toHaveLength(2);
-    await p.getByRole("button", { name: "Step check-in", exact: true }).click();
+    await p.getByRole("button", { name: "Begin", exact: true }).click();
+    await p
+      .getByRole("button", { name: "Check in honestly", exact: true })
+      .click();
     await p.getByRole("button", { name: "Done", exact: true }).click();
     await p
       .getByLabel("What happened?", { exact: true })
@@ -218,7 +224,6 @@ for (const width of [390, 1440]) {
       location: "Office",
     });
     await seed(p, f.get(), "/app");
-    await p.getByRole("button", { name: "Start timer" }).click();
     await p.getByRole("button", { name: "Plan", exact: true }).click();
     await snap(p, "plan-navigation", width);
     await p.locator("summary").filter({ hasText: "Review challenge" }).click();
@@ -231,10 +236,10 @@ for (const width of [390, 1440]) {
     await expect(
       p.getByRole("heading", { name: "Paused. Still yours." }),
     ).toBeVisible();
-    await expect(p.getByRole("button", { name: "Start timer" })).toHaveCount(0);
-    await expect(p.getByRole("button", { name: "Step check-in" })).toHaveCount(
-      0,
-    );
+    await expect(p.getByRole("button", { name: "Begin" })).toBeDisabled();
+    await expect(
+      p.getByRole("button", { name: "Check in honestly" }),
+    ).toHaveCount(0);
     await snap(p, "paused-basecamp", width);
     await p.getByRole("button", { name: "Review and resume" }).click();
     await expect(p.getByText(/Earlier date/)).toBeVisible();

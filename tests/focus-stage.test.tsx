@@ -144,7 +144,7 @@ it("the completed record uses saved revision evidence, not a later aspiration as
   expect(screen.queryByText("Later aspiration")).toBeNull();
   expect(screen.queryByText("Before")).toBeNull();
 });
-it("Basecamp retains the current step details and timer but removes work controls while paused", () => {
+it("Now opens prepared guidance without a timer and preserves pause behavior", () => {
   const t = setup();
   t.send("commitment", action);
   const navigate = vi.fn();
@@ -156,27 +156,27 @@ it("Basecamp retains the current step details and timer but removes work control
     />,
   );
   expect(screen.getByText("Who I am becoming")).toBeVisible();
-  expect(
-    screen.getByRole("region", { name: "Step details & calendar" }),
-  ).toBeVisible();
-  expect(screen.getByText("Done means: " + action.criterion)).toBeVisible();
-  fireEvent.click(screen.getByRole("button", { name: "Start timer" }));
-  fireEvent.click(screen.getByRole("button", { name: "Step check-in" }));
+  expect(screen.queryByRole("button", { name: "Start timer" })).toBeNull();
+  expect(screen.queryByRole("button", { name: /Revise/ })).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "Begin" }));
+  expect(screen.getByText("About 25 minutes")).toBeVisible();
+  fireEvent.click(screen.getByRole("button", { name: "Check in honestly" }));
   expect(navigate).toHaveBeenCalledWith("/report/g");
-  const clock = JSON.parse(localStorage.getItem("earned-self:timer:a:c:1")!);
-  expect(clock.started).toBeNull();
   const s = structuredClone(t.get());
   s.goals[0].status = "paused";
   view.rerender(
     <MemberHome goal={s.goals[0]} snapshot={s} navigate={navigate} />,
   );
   expect(screen.queryByRole("button", { name: "Start timer" })).toBeNull();
-  expect(screen.queryByRole("button", { name: "Step check-in" })).toBeNull();
+  expect(screen.getByRole("button", { name: "Begin" })).toBeDisabled();
+  expect(
+    screen.queryByRole("button", { name: "Check in honestly" }),
+  ).toBeNull();
   fireEvent.click(screen.getByRole("button", { name: "Review and resume" }));
   expect(navigate).toHaveBeenCalledWith("/resume/g");
   expect(s.evidence).toHaveLength(0);
 });
-it("Plan shows the current milestone first and keeps the complete plan and preparation reachable", () => {
+it("Plan shows the current milestone and visible preparation without authoring buttons", () => {
   const t = setup();
   t.send("commitment", action);
   const navigate = vi.fn();
@@ -198,10 +198,8 @@ it("Plan shows the current milestone first and keeps the complete plan and prepa
     screen.getByRole("region", { name: "All milestones & steps" }),
   ).toBeVisible();
   expect(screen.getAllByText("Launch shop")[0]).toBeVisible();
-  fireEvent.click(screen.getByRole("button", { name: "My preparation" }));
-  expect(
-    screen.getByRole("heading", { name: "Your preparation" }),
-  ).toBeVisible();
-  fireEvent.click(screen.getByRole("button", { name: "Back to Your Plan" }));
-  expect(screen.getByRole("heading", { name: "Your Plan" })).toBeVisible();
+  expect(screen.getByRole("heading", { name: "My preparation" })).toBeVisible();
+  expect(screen.queryByRole("button", { name: "My preparation" })).toBeNull();
+  expect(screen.queryByRole("button", { name: "Add step" })).toBeNull();
+  expect(screen.queryByRole("button", { name: "Add milestone" })).toBeNull();
 });

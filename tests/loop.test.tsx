@@ -42,7 +42,10 @@ it("reports a partial result, retains required explanation and offers deliberate
   };
   const u = userEvent.setup();
   render(<App adapter={adapter} />);
-  await u.click(await screen.findByRole("button", { name: "Step check-in" }));
+  await u.click(await screen.findByRole("button", { name: "Begin" }));
+  await u.click(
+    await screen.findByRole("button", { name: "Check in honestly" }),
+  );
   await u.click(
     await screen.findByRole("button", { name: "Partly", exact: true }),
   );

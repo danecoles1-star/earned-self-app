@@ -64,7 +64,10 @@ it("legacy draft with outstanding move routes to that move rather than preparati
   const s = state("draft", true),
     navigate = vi.fn();
   render(<MemberHome goal={s.goals[0]} snapshot={s} navigate={navigate} />);
-  await userEvent.click(screen.getByRole("button", { name: "Step check-in" }));
+  await userEvent.click(screen.getByRole("button", { name: "Begin" }));
+  await userEvent.click(
+    screen.getByRole("button", { name: "Check in honestly" }),
+  );
   expect(navigate).toHaveBeenCalledWith("/report/g");
   expect(
     screen.queryByRole("button", { name: "Prepare my challenge" }),

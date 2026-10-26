@@ -1,8 +1,6 @@
 import { completedProgress } from "./progress";
-import plus from "../assets/icons/plus.svg";
 import { AreaAssignment } from "./Areas";
 import { WorkshopPath } from "./WorkshopPath";
-import { WallpaperCard } from "./WallpaperCard";
 
 import { Paused } from "./Paused";
 import { completedEvent, completionRecord } from "./ChallengeRecord";
@@ -37,22 +35,15 @@ export function Ambition({
 }) {
   const [editingVision, setEditingVision] = useState(false);
   const [vision, setVision] = useState(g.vision);
-  const [section, setSection] = useState(
-      location.pathname === "/manage/why" ? "preparation" : "overview",
-    ),
-    m = currentMilestone(s, g);
+  const m = currentMilestone(s, g);
   const ended = ["completed", "changed_direction", "abandoned"].includes(
     g.status,
   );
   return (
     <Stage
-      title={section === "preparation" ? "Your preparation" : "Your Plan"}
-      tone={section === "overview" ? "plan" : "prepare"}
+      title="Your Plan"
+      tone="plan"
       navigate={navigate}
-      back={
-        section === "preparation" ? () => setSection("overview") : undefined
-      }
-      backLabel="Back to Your Plan"
     >
       {g.status === "paused" && <Paused goal={g} navigate={navigate} />}
       <section className="challenge-breadcrumb plan-challenge">
@@ -70,8 +61,7 @@ export function Ambition({
           </button>
         )}
       </section>
-      {section === "overview" && (
-        <section className="plan-overview">
+      <section className="plan-overview">
           <WorkshopPath
             key={g.id}
             goal={g}
@@ -258,34 +248,30 @@ export function Ambition({
                 ))}
               </div>
             </section>
-            {!ended && (
-              <div className="plan-create-actions">
-                <button
-                  className="add-control"
-                  onClick={() => navigate("/add-step/" + g.id)}
-                >
-                  <img src={plus} alt="" /> Add step
-                </button>
-                <button
-                  className="add-control"
-                  onClick={() => navigate("/add-milestone/" + g.id)}
-                >
-                  <img src={plus} alt="" /> Add milestone
-                </button>
-              </div>
-            )}
           </div>
         </section>
-      )}
-      {section === "overview" ? (
-        <div className="plan-tools">
-          <section className="preparation-card">
-            <button
-              className="button secondary"
-              onClick={() => setSection("preparation")}
-            >
-              My preparation
-            </button>
+      <div className="plan-tools">
+          <section className="preparation-card plan-preparation" aria-labelledby="preparation-title">
+            <h2 id="preparation-title">My preparation</h2>
+            <h3>My reason</h3>
+            <p>{g.meaning}</p>
+            <h3>Constraints</h3>
+            <p>{g.constraints}</p>
+            <h3>What I am building</h3>
+            <p>{g.capabilities}</p>
+            <h3>Open questions</h3>
+            <p>{g.unknowns}</p>
+            <h3>My milestones</h3>
+            {!g.milestones.length && <p>No milestones planned yet.</p>}
+            {g.milestones.map((milestone) => (
+              <div className="first-proof" key={milestone.id}>
+                <h4>{milestone.title}</h4>
+                <p>{milestone.criterion}</p>
+                <p className="small">
+                  {displaySchedule(milestone.localDate, milestone.localTime, milestone.timeZone)}
+                </p>
+              </div>
+            ))}
             {g.status === "draft" && !currentAction(s, g.id) && (
               <button
                 className="button secondary"
@@ -295,7 +281,6 @@ export function Ambition({
               </button>
             )}
           </section>
-          <WallpaperCard goal={g} navigate={navigate} />
           <details className="manage-challenge">
             <summary>Review challenge</summary>
             <AreaAssignment />
@@ -375,37 +360,6 @@ export function Ambition({
             )}
           </details>
         </div>
-      ) : (
-        <>
-          <h2>My reason</h2>
-          <p>{g.meaning}</p>
-          <h2>Constraints</h2>
-          <p>{g.constraints}</p>
-          <h2>What I am building</h2>
-          <p>{g.capabilities}</p>
-          <h2>Open questions</h2>
-          <p>{g.unknowns}</p>
-          <h2>My milestones</h2>
-          {!g.milestones.length && <p>No milestones planned yet.</p>}
-          {!m && (
-            <button
-              className="button secondary"
-              onClick={() => navigate("/milestone/" + g.id)}
-            >
-              Review milestones
-            </button>
-          )}
-          {g.milestones.map((m) => (
-            <div className="first-proof" key={m.id}>
-              <h3>{m.title}</h3>
-              <p>{m.criterion}</p>
-              <p className="small">
-                {displaySchedule(m.localDate, m.localTime, m.timeZone)}
-              </p>
-            </div>
-          ))}
-        </>
-      )}
     </Stage>
   );
 }

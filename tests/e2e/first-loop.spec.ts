@@ -64,6 +64,7 @@ test("first visit through first action, failure recovery, accomplishment and nex
   await expect(
     p.getByText("Saved to your account.", { exact: true }),
   ).toBeVisible();
+  await click("Begin");
   await click("Continue preparation");
   await fill("What I need to plan for", "Thirty minutes after work");
   await next();
@@ -92,10 +93,8 @@ test("first visit through first action, failure recovery, accomplishment and nex
   await fill("Where?", "At my desk");
   await next();
   await click("Save step");
-  await expect(
-    p.getByRole("region", { name: "Step details & calendar" }),
-  ).toBeVisible();
-  await p.getByRole("button", { name: /Add to calendar/ }).click();
+  await expect(p.getByRole("button", { name: "Begin" })).toBeVisible();
+  await p.getByRole("button", { name: "Add to calendar" }).click();
   await shot("25-calendar-mobile");
   const download = p.waitForEvent("download");
   await click("Apple Calendar");
@@ -103,7 +102,8 @@ test("first visit through first action, failure recovery, accomplishment and nex
   assert.equal(dl.suggestedFilename(), "Earned_Self_Move.ics");
   await click("Return to Now");
   await shot("30-now-mobile");
-  await click("Step check-in");
+  await click("Begin");
+  await click("Check in honestly");
   await click("Partly");
   await fill("What happened?", "Wrote two sentences");
   assert(
@@ -157,7 +157,13 @@ test("first visit through first action, failure recovery, accomplishment and nex
     p.getByText("I can share my writing despite uncertainty"),
   ).toBeVisible();
   await click("Now");
-  await p.getByRole("button", { name: "Create wallpaper", exact: true }).click();
+  await p
+    .getByRole("button", { name: "Create wallpaper", exact: true })
+    .click();
+  await shot("52-wallpaper-sheet-mobile");
+  await p
+    .getByRole("button", { name: "Use Personal hero wallpaper", exact: true })
+    .click();
   await fill("Words to carry", "Keep writing.");
   await click("Preview lock screen");
   const wallpaper = p.waitForEvent("download");

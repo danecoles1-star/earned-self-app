@@ -72,49 +72,23 @@ for (const width of [320, 390, 1440]) {
     await expect(
       p.getByText("Who I am becoming", { exact: true }),
     ).toBeVisible();
-    await expect(p.getByLabel("Elapsed time")).toHaveText("00:00");
-    await expect(p.getByLabel("Elapsed time")).toHaveCSS(
-      "white-space",
-      "nowrap",
-    );
-    const timerText = await p.getByLabel("Elapsed time").evaluate((el) => ({
-      clientWidth: el.clientWidth,
-      scrollWidth: el.scrollWidth,
-      clientHeight: el.clientHeight,
-      scrollHeight: el.scrollHeight,
-    }));
-    expect(timerText.scrollWidth).toBeLessThanOrEqual(timerText.clientWidth);
-    const timerFaceBounds = (await p.locator(".timer-face").boundingBox())!;
-    const timerTextBounds = (await p.getByLabel("Elapsed time").boundingBox())!;
-    expect(timerTextBounds.y).toBeGreaterThanOrEqual(timerFaceBounds.y);
-    expect(timerTextBounds.y + timerTextBounds.height).toBeLessThanOrEqual(
-      timerFaceBounds.y + timerFaceBounds.height,
-    );
+    await expect(p.getByLabel("Elapsed time")).toHaveCount(0);
+    await expect(p.getByRole("button", { name: /Revise/ })).toHaveCount(0);
     await expect(p.locator(".now-hero .hero-challenge")).toHaveCSS(
       "background-color",
       "rgba(0, 0, 0, 0)",
     );
-    await expect(p.locator(".wallpaper-card")).toHaveCSS(
-      "color",
-      "rgb(23, 35, 41)",
-    );
-    const ring = p.locator(".timer-face"),
-      start = p.getByRole("button", { name: "Start timer", exact: true });
-    const rb = await ring.boundingBox(),
-      sb = await start.boundingBox();
-    expect(rb!.width).toBeGreaterThanOrEqual(250);
-    expect(sb!.y - (rb!.y + rb!.height)).toBeGreaterThanOrEqual(32);
+    const begin = p.getByRole("button", { name: "Begin", exact: true });
+    const beginBox = (await begin.boundingBox())!;
+    expect(Math.round(beginBox.width)).toBe(width >= 900 ? 118 : 117);
+    expect(Math.round(beginBox.height)).toBe(width >= 900 ? 118 : 117);
+    await expect(begin).toHaveCSS("background-color", "rgb(255, 91, 54)");
+    await expect(begin).toHaveCSS("color", "rgb(16, 26, 32)");
     await capture(p, "basecamp", width);
-    await start.click();
-    await expect(p.getByLabel("Elapsed time")).not.toHaveText("00:00");
-    await p.reload();
-    await p.getByRole("button", { name: "Pause timer" }).click();
-    await expect(p.getByRole("button", { name: "Resume timer" })).toBeVisible();
+    await begin.click();
+    await expect(p.getByText("About 25 minutes")).toBeVisible();
     await expect(
-      p.getByRole("region", { name: "Step details & calendar" }),
-    ).toBeVisible();
-    await expect(
-      p.getByText("Done means: Three distinct sketches on paper"),
+      p.getByRole("button", { name: "Check in honestly" }),
     ).toBeVisible();
     await p.getByRole("button", { name: "Plan", exact: true }).click();
     await expect(
@@ -174,7 +148,7 @@ for (const width of [320, 390, 1440]) {
     expect(errors).toEqual([]);
   });
 }
-test("long step titles remain readable in details without squeezing the timer", async ({
+test("long step titles remain readable in the Halo panel", async ({
   page: p,
 }) => {
   await p.setViewportSize({ width: 320, height: 812 });
@@ -189,88 +163,42 @@ test("long step titles remain readable in details without squeezing the timer", 
   s.snapshot.definitions.find((d) => d.commitment_id === "next-step")!.action =
     title;
   await seed(p, s);
-  const timerTitle = p.locator(".now-hero .hero-progress h2"),
-    timerOutput = p.getByLabel("Elapsed time");
-  await expect(timerTitle).toHaveText(title);
-  await expect(timerOutput).toBeVisible();
-  const titleBox = (await timerTitle.boundingBox())!,
-    outputBox = (await timerOutput.boundingBox())!,
-    faceBox = (await p.locator(".timer-face").boundingBox())!;
-  expect(titleBox.y + titleBox.height).toBeLessThanOrEqual(outputBox.y);
-  expect(
-    await timerOutput.evaluate((el) => el.scrollWidth <= el.clientWidth),
-  ).toBe(true);
-  expect(outputBox.y).toBeGreaterThanOrEqual(faceBox.y);
-  expect(outputBox.y + outputBox.height).toBeLessThanOrEqual(
-    faceBox.y + faceBox.height,
+  const panel = p.locator(".redesign-now-panel"),
+    stepTitle = panel.getByRole("heading", { name: title });
+  await expect(stepTitle).toBeVisible();
+  const titleBox = (await stepTitle.boundingBox())!,
+    panelBox = (await panel.boundingBox())!;
+  expect(titleBox.x).toBeGreaterThanOrEqual(panelBox.x);
+  expect(titleBox.x + titleBox.width).toBeLessThanOrEqual(
+    panelBox.x + panelBox.width,
   );
   await capture(p, "long-title", 320);
-  await expect(
-    p.getByRole("region", { name: "Step details & calendar" }),
-  ).toBeVisible();
-  await expect(p.locator(".now-hero .hero-progress h2")).toHaveText(title);
+  await expect(stepTitle).toHaveText(title);
   expect(errors).toEqual([]);
 });
 
-test("Ivory orb follows timer state, respects reduced motion and keeps every digit in bounds", async ({
+test("locked Halo and Begin remain stable with reduced motion and narrow screens", async ({
   page: p,
 }) => {
   await p.setViewportSize({ width: 390, height: 844 });
   await p.emulateMedia({ reducedMotion: "no-preference" });
   await seed(p, fixture());
-  const orb = p.locator(".timer-orbit");
-  const initialAngle = await orb.evaluate(
-    (el) => (el as HTMLElement).style.transform,
-  );
-  await expect(p.locator(".stage-focus")).toHaveCSS(
-    "background-color",
-    "rgba(0, 0, 0, 0)",
-  );
-  await expect(p.locator(".stage-focus")).toHaveCSS("background-image", "none");
-  await expect(p.locator(".stage-details")).not.toHaveJSProperty(
-    "tagName",
-    "DETAILS",
-  );
-  await p.getByRole("button", { name: "Start timer", exact: true }).click();
-  await expect
-    .poll(() => orb.evaluate((el) => (el as HTMLElement).style.transform))
-    .not.toBe(initialAngle);
-  await expect(p.getByLabel("Elapsed time")).not.toHaveText("00:00");
-  await p.reload();
-  await expect(
-    p.getByRole("button", { name: "Pause timer", exact: true }),
-  ).toBeVisible();
-  await p.getByRole("button", { name: "Pause timer", exact: true }).click();
-  const pausedAngle = await orb.evaluate(
-    (el) => (el as HTMLElement).style.transform,
-  );
-  await p.waitForTimeout(200);
-  expect(await orb.evaluate((el) => (el as HTMLElement).style.transform)).toBe(
-    pausedAngle,
-  );
-  await p.getByRole("button", { name: "Resume timer", exact: true }).click();
-  await expect
-    .poll(() => orb.evaluate((el) => (el as HTMLElement).style.transform))
-    .not.toBe(pausedAngle);
+  const panel = p.locator(".redesign-now-panel"),
+    begin = p.getByRole("button", { name: "Begin", exact: true });
+  await expect(panel).toHaveCSS("background-image", /tex-halo-crop-mobile/);
+  await expect(begin).toHaveCSS("background-image", /begin-fibers/);
+  let box = (await begin.boundingBox())!;
+  expect(Math.round(box.width)).toBe(117);
+  expect(Math.round(box.height)).toBe(117);
   await p.emulateMedia({ reducedMotion: "reduce" });
-  await expect(orb).toHaveCSS("animation-name", "none");
-  await p.evaluate(() =>
-    localStorage.setItem(
-      "earned-self:timer:local-preview-member:next-step:1",
-      JSON.stringify({ elapsed: 360000000, started: null }),
-    ),
-  );
+  await expect(begin).toHaveCSS("animation-name", "none");
   await p.setViewportSize({ width: 320, height: 844 });
-  await p.reload();
-  await expect(p.getByLabel("Elapsed time")).toHaveText("100:00:00");
-  const face = await p.locator(".timer-face").boundingBox();
-  const digits = await p.getByLabel("Elapsed time").boundingBox();
-  expect(digits!.x).toBeGreaterThanOrEqual(face!.x);
-  expect(digits!.x + digits!.width).toBeLessThanOrEqual(face!.x + face!.width);
+  box = (await begin.boundingBox())!;
+  expect(Math.round(box.width)).toBe(117);
   expect(
     await p.evaluate(() => document.documentElement.scrollWidth),
   ).toBeLessThanOrEqual(320);
-  await capture(p, "100-hour", 320);
+  await capture(p, "locked-halo", 320);
   await p.getByRole("button", { name: "Plan", exact: true }).click();
   await expect(
     p.getByRole("region", { name: "All milestones & steps" }),

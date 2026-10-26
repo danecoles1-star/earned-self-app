@@ -51,17 +51,12 @@ it("keeps all areas reachable from empty Now and Plan, without refresh or creati
   expect(
     screen.queryByRole("button", { name: "All milestones & steps" }),
   ).toBeNull();
+  expect(screen.queryByRole("button", { name: "Add step" })).toBeNull();
+  expect(screen.queryByRole("button", { name: "Add milestone" })).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "Now", exact: true }));
   expect(
-    screen.getAllByRole("button", { name: "Add step", exact: true }),
-  ).toHaveLength(1);
-  expect(
-    screen.getAllByRole("button", { name: "Add milestone", exact: true }),
-  ).toHaveLength(1);
-  expect(
-    screen
-      .getByRole("button", { name: "Create wallpaper" })
-      .querySelector("img"),
-  ).not.toBeNull();
+    screen.getByRole("button", { name: "Create wallpaper" }),
+  ).toBeVisible();
   expect((await adapter.read()).goals).toHaveLength(1);
 });
 it("carries only the chosen example area into onboarding", () => {

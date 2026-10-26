@@ -139,14 +139,11 @@ for (const width of [320, 390, 1440])
       }),
     ).toBeVisible();
     await capture("now");
-    const ring = await p.locator(".timer-face").boundingBox(),
-      digits = await p.getByLabel("Elapsed time").boundingBox();
-    expect(
-      Math.abs(ring!.x + ring!.width / 2 - (digits!.x + digits!.width / 2)),
-    ).toBeLessThan(2);
-    expect(
-      Math.abs(ring!.y + ring!.height / 2 - (digits!.y + digits!.height / 2)),
-    ).toBeLessThan(40);
+    const begin = (await p
+      .getByRole("button", { name: "Begin" })
+      .boundingBox())!;
+    expect(Math.round(begin.width)).toBe(width >= 900 ? 118 : 117);
+    expect(Math.round(begin.height)).toBe(width >= 900 ? 118 : 117);
     await areas
       .getByRole("button", { name: "Professional", exact: true })
       .click();
@@ -275,23 +272,21 @@ for (const width of [390, 1440]) {
     await expect(
       p.getByRole("heading", { name: "Practise a relaxed swim stroke" }),
     ).toBeVisible();
-    const title = await p.locator(".now-hero .hero-progress").boundingBox();
-    const ring = await p.locator(".timer-face").boundingBox();
-    expect(ring!.y - title!.y - title!.height).toBeGreaterThanOrEqual(40);
-    expect(
-      await p
-        .locator(".timer-ring")
-        .evaluate(
-          (img: HTMLImageElement) => img.complete && img.naturalWidth > 0,
-        ),
-    ).toBe(true);
-    await p
-      .locator(".timer-face")
-      .evaluate((el) => el.scrollIntoView({ block: "center" }));
+    const panel = await p.locator(".redesign-now-panel").boundingBox();
+    const begin = await p.getByRole("button", { name: "Begin" }).boundingBox();
+    expect(begin!.y).toBeGreaterThan(panel!.y);
+    expect(begin!.y + begin!.height).toBeLessThan(panel!.y + panel!.height);
     await p.screenshot({
       path: `test-results/workshop-timer-focus-${width}.png`,
     });
     await p.getByRole("button", { name: /Create wallpaper/ }).click();
+    await p.screenshot({
+      path: `test-results/workshop-wallpaper-sheet-${width}.png`,
+      fullPage: true,
+    });
+    await p
+      .getByRole("button", { name: "Use Physical hero wallpaper", exact: true })
+      .click();
     await expect(
       p.getByRole("heading", { name: "Words worth carrying." }),
     ).toBeVisible();
@@ -299,12 +294,7 @@ for (const width of [390, 1440]) {
     await expect(label).toHaveCSS("color", "rgb(23, 35, 41)");
     await expect(label).toHaveCSS("background-color", "rgb(241, 243, 241)");
     await p.getByRole("button", { name: "Now", exact: true }).click();
-    await p.getByRole("button", { name: "Add step", exact: true }).click();
-    await expect(p.locator("h1")).toBeVisible();
-    await p.screenshot({
-      path: `test-results/workshop-add-step-${width}.png`,
-      fullPage: true,
-    });
+    await expect(p.getByRole("button", { name: "Add step" })).toHaveCount(0);
     expect(
       await p.evaluate(() => document.documentElement.scrollWidth),
     ).toBeLessThanOrEqual(width);
