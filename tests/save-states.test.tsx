@@ -1,9 +1,12 @@
 import { it, expect, beforeEach } from "vitest";
 import { render, screen, waitFor, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { saveDraft, loadDraft } from "../src/data/drafts";
+import { newEntryExperience } from "../src/experience/Onboarding";
 import { App } from "../src/App";
 import {
   emptySnapshot,
+  emptyFoundation,
   type Adapter,
   type Receipt,
   type Snapshot,
@@ -11,6 +14,7 @@ import {
 
 beforeEach(() => {
   localStorage.clear();
+  sessionStorage.clear();
   history.replaceState({}, "", "/app");
 });
 it("shows loading and failure honestly, disables navigation while saving, and retries the same operation", async () => {
@@ -44,7 +48,9 @@ it("shows loading and failure honestly, disables navigation while saving, and re
         owner_id: "member-a",
         words: String(c.payload.words),
         kind: "goal",
-        meaning: null,
+        ...emptyFoundation(),
+        status: "draft",
+        revision: 1,
         created_at: new Date().toISOString(),
         version: 1,
       });
@@ -52,32 +58,48 @@ it("shows loading and failure honestly, disables navigation while saving, and re
       return Promise.resolve({ id: String(c.payload.id), version: 1 });
     },
   };
+  const x = newEntryExperience();
+  x.step = 10;
+  x.first = {
+    ...x.first,
+    action: "",
+    criterion: "Once",
+    result: "done",
+    detail: "Practiced once",
+    started: true,
+  };
+  saveDraft({
+    ...loadDraft(),
+    words: "Finish my own draft.",
+    vision: "Become courageous",
+    experience: x,
+  });
   const u = userEvent.setup();
   render(<App adapter={adapter} />);
-  await screen.findByText("Loading your goal and Record…");
+  await screen.findByText("Loading your goal and Proof…");
   await act(async () => ready(emptySnapshot()));
   await u.click(
     await screen.findByRole("button", {
-      name: "Start with a goal",
+      name: "Create a challenge",
       exact: true,
     }),
   );
-  await u.type(screen.getByLabelText("Your goal"), "Finish my own draft.");
-  await u.click(screen.getByRole("button", { name: "Save my goal" }));
-  expect(screen.getByRole("button", { name: "Saving…" })).toBeDisabled();
-  expect(
-    screen.getByRole("button", { name: "Record", exact: true }),
-  ).toBeDisabled();
+  await u.click(screen.getByRole("button", { name: "Open Now" }));
+  await u.click(
+    await screen.findByRole("button", { name: "Save this plan", exact: true }),
+  );
+  await screen.findByText("Keeping your progress.");
+  expect(screen.queryByRole("navigation")).not.toBeInTheDocument();
+  await waitFor(() => expect(attempted).toHaveLength(1));
+
   expect(screen.queryByText("Saved to your account.")).not.toBeInTheDocument();
   await act(async () =>
     rejectSave(new Error("Connection interrupted. Try this save again.")),
   );
   await screen.findByRole("alert");
-  expect(screen.getByLabelText("Your goal")).toHaveValue(
-    "Finish my own draft.",
-  );
+  expect(loadDraft().words).toBe("Finish my own draft.");
   expect(screen.queryByText("Saved to your account.")).not.toBeInTheDocument();
-  await u.click(screen.getByRole("button", { name: "Save my goal" }));
+  await u.click(screen.getByRole("button", { name: "Retry save" }));
   await waitFor(() => expect(attempted).toHaveLength(2));
   expect(attempted[1]).toBe(attempted[0]);
   await screen.findByText("Saved to your account.");

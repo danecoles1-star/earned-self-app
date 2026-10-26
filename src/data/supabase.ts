@@ -1,3 +1,4 @@
+import { authMessage } from "./authErrors";
 import { createClient } from "@supabase/supabase-js";
 import type { Adapter, Snapshot, Receipt } from "./types";
 export function createSupabaseAdapter(): Adapter {
@@ -44,18 +45,81 @@ export function createSupabaseAdapter(): Adapter {
       );
       return () => data.subscription.unsubscribe();
     },
+    async getProfilePhoto() {
+      const auth = await requireClient().auth.getUser();
+      if (auth.error || !auth.data.user)
+        throw new Error("Sign in to load your photo.");
+      const { data, error } = await requireClient()
+        .storage.from("profile-photos")
+        .download(auth.data.user.id + "/avatar.webp");
+      if (error) {
+        if (/not found|does not exist/i.test(error.message)) return null;
+        throw error;
+      }
+      return data;
+    },
+    async setProfilePhoto(photo) {
+      const auth = await requireClient().auth.getUser();
+      if (auth.error || !auth.data.user)
+        throw new Error("Sign in to save your photo.");
+      const path = auth.data.user.id + "/avatar.webp";
+      const bucket = requireClient().storage.from("profile-photos");
+      const result = photo
+        ? await bucket.upload(path, photo, {
+            upsert: true,
+            contentType: photo.type,
+            cacheControl: "0",
+          })
+        : await bucket.remove([path]);
+      if (result.error) throw result.error;
+    },
     async signIn(email) {
       const { error } = await requireClient().auth.signInWithOtp({
         email,
         options: {
           emailRedirectTo: location.origin + "/auth/callback",
-          shouldCreateUser: true,
+          shouldCreateUser: false,
         },
       });
-      if (error)
+      if (error) throw new Error(authMessage(error));
+    },
+    async passwordSignIn(email, password) {
+      const { error } = await requireClient().auth.signInWithPassword({
+        email,
+        password,
+      });
+      if (error) throw new Error(authMessage(error));
+    },
+    async signUp(email, password) {
+      const { error } = await requireClient().auth.signUp({ email, password });
+      if (error) throw new Error(authMessage(error));
+    },
+    async verifyCode(email, token, type) {
+      const { data, error } = await requireClient().auth.verifyOtp({
+        email,
+        token,
+        type,
+      });
+      if (error) throw new Error(authMessage(error));
+      if (!data.session)
         throw new Error(
-          "The sign-in email could not be sent. Check the address and try again shortly.",
+          "Verification did not create a session. Please try again.",
         );
+    },
+    async resendSignup(email) {
+      const { error } = await requireClient().auth.resend({
+        type: "signup",
+        email,
+      });
+      if (error) throw new Error(authMessage(error));
+    },
+    async recoverPassword(email) {
+      const { error } = await requireClient().auth.resetPasswordForEmail(email);
+      if (error) throw new Error(authMessage(error));
+    },
+    async updatePassword(password) {
+      const { error } = await requireClient().auth.updateUser({ password });
+      if (error) throw new Error(authMessage(error));
     },
     async signOut() {
       const { error } = await requireClient().auth.signOut({ scope: "local" });
@@ -65,7 +129,7 @@ export function createSupabaseAdapter(): Adapter {
       const { data, error } = await requireClient().rpc("es_read_state");
       if (error)
         throw new Error(
-          "Your saved work could not be loaded. Retry without creating a new goal.",
+          "Your saved work could not be loaded. Retry without creating a new pursuit.",
         );
       return data as Snapshot;
     },
