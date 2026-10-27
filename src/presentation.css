@@ -2787,3 +2787,85 @@ body:has(.stage-focus, .stage-plan, .stage-proof)
     gap: 0;
   }
 }
+
+/* Development intake reuses the approved type, mineral surfaces and artwork. */
+.ai-entry-choices {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.ai-area-choices {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin: 24px 0;
+}
+.ai-area-choice {
+  background: transparent;
+  border: 1px solid transparent;
+  padding: 12px;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+}
+.ai-area-choice img {
+  display: block;
+  width: 100%;
+  height: 140px;
+  object-fit: contain;
+  margin-bottom: 12px;
+}
+.ai-area-choice[aria-pressed="true"] {
+  border-color: currentColor;
+  border-radius: 12px;
+}
+.ai-area-choice:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 4px;
+}
+.ai-onboarding input {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 16px;
+  border: 1px solid #9cabb0;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+}
+.ai-intake-review {
+  margin: 0;
+}
+.ai-intake-review > div {
+  padding: 16px 0;
+  border-bottom: 1px solid #c7ccca;
+}
+.ai-intake-review dt {
+  font-weight: 600;
+}
+.ai-intake-review dd {
+  margin: 8px 0 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.ai-connection-state {
+  margin-top: 32px;
+  border-top: 1px solid #c7ccca;
+  padding-top: 24px;
+}
+@media (max-width: 540px) {
+  .ai-entry-choices {
+    grid-template-columns: 1fr;
+  }
+  .ai-area-choices {
+    gap: 4px;
+  }
+  .ai-area-choice {
+    padding: 8px 2px;
+    font-size: 14px;
+  }
+  .ai-area-choice img {
+    height: 90px;
+  }
+}

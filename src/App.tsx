@@ -1,3 +1,5 @@
+import { AIOnboarding } from "./experience/AIOnboarding";
+import { aiIntakeEnabled } from "./data/aiIntake";
 import { ChallengeWelcome } from "./experience/ChallengeWelcome";
 import { AreaContext, AreaTabs, areas, areaLabel } from "./experience/Areas";
 import { Stage } from "./experience/Stage";
@@ -468,6 +470,18 @@ export function App({ adapter }: { adapter: Adapter }) {
             Start a separate draft
           </button>
         </main>
+      ) : aiIntakeEnabled(
+          import.meta.env.VITE_AI_ONBOARDING_PREVIEW,
+          import.meta.env.VITE_SUPABASE_URL,
+        ) ? (
+        <AIOnboarding
+          draft={draft}
+          change={(patch) =>
+            changeDraft({ ...patch, boundOwner: user?.id ?? draft.boundOwner })
+          }
+          error={draftError || error}
+          back={() => navigate(user ? "/app" : "/")}
+        />
       ) : (
         <Onboarding
           draft={draft}
