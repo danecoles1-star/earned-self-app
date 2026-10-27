@@ -364,10 +364,9 @@ export function App({ adapter }: { adapter: Adapter }) {
     );
   else if (boot)
     screen = (
-      <main id="main" className="workspace narrow">
-        <h1 tabIndex={-1}>Opening your session.</h1>
+      <Page title="Opening your session.">
         <p role="status">Loading…</p>
-      </main>
+      </Page>
     );
   else if (!isAppRoute(path))
     screen = (
@@ -456,8 +455,7 @@ export function App({ adapter }: { adapter: Adapter }) {
   else if (path === "/start")
     screen =
       draft.boundOwner && (!user || !canUseDraft(draft, user.id)) ? (
-        <main id="main" className="workspace">
-          <h1>Sign in to open your saved draft.</h1>
+        <Page title="Sign in to open your saved draft.">
           <button className="button" onClick={() => navigate("/auth")}>
             Sign in
           </button>
@@ -469,7 +467,7 @@ export function App({ adapter }: { adapter: Adapter }) {
           >
             Start a separate draft
           </button>
-        </main>
+        </Page>
       ) : aiIntakeEnabled(
           import.meta.env.VITE_AI_ONBOARDING_PREVIEW,
           import.meta.env.VITE_SUPABASE_URL,
@@ -537,12 +535,13 @@ export function App({ adapter }: { adapter: Adapter }) {
     );
   else if (loading || loadError)
     screen = (
-      <main id="main" className="workspace narrow">
-        <h1 tabIndex={-1}>
-          {loading
+      <Page
+        title={
+          loading
             ? "Opening your saved work."
-            : "Your work could not be loaded."}
-        </h1>
+            : "Your work could not be loaded."
+        }
+      >
         {loading ? (
           <p role="status">Loading your goal and Proof…</p>
         ) : (
@@ -563,7 +562,7 @@ export function App({ adapter }: { adapter: Adapter }) {
             </button>
           </>
         )}
-      </main>
+      </Page>
     );
   else if (path === "/resume-entry")
     screen = (
@@ -618,8 +617,7 @@ export function App({ adapter }: { adapter: Adapter }) {
     };
     screen =
       goal && goal.id === draft.id && canUseDraft(draft, user.id) ? (
-        <main id="main" className="workspace narrow">
-          <h1>Keep your progress.</h1>
+        <Page title="Keep your progress.">
           <p>
             {first?.detail || "Your challenge is saved. Open Now to continue."}
           </p>
@@ -659,7 +657,7 @@ export function App({ adapter }: { adapter: Adapter }) {
           >
             {saving ? "Saving…" : "Save and open Basecamp"}
           </button>
-        </main>
+        </Page>
       ) : (
         <Unavailable navigate={navigate} />
       );
@@ -1089,12 +1087,16 @@ export function App({ adapter }: { adapter: Adapter }) {
 }
 function Unavailable({ navigate }: { navigate: (p: string) => void }) {
   return (
-    <main id="main" className="workspace">
-      <h1 tabIndex={-1}>This entry is unavailable.</h1>
-      <p>Open your own goal or Proof to continue.</p>
-      <button className="button" onClick={() => navigate("/app")}>
-        Open my pursuit
-      </button>
-    </main>
+    <Page
+      title="This entry is unavailable."
+      sub="Open your own goal or Proof to continue."
+      footer={
+        <button className="button" onClick={() => navigate("/app")}>
+          Open my pursuit
+        </button>
+      }
+    >
+      <p>Your saved work is available from Now and Proof.</p>
+    </Page>
   );
 }

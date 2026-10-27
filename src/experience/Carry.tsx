@@ -28,6 +28,7 @@ export function Calendar({
     d = c && definition(snapshot, c.id, c.revision);
   return (
     <Page
+      className="calendar-page"
       title="Make room for it."
       sub="Keep your next step in your calendar."
       dark={false}
@@ -40,8 +41,11 @@ export function Calendar({
     >
       {s?.starts_at && d ? (
         <>
-          <h2>{d.action}</h2>
-          <p>{displaySchedule(s.local_date, s.local_time, s.time_zone)}</p>
+          <section className="calendar-summary" aria-label="Scheduled step">
+            <span className="section-label">Your next step</span>
+            <h2>{d.action}</h2>
+            <p>{displaySchedule(s.local_date, s.local_time, s.time_zone)}</p>
+          </section>
           <label>
             Duration
             <select
@@ -481,6 +485,7 @@ export function Settings({
 }) {
   return (
     <Page
+      className="account-page"
       title="Your account."
       sub="Choose how Earned Self meets you."
       dark={false}
@@ -490,56 +495,66 @@ export function Settings({
         <span className="section-label">Signed in as</span>
         <p>{email || "Local preview account"}</p>
       </section>
-      <ProfilePhotoEditor />
-      <h2>Support that fits.</h2>
-      <Choice
-        selected={snapshot.supportMode === "guided"}
-        onClick={() => !saving && save("guided")}
+      <section className="account-section" aria-label="Profile photo">
+        <ProfilePhotoEditor />
+      </section>
+      <section className="account-section" aria-labelledby="support-heading">
+        <h2 id="support-heading">Support that fits.</h2>
+        <Choice
+          selected={snapshot.supportMode === "guided"}
+          onClick={() => !saving && save("guided")}
+        >
+          Guide me
+        </Choice>
+        <p className="small">Relevant prompts appear as you prepare.</p>
+        <Choice
+          selected={snapshot.supportMode === "on_request"}
+          onClick={() => !saving && save("on_request")}
+        >
+          Help when I ask
+        </Choice>
+        <p className="small">
+          Your own space. Guidance opens when you request it.
+        </p>
+      </section>
+      <section
+        className="account-section"
+        aria-labelledby="account-data-heading"
       >
-        Guide me
-      </Choice>
-      <p className="small">Relevant prompts appear as you prepare.</p>
-      <Choice
-        selected={snapshot.supportMode === "on_request"}
-        onClick={() => !saving && save("on_request")}
-      >
-        Help when I ask
-      </Choice>
-      <p className="small">
-        Your own space. Guidance opens when you request it.
-      </p>
-      <button
-        className="experience-choice"
-        onClick={() =>
-          download(
-            new Blob([JSON.stringify(snapshot, null, 2)], {
-              type: "application/json",
-            }),
-            "Earned_Self_My_Data.json",
-          )
-        }
-      >
-        Download my data
-      </button>
-      {snapshot.goals.length > 1 && (
-        <label>
-          Open a challenge
-          <select
-            value={snapshot.selectedGoal ?? ""}
-            disabled={saving}
-            onChange={(e) => selectAmbition(e.target.value)}
-          >
-            {snapshot.goals.map((g) => (
-              <option key={g.id} value={g.id}>
-                {g.words || g.vision} · {g.status}
-              </option>
-            ))}
-          </select>
-        </label>
-      )}
-      <button className="experience-choice" onClick={() => navigate("/new")}>
-        Begin another challenge
-      </button>
+        <h2 id="account-data-heading">Your challenges & data.</h2>
+        <button
+          className="experience-choice"
+          onClick={() =>
+            download(
+              new Blob([JSON.stringify(snapshot, null, 2)], {
+                type: "application/json",
+              }),
+              "Earned_Self_My_Data.json",
+            )
+          }
+        >
+          Download my data
+        </button>
+        {snapshot.goals.length > 1 && (
+          <label>
+            Open a challenge
+            <select
+              value={snapshot.selectedGoal ?? ""}
+              disabled={saving}
+              onChange={(e) => selectAmbition(e.target.value)}
+            >
+              {snapshot.goals.map((g) => (
+                <option key={g.id} value={g.id}>
+                  {g.words || g.vision} · {g.status}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
+        <button className="experience-choice" onClick={() => navigate("/new")}>
+          Begin another challenge
+        </button>
+      </section>
       <button className="quiet" disabled={saving} onClick={signOut}>
         Sign out
       </button>

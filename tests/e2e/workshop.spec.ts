@@ -291,8 +291,8 @@ for (const width of [390, 1440]) {
       p.getByRole("heading", { name: "Words worth carrying." }),
     ).toBeVisible();
     const label = p.locator(".wallpaper-swatch.mineral span");
-    await expect(label).toHaveCSS("color", "rgb(23, 35, 41)");
-    await expect(label).toHaveCSS("background-color", "rgb(241, 243, 241)");
+    await expect(label).toHaveCSS("color", "rgb(16, 26, 32)");
+    await expect(label).toHaveCSS("background-color", "rgb(246, 241, 232)");
     await p.getByRole("button", { name: "Now", exact: true }).click();
     await expect(p.getByRole("button", { name: "Add step" })).toHaveCount(0);
     expect(
