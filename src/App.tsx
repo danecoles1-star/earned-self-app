@@ -1,3 +1,4 @@
+import { ChallengeWelcome } from "./experience/ChallengeWelcome";
 import { AreaContext, AreaTabs, areas, areaLabel } from "./experience/Areas";
 import { Stage } from "./experience/Stage";
 import type { GrowthArea } from "./data/types";
@@ -22,7 +23,7 @@ import { Recovery } from "./experience/Recovery";
 import { SupportMode } from "./experience/ui";
 import { MemberHome, AppNavigation } from "./experience/MemberHome";
 import { Art, Page } from "./experience/ui";
-import { Onboarding } from "./experience/Onboarding";
+import { Onboarding, newEntryExperience } from "./experience/Onboarding";
 import {
   useCallback,
   useEffect,
@@ -398,6 +399,10 @@ export function App({ adapter }: { adapter: Adapter }) {
                 clearDraft();
                 const fresh = {
                   ...loadDraft(),
+                  experience: {
+                    ...newEntryExperience(),
+                    entryIntent: draft.experience?.entryIntent,
+                  },
                   ...(effectiveArea ? { area: effectiveArea } : {}),
                 };
                 saveDraft(fresh);
@@ -736,31 +741,23 @@ export function App({ adapter }: { adapter: Adapter }) {
     );
   else if (["/app", "/manage"].includes(path) && !selected)
     screen = (
-      <Stage
-        title="Your next challenge"
-        tone="proof"
-        statement=""
+      <ChallengeWelcome
+        area={effectiveArea || null}
+        hasOtherGoals={snapshot.goals.length > 0}
         navigate={navigate}
-      >
-        <section className="area-empty">
-          <p className="section-label">
-            {effectiveArea
-              ? areaLabel(effectiveArea)
-              : "Your own starting point"}
-          </p>
-          <h2>What could you become here?</h2>
-          <p>
-            Start one meaningful challenge. Your work in other areas stays
-            available.
-          </p>
-          <button
-            className="button"
-            onClick={() => navigate(snapshot.goals.length ? "/new" : "/start")}
-          >
-            Create a challenge
-          </button>
-        </section>
-      </Stage>
+        start={(intent) => {
+          changeDraft({
+            ...(effectiveArea && !draft.words && !draft.vision
+              ? { area: effectiveArea }
+              : {}),
+            experience: {
+              ...(draft.experience || newEntryExperience()),
+              entryIntent: intent,
+            },
+          });
+          navigate(snapshot.goals.length ? "/new" : "/start");
+        }}
+      />
     );
   else if (path.startsWith("/manage") && selected)
     screen = (

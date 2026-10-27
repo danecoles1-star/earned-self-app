@@ -80,8 +80,7 @@ it("shows loading and failure honestly, disables navigation while saving, and re
   await act(async () => ready(emptySnapshot()));
   await u.click(
     await screen.findByRole("button", {
-      name: "Create a challenge",
-      exact: true,
+      name: /I have a challenge/,
     }),
   );
   await u.click(screen.getByRole("button", { name: "Open Now" }));
