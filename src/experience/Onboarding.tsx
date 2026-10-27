@@ -1,5 +1,8 @@
 import { areas, areaLabel } from "./Areas";
-import { areaArt } from "./workshopArt";
+import physical from "../assets/illustrations/illo-physical.webp";
+import professional from "../assets/illustrations/illo-professional.webp";
+import personal from "../assets/illustrations/illo-personal.webp";
+const onboardingArt = { physical, professional, personal };
 import { StepTimer, pauseTimer } from "./StepTimer";
 import { firstMoveExample } from "./guidance";
 import { useState } from "react";
@@ -18,6 +21,7 @@ export interface FirstMove {
 export interface EntryExperience {
   step: number;
   flowVersion?: number;
+  entryIntent?: "goal" | "discover";
   supportMode?: "guided" | "on_request";
   supportOperationId?: string;
   pain: string;
@@ -174,7 +178,11 @@ export function Onboarding({
     <SupportMode.Provider value={x.supportMode || "on_request"}>
       <Page
         className="onboarding-flow"
-        title={titles[step] ?? titles[0]}
+        title={
+          step === 1 && x.entryIntent === "discover"
+            ? "What would you like to trust yourself to do?"
+            : (titles[step] ?? titles[0])
+        }
         sub={subs[step]}
         dark={[1, 3, 8, 10].includes(step)}
         progress={step < 8 ? [sequence.indexOf(step) + 1, 6] : undefined}
@@ -294,7 +302,7 @@ export function Onboarding({
                     }
                   </small>
                 </span>
-                <img src={areaArt[a]} alt="" />
+                <img src={onboardingArt[a]} alt="" />
               </button>
             ))}
           </div>

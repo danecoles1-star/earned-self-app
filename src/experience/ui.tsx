@@ -49,6 +49,7 @@ export function Page({
   headerAction?: ReactNode;
 }) {
   const heading = useRef<HTMLHeadingElement>(null);
+  const { area } = useContext(AreaContext);
   useEffect(() => {
     heading.current?.focus();
     window.scrollTo(0, 0);
@@ -68,35 +69,42 @@ export function Page({
           </button>
         )}
       </header>
-      <main id="main" className="experience-main">
-        <div className="experience-heading">
-          {back && headerAction && (
-            <button
-              className="quiet onboarding-back"
-              onClick={back}
-              aria-label="Go back"
-            >
-              Back
-            </button>
-          )}
-          {progress && (
-            <div
-              className="journey-progress"
-              aria-label={`Step ${progress[0]} of ${progress[1]}`}
-            >
-              <span
-                style={{ width: `${(progress[0] / progress[1]) * 100}%` }}
-              />
-            </div>
-          )}
-          <h1 ref={heading} tabIndex={-1}>
-            {title}
-          </h1>
-          {sub && <p className="experience-sub">{sub}</p>}
-        </div>
-        <div className="experience-content">{children}</div>
-      </main>
-      {footer && <footer className="experience-footer">{footer}</footer>}
+      <div className="experience-body">
+        <main id="main" className="experience-main">
+          <div className="experience-heading">
+            {back && headerAction && (
+              <button
+                className="quiet onboarding-back"
+                onClick={back}
+                aria-label="Go back"
+              >
+                Back
+              </button>
+            )}
+            {progress && (
+              <div
+                className="journey-progress"
+                aria-label={`Step ${progress[0]} of ${progress[1]}`}
+              >
+                <span
+                  style={{ width: `${(progress[0] / progress[1]) * 100}%` }}
+                />
+              </div>
+            )}
+            <h1 ref={heading} tabIndex={-1}>
+              {title}
+            </h1>
+            {sub && <p className="experience-sub">{sub}</p>}
+            {layout === "flow" && (
+              <div className="flow-artwork" aria-hidden="true">
+                <img src={area ? preparationArt[area] : steps} alt="" />
+              </div>
+            )}
+          </div>
+          <div className="experience-content">{children}</div>
+        </main>
+        {footer && <footer className="experience-footer">{footer}</footer>}
+      </div>
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { emptyFoundation, type Foundation } from "./types";
 import type { EntryExperience } from "../experience/Onboarding";
 export interface EntryDraft extends Foundation {
+  aiIntake?: import("./aiIntake").AIIntake;
   area?: import("./types").GrowthArea;
   experience?: EntryExperience;
   id: string;
