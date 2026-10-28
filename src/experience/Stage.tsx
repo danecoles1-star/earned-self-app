@@ -1,12 +1,6 @@
 import { AreaTabs, AreaContext } from "./Areas";
 import { artFor } from "./workshopArt";
-import {
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-  type ReactNode,
-} from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { Brand } from "../components/Brand";
 import { useContext } from "react";
 import { ProfileContext } from "./ProfilePhoto";
@@ -35,49 +29,16 @@ export function Stage({
 }) {
   const { photo } = useContext(ProfileContext);
   const heading = useRef<HTMLHeadingElement>(null);
-  const surface = useRef<HTMLDivElement>(null);
-  const [mineralHeight, setMineralHeight] = useState(0);
-  useLayoutEffect(() => {
-    if ((tone !== "plan" && !hero) || !surface.current) return;
-    const root = surface.current;
-    const measure = () => {
-      const end =
-        root.querySelector(
-          ".stage-hero, .workshop-path, .workshop-path-empty",
-        ) || root.querySelector(".plan-challenge");
-      if (end)
-        setMineralHeight(
-          end.getBoundingClientRect().bottom - root.getBoundingClientRect().top,
-        );
-    };
-    measure();
-    if (typeof ResizeObserver === "undefined") return;
-    const observer = new ResizeObserver(measure);
-    observer.observe(root);
-    const end = root.querySelector(
-      ".stage-hero, .workshop-path, .workshop-path-empty",
-    );
-    if (end) observer.observe(end);
-    return () => observer.disconnect();
-  }, [tone, children, hero]);
   useEffect(() => {
     heading.current?.focus();
     window.scrollTo(0, 0);
   }, [title]);
   return (
     <div
-      ref={surface}
       className={`focus-stage stage-${tone}${hero ? " has-progress-hero" : ""}`}
     >
-      {(tone === "plan" || hero) && (
-        <div
-          className="plan-mineral-surface"
-          style={{ height: mineralHeight }}
-          aria-hidden="true"
-        />
-      )}
       <header className="stage-header">
-        <Brand mineral={tone !== "plan" && !hero} />
+        <Brand mineral />
         <button
           className="quiet account-button"
           aria-label="Account"

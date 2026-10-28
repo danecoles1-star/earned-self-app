@@ -172,6 +172,10 @@ test("long step titles remain readable in the Halo panel", async ({
   expect(titleBox.x + titleBox.width).toBeLessThanOrEqual(
     panelBox.x + panelBox.width,
   );
+  const beginBox = (await panel
+    .getByRole("button", { name: "Begin", exact: true })
+    .boundingBox())!;
+  expect(titleBox.y + titleBox.height).toBeLessThan(beginBox.y);
   await capture(p, "long-title", 320);
   await expect(stepTitle).toHaveText(title);
   expect(errors).toEqual([]);
@@ -185,7 +189,7 @@ test("locked Halo and Begin remain stable with reduced motion and narrow screens
   await seed(p, fixture());
   const panel = p.locator(".redesign-now-panel"),
     begin = p.getByRole("button", { name: "Begin", exact: true });
-  await expect(panel).toHaveCSS("background-image", /tex-halo-crop-mobile/);
+  await expect(panel).toHaveCSS("background-image", /tex-halo\.webp/);
   await expect(begin).toHaveCSS("background-image", /begin-fibers/);
   let box = (await begin.boundingBox())!;
   expect(Math.round(box.width)).toBe(117);

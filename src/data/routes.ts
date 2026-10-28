@@ -17,6 +17,7 @@ export function isAppRoute(path: string): boolean {
   )
     return true;
   return (
+    /^\/wallpaper\/[^/]+\/tile\/(?:[0-9]|1[0-3])$/.test(path) ||
     /^\/(?:import-first|add-step|add-milestone|plan|commitment|revise|recovery|proof|milestone|resume|decision|milestone-done|calendar|wallpaper|focus|report)\/[^/]+$/.test(
       path,
     ) ||

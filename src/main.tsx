@@ -2,6 +2,7 @@ import React from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "./App";
 import "./presentation.css";
+import "./statement.css";
 import type { Adapter } from "./data/types";
 async function start() {
   let adapter: Adapter;

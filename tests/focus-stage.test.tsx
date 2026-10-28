@@ -203,3 +203,43 @@ it("Plan shows the current milestone and visible preparation without authoring b
   expect(screen.queryByRole("button", { name: "Add step" })).toBeNull();
   expect(screen.queryByRole("button", { name: "Add milestone" })).toBeNull();
 });
+it("missing saved steps never become unlabeled sample challenge content", () => {
+  const t = setup();
+  render(
+    <MemberHome
+      goal={t.get().goals[0]}
+      snapshot={t.get()}
+      navigate={vi.fn()}
+    />,
+  );
+  expect(
+    screen.getByRole("heading", { name: "Prepare your next step" }),
+  ).toBeVisible();
+  expect(
+    screen.getByRole("heading", {
+      name: "Your next step is not prepared yet.",
+    }),
+  ).toBeVisible();
+  expect(
+    screen.queryByText(/coached swim|Rehearse the opening|Draft the opening/),
+  ).toBeNull();
+  expect(
+    screen.queryByRole("button", { name: "Schedule this step" }),
+  ).toBeNull();
+});
+it("wallpaper selection carries the chosen asset into the export route", () => {
+  const t = setup();
+  const navigate = vi.fn();
+  render(
+    <MemberHome
+      goal={t.get().goals[0]}
+      snapshot={t.get()}
+      navigate={navigate}
+    />,
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Create wallpaper" }));
+  fireEvent.click(
+    screen.getByRole("button", { name: "Use Halo on Ivory wallpaper" }),
+  );
+  expect(navigate).toHaveBeenCalledWith("/wallpaper/g/tile/7");
+});

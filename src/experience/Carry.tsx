@@ -1,3 +1,4 @@
+import { wallpapers } from "./wallpapers";
 import { areaArt, proofArt, preparationArt } from "./workshopArt";
 import { completedEvent } from "./ChallengeRecord";
 import { ProfilePhotoEditor } from "./ProfilePhoto";
@@ -116,8 +117,10 @@ export function Wallpaper({
   goal,
   snapshot,
   navigate,
+  selectedTile,
 }: {
   goal: Goal;
+  selectedTile?: number;
   snapshot?: Snapshot;
   navigate: (p: string) => void;
 }) {
@@ -126,24 +129,42 @@ export function Wallpaper({
     [reason, setReason] = useState(false),
     [date, setDate] = useState(false),
     [brand, setBrand] = useState(true),
-    [style, setStyle] = useState(goal.area ? "courage" : "light"),
+    [style, setStyle] = useState(
+      selectedTile !== undefined && wallpapers[selectedTile]
+        ? `tile-${selectedTile}`
+        : goal.area
+          ? "courage"
+          : "light",
+    ),
     [error, setError] = useState(""),
     [saved, setSaved] = useState(false),
     [busy, setBusy] = useState(false);
-  const art = goal.area
-    ? (
-        {
-          courage: areaArt[goal.area],
-          preparation: preparationArt[goal.area],
-          possibility: proofArt[goal.area],
-        } as Record<string, string>
-      )[style]
+  const suppliedArt = style.startsWith("tile-")
+    ? wallpapers[Number(style.slice(5))]?.[0]
     : undefined;
-  const light = !!art || ["light", "blue", "ember"].includes(style);
+  const art =
+    suppliedArt ||
+    (goal.area
+      ? (
+          {
+            courage: areaArt[goal.area],
+            preparation: preparationArt[goal.area],
+            possibility: proofArt[goal.area],
+          } as Record<string, string>
+        )[style]
+      : undefined);
+  const light = suppliedArt
+    ? ![6, 11, 13].includes(Number(style.slice(5)))
+    : !!art || ["light", "blue", "ember"].includes(style);
   const reflection = snapshot
     ? completedEvent(snapshot, goal.id)?.data.reflection
     : undefined;
   const styles = [
+    ...wallpapers.map(([image, label], index) => ({
+      id: `tile-${index}`,
+      label,
+      image,
+    })),
     ...(goal.area
       ? [
           { id: "courage", label: "Courage", image: areaArt[goal.area] },
@@ -186,14 +207,29 @@ export function Wallpaper({
           : (
               {
                 light: "#F6F1E8",
-                mineral: "#537889",
-                ember: "#E45D3D",
-                blue: "#F1F3F1",
-                ink: "#172329",
+                mineral: "#5E7783",
+                ember: "#FF5B36",
+                blue: "#F6F1E8",
+                ink: "#101A20",
               } as Record<string, string>
             )[style] || "#172329";
         ctx.fillRect(0, 0, 1170, 2532);
-        if (art) {
+        if (suppliedArt) {
+          const image = new Image();
+          image.src = suppliedArt;
+          await image.decode();
+          const scale = Math.max(
+            canvas.width / image.naturalWidth,
+            canvas.height / image.naturalHeight,
+          );
+          ctx.drawImage(
+            image,
+            (canvas.width - image.naturalWidth * scale) / 2,
+            (canvas.height - image.naturalHeight * scale) / 2,
+            image.naturalWidth * scale,
+            image.naturalHeight * scale,
+          );
+        } else if (art) {
           const image = new Image();
           image.src = art;
           await image.decode();
