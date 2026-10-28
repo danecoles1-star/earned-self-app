@@ -38,6 +38,8 @@ describe("route boundaries", () => {
       "/decision/g",
       "/proof/challenge/g",
       "/wallpaper/g",
+      "/wallpaper/g/tile/0",
+      "/wallpaper/g/tile/13",
       "/settings",
       "/start",
     ])
@@ -49,6 +51,9 @@ describe("route boundaries", () => {
       "/manage-typo",
       "/manage/why/extra",
       "/report/id/extra",
+      "/wallpaper/g/tile/14",
+      "/wallpaper/g/tile/-1",
+      "/wallpaper/g/tile/0/extra",
       "/history",
     ])
       expect(isAppRoute(path)).toBe(false);

@@ -838,7 +838,16 @@ export function App({ adapter }: { adapter: Adapter }) {
       path.startsWith("/calendar/") ? (
         <Calendar goal={g} snapshot={snapshot} navigate={navigate} />
       ) : (
-        <Wallpaper goal={g} snapshot={snapshot} navigate={navigate} />
+        <Wallpaper
+          goal={g}
+          snapshot={snapshot}
+          navigate={navigate}
+          selectedTile={
+            path.split("/")[3] === "tile"
+              ? Number(path.split("/")[4])
+              : undefined
+          }
+        />
       )
     ) : (
       <Unavailable navigate={navigate} />

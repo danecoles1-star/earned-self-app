@@ -398,8 +398,9 @@ export function ProofList({
           aria-label="Completed work in this area"
         >
           <section className="identity-reminder page-identity">
-            <span className="section-label">Your Proof</span>
-            <p>The evidence is stacking up, keep going</p>
+            <span className="section-label">Proof</span>
+            <span className="proof-heading" aria-hidden="true">Your Proof</span>
+            <p>The evidence is stacking up, keep going.</p>
           </section>
           <p className="hero-scope">Across your recorded work in this area.</p>
           <dl className="proof-totals">
@@ -410,7 +411,7 @@ export function ProofList({
                 ["Challenges", totals.challenges],
               ] as const
             ).map(([label, count]) => (
-              <div key={label}>
+              <div key={label} data-earned={count > 0}>
                 <dt>
                   {label}
                   <span>completed</span>
