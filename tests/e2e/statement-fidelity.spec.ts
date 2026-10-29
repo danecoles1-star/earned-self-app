@@ -4,7 +4,7 @@ import { emptySnapshot } from "../../src/data/types";
 import { foundation, action } from "../fixtures";
 
 // Local-only reference content, never imported by the application or sent to Supabase.
-for (const width of [320, 390, 1440]) {
+for (const width of [320, 390, 1440, 1680]) {
   test(`Statement reference and wallpaper export at ${width}`, async ({
     page,
   }) => {
@@ -52,6 +52,21 @@ for (const width of [320, 390, 1440]) {
       "rgb(246, 241, 232)",
     );
     await expect(page.locator(".plan-mineral-surface")).toHaveCount(0);
+    const beginControl = page.getByRole("button", { name: "Begin", exact: true });
+    await expect(beginControl).toHaveCSS("background-color", "rgb(94, 119, 131)");
+    await expect(beginControl).toHaveCSS("color", "rgb(246, 241, 232)");
+    await expect(beginControl).toHaveCSS("border-top-width", "3px");
+    await expect(beginControl).toHaveCSS("border-top-color", "rgb(255, 91, 54)");
+    await expect(beginControl).toHaveCSS("animation-name", "none");
+    const pulse = () => beginControl.evaluate(el => getComputedStyle(el, "::after").animationName);
+    expect(await pulse()).toBe("none");
+    await page.emulateMedia({ reducedMotion: "no-preference" });
+    expect(await pulse()).toBe("ppulse");
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    expect(await pulse()).toBe("none");
+    const frame = (await page.locator(".focus-stage").boundingBox())!;
+    expect(Math.abs(frame.width - width)).toBeLessThan(1);
+    await expect(page.locator(".statement-foot-band")).toBeHidden();
     const panel = (await page.locator(".redesign-now-panel").boundingBox())!;
     const begin = (await page
       .getByRole("button", { name: "Begin", exact: true })
@@ -72,9 +87,29 @@ for (const width of [320, 390, 1440]) {
         [...document.images].map((i) => i.decode().catch(() => {})),
       );
     });
+    const navigation = page.getByRole("navigation", {
+      name: "Main navigation",
+    });
+    await expect(navigation).toHaveCSS("position", "fixed");
+    const initialNav = (await navigation.boundingBox())!;
+    expect(Math.abs(initialNav.y + initialNav.height - 900)).toBeLessThan(1);
+    await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+    const scrolledNav = (await navigation.boundingBox())!;
+    expect(Math.abs(scrolledNav.y - initialNav.y)).toBeLessThan(1);
+    const lastControl = (await page
+      .getByRole("button", { name: "Create wallpaper", exact: true })
+      .boundingBox())!;
+    expect(lastControl.y + lastControl.height).toBeLessThanOrEqual(
+      scrolledNav.y,
+    );
+    await page.screenshot({
+      path: `test-results/statement-bottom-${width}.png`,
+      fullPage: false,
+    });
+    await page.evaluate(() => window.scrollTo(0, 0));
     await page.screenshot({
       path: `test-results/statement-now-${width}.png`,
-      fullPage: true,
+      fullPage: false,
     });
     await page
       .getByRole("button", { name: "Create wallpaper", exact: true })
@@ -99,6 +134,24 @@ for (const width of [320, 390, 1440]) {
     expect((await downloading).suggestedFilename()).toBe(
       "Earned_Self_Lock_Screen.png",
     );
+    for (const [route, name] of [["/manage", "plan"], ["/proof", "proof"]]) {
+      await page.goto(route);
+      const band = page.locator(".statement-foot-band");
+      await expect(band).toBeVisible();
+      await expect(band).toHaveCSS("height", width >= 900 ? "96px" : "88px");
+      await expect(band).toHaveAttribute("aria-hidden", "true");
+      expect(await band.textContent()).toBe("");
+      expect(Math.abs((await band.boundingBox())!.width - width)).toBeLessThan(1);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(width);
+      await page.screenshot({ path: `test-results/board-${name}-${width}.png` });
+      await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+      const nav = (await page.getByRole("navigation", { name: "Main navigation" }).boundingBox())!;
+      const bottom = (await band.boundingBox())!;
+      expect(bottom.y + bottom.height).toBeLessThanOrEqual(nav.y);
+      await page.screenshot({ path: `test-results/board-${name}-foot-${width}.png` });
+    }
+    await page.goto("/settings");
+    await expect(page.getByRole("button", { name: /Guide me|Help when I ask/ })).toHaveCount(0);
     await page.goto("/app");
     await page.getByRole("button", { name: "Personal", exact: true }).click();
     await expect(
@@ -106,7 +159,7 @@ for (const width of [320, 390, 1440]) {
     ).toBeVisible();
     await page.screenshot({
       path: `test-results/statement-empty-${width}.png`,
-      fullPage: true,
+      fullPage: false,
     });
   });
 }

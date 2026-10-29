@@ -506,7 +506,6 @@ export function Settings({
   email,
   snapshot,
   navigate,
-  save,
   signOut,
   selectAmbition,
   saving,
@@ -523,7 +522,7 @@ export function Settings({
     <Page
       className="account-page"
       title="Your account."
-      sub="Choose how Earned Self meets you."
+      sub="Your profile, challenges and account."
       dark={false}
       back={() => navigate("/app")}
     >
@@ -533,25 +532,6 @@ export function Settings({
       </section>
       <section className="account-section" aria-label="Profile photo">
         <ProfilePhotoEditor />
-      </section>
-      <section className="account-section" aria-labelledby="support-heading">
-        <h2 id="support-heading">Support that fits.</h2>
-        <Choice
-          selected={snapshot.supportMode === "guided"}
-          onClick={() => !saving && save("guided")}
-        >
-          Guide me
-        </Choice>
-        <p className="small">Relevant prompts appear as you prepare.</p>
-        <Choice
-          selected={snapshot.supportMode === "on_request"}
-          onClick={() => !saving && save("on_request")}
-        >
-          Help when I ask
-        </Choice>
-        <p className="small">
-          Your own space. Guidance opens when you request it.
-        </p>
       </section>
       <section
         className="account-section"

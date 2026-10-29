@@ -1,5 +1,5 @@
 /* Muse Statement + locked Halo. Loaded after legacy presentation rules.
-   Reference: github-handoff.md, 2026-10-26. Assets remain byte-identical.
+   Reference: approved board update, 2026-10-29. Assets remain byte-identical.
    Shared supporting forms inherit this system without changing their commands. */
 body:has(.focus-stage, .experience-flow, .workspace) {
   background: #f6f1e8;
@@ -163,7 +163,7 @@ body:has(.focus-stage, .experience-flow, .workspace) {
   width: 117px;
   height: 117px;
   min-height: 117px;
-  border: 0;
+  border: 3px solid #ff5b36;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -172,9 +172,13 @@ body:has(.focus-stage, .experience-flow, .workspace) {
   font-weight: 800;
   letter-spacing: 0.18em;
   text-indent: 0;
-  background-color: #ff5b36;
-  color: #101a20;
-  box-shadow: 0 8px 26px #101a2047;
+  background-color: #5e7783;
+  color: #f6f1e8;
+  animation: none;
+  transition: none;
+  overflow: visible;
+  box-shadow: 0 0 0 6px rgba(246,241,232,.13),
+    0 0 0 7px rgba(246,241,232,.35), 0 10px 24px rgba(16,26,32,.35);
 }
 .next-step-section,
 .redesign-wallpaper {
@@ -207,7 +211,7 @@ body:has(.focus-stage, .experience-flow, .workspace) {
   padding: 11px 22px;
   font-size: 14px;
   line-height: 1.5;
-  border: 1px solid var(--mineral);
+  border: 2px solid var(--ember);
   background: var(--mineral);
   color: var(--paper);
 }
@@ -411,7 +415,7 @@ body:has(.focus-stage, .experience-flow)
 @media (min-width: 900px) {
   .focus-stage
     .stage-main
-    > :not(.area-tabs):not(.redesign-now-panel):not(.visually-hidden) {
+    > :where(:not(.area-tabs):not(.redesign-now-panel):not(.visually-hidden):not(.statement-foot-band)) {
     max-width: 700px;
     margin-left: auto;
     margin-right: auto;
@@ -450,10 +454,10 @@ body:has(.focus-stage, .experience-flow)
     font-size: 34px;
   }
 }
-/* Reference frame width preserves the Halo's uniform locked scale. */
+/* Full-width frames; reading measures are controlled within each section. */
 .focus-stage,
 .experience-flow {
-  max-width: 1140px;
+  max-width: none;
 }
 .stage-plan .milestone-heading {
   display: flex;
@@ -615,9 +619,9 @@ body:has(.focus-stage, .experience-flow)
 }
 .prepared-session .button {
   width: auto;
-  background: var(--ember);
+  background: var(--mineral);
   border-color: var(--ember);
-  color: var(--ink);
+  color: var(--paper);
 }
 .focus-stage:has(.prepared-session) .now-hero,
 .focus-stage:has(.prepared-session) .redesign-now-panel,
@@ -757,4 +761,102 @@ body:has(.focus-stage, .experience-flow)
 .stage-plan .plan-preparation .first-proof h4 {
   font: 600 13.5px/1.55 var(--font-interface);
   margin: 0;
+}
+
+/* Approved board: only the round Begin's outer stroke moves. */
+.begin-button::after {
+  content: "";
+  position: absolute;
+  inset: -15px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(246,241,232,.3);
+  pointer-events: none;
+  animation: ppulse 2.6s ease-out infinite;
+}
+@keyframes ppulse {
+  0% { transform: scale(.93); opacity: .9; }
+  70% { transform: scale(1.07); opacity: 0; }
+  100% { opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .begin-button::after { animation: none; }
+}
+/* Clip rows 0–280 of the unchanged master with the element's own bounds.
+   The halo lies below this crop. No board annotations or generated artwork. */
+.focus-stage .stage-main > .statement-foot-band {
+  height: 88px;
+  width: calc(100% + 48px);
+  max-width: none;
+  margin: 48px -24px 0;
+  background: url("./assets/panel/tex-halo.webp") center top / max(100%, 393.8px) auto no-repeat;
+  pointer-events: none;
+}
+/* The Now Halo already supplies this graphic. Its activity shell does not. */
+.focus-stage:has(.redesign-now-panel):not(:has(.prepared-session)) .statement-foot-band {
+  display: none;
+}
+@media (min-width: 900px) {
+  .focus-stage .stage-main > .statement-foot-band {
+    height: 96px;
+    background-image: url("./assets/panel/tex-halo-crop-desktop.webp");
+    background-size: max(100%, 1302.857143px) auto;
+  }
+  .stage-plan .stage-main,
+  .stage-proof .stage-main {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+    column-gap: clamp(48px, 6vw, 120px);
+    align-content: start;
+  }
+  .stage-plan .stage-main > *,
+  .stage-proof .stage-main > * { grid-column: 1 / -1; }
+  .stage-plan .stage-main > :where(:not(.area-tabs):not(.visually-hidden):not(.statement-foot-band)),
+  .stage-proof .stage-main > :where(:not(.area-tabs):not(.visually-hidden):not(.statement-foot-band)) {
+    max-width: none;
+    margin-left: 0;
+    margin-right: 0;
+  }
+  .stage-plan .stage-main > .plan-overview { grid-column: 1; }
+  .stage-plan .stage-main > .plan-tools { grid-column: 2; }
+  .stage-plan .plan-challenge { max-width: 65ch; }
+  .stage-plan .plan-tools { border-left: 1px solid var(--rule); padding-left: 40px; }
+  .stage-proof .proof-hero {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 64px;
+    align-items: center;
+  }
+  .stage-proof .proof-hero .identity-reminder { grid-column: 1; }
+  .stage-proof .proof-hero .hero-scope { grid-column: 1; }
+  .stage-proof .proof-hero .proof-totals { grid-column: 2; grid-row: 1 / 3; }
+  .stage-proof .proof-support { max-width: 80ch; }
+  .stage-focus .stage-main > .next-step-section {
+    max-width: 1040px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: 64px;
+  }
+  .next-step-section > * { grid-column: 1; }
+  .next-step-section > .next-step-actions { grid-column: 2; grid-row: 1 / 5; align-self: center; max-width: 420px; flex-wrap: wrap; }
+}
+
+@media (min-width: 900px) {
+  .stage-proof .stage-main > .proof-all-button {
+    width: auto;
+    justify-self: start;
+    min-width: 220px;
+  }
+  .stage-proof .stage-main > .proof-back { justify-self: start; }
+}
+
+/* Nine-slice rendering widens only the halo-free outer field. The centre
+   2100 source pixels render at 434/1300 scale = 701.076923px, unchanged.
+   Adjacent slices share source edges, so no mirrored grain or seams. */
+@media (min-width: 1269px) {
+  .redesign-now-panel {
+    border-image-source: url("./assets/panel/tex-halo-crop-desktop.webp");
+    border-image-slice: 0 850 fill;
+    border-image-width: 0 calc((100% - 701.076923px) / 2);
+    border-image-repeat: stretch;
+  }
 }
