@@ -646,7 +646,7 @@ body:has(.focus-stage, .experience-flow)
   background: var(--paper);
 }
 .focus-stage .stage-main > .area-tabs {
-  justify-content: flex-start;
+  justify-content: center;
 }
 .focus-stage .account-button {
   border: 0;
