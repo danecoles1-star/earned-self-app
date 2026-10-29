@@ -77,6 +77,7 @@ export function Stage({
           </section>
         )}
         {children}
+        <div className="statement-foot-band" aria-hidden="true" />
       </main>
     </div>
   );

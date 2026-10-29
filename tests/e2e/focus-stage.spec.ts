@@ -82,8 +82,8 @@ for (const width of [320, 390, 1440]) {
     const beginBox = (await begin.boundingBox())!;
     expect(Math.round(beginBox.width)).toBe(width >= 900 ? 118 : 117);
     expect(Math.round(beginBox.height)).toBe(width >= 900 ? 118 : 117);
-    await expect(begin).toHaveCSS("background-color", "rgb(255, 91, 54)");
-    await expect(begin).toHaveCSS("color", "rgb(16, 26, 32)");
+    await expect(begin).toHaveCSS("background-color", "rgb(94, 119, 131)");
+    await expect(begin).toHaveCSS("color", "rgb(246, 241, 232)");
     await capture(p, "basecamp", width);
     await begin.click();
     await expect(p.getByText("About 25 minutes")).toBeVisible();

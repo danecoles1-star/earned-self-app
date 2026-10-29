@@ -121,10 +121,7 @@ it("onboarding requires an authored area choice and offers opt-in guidance", () 
     screen.getByRole("button", { name: "Professional", exact: true }),
   );
   expect(change).toHaveBeenCalledWith({ area: "professional" });
-  fireEvent.click(
-    screen.getByRole("button", { name: "Help when I ask", exact: true }),
-  );
-  expect(change.mock.calls.at(-1)?.[0].experience.supportMode).toBe("guided");
+  expect(screen.queryByRole("button", { name: /Guide me|Help when I ask/ })).toBeNull();
 });
 
 it("keeps legacy assignment out of area navigation and available only where requested", () => {
