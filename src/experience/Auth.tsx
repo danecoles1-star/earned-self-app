@@ -105,6 +105,14 @@ export function Auth({
     }
   };
   const submit = async () => {
+    if (newPassword && (password.length < 12 || password !== confirm)) {
+      setError(
+        password.length < 12
+          ? "Use at least 12 characters for your password."
+          : "Your passwords do not match. Enter the same password in both fields.",
+      );
+      return;
+    }
     const address = email.trim();
     if (mode === "login") {
       await adapter.passwordSignIn!(address, password);
@@ -150,6 +158,18 @@ export function Auth({
   const needsPassword =
     mode === "login" || mode === "signup" || mode === "password";
   const newPassword = mode === "signup" || mode === "password";
+  const shortPassword =
+    newPassword && password.length > 0 && password.length < 12;
+  const mismatchedPassword =
+    newPassword && confirm.length > 0 && password !== confirm;
+  const passwordHint = shortPassword
+    ? `Add ${12 - password.length} more ${12 - password.length === 1 ? "character" : "characters"} — your password needs at least 12.`
+    : "Use at least 12 characters.";
+  const confirmHint = mismatchedPassword
+    ? "Your passwords do not match. Enter the same password in both fields."
+    : confirm.length > 0
+      ? "Passwords match."
+      : "Enter your new password again to confirm it.";
   const title =
     mode === "signup"
       ? "Keep what you’ve started."
@@ -263,6 +283,10 @@ export function Auth({
                       newPassword ? "new-password" : "current-password"
                     }
                     minLength={newPassword ? 12 : undefined}
+                    aria-describedby={
+                      newPassword ? "auth-password-hint" : undefined
+                    }
+                    aria-invalid={shortPassword || undefined}
                     required
                     disabled={busy}
                     value={password}
@@ -270,10 +294,18 @@ export function Auth({
                   />
                   {newPassword && (
                     <>
-                      <p className="small">Use at least 12 characters.</p>
+                      <p
+                        id="auth-password-hint"
+                        className="small"
+                        aria-live="polite"
+                      >
+                        {passwordHint}
+                      </p>
                       <label htmlFor="auth-confirm">Confirm password</label>
                       <input
                         id="auth-confirm"
+                        aria-describedby="auth-confirm-hint"
+                        aria-invalid={mismatchedPassword || undefined}
                         type="password"
                         autoComplete="new-password"
                         required
@@ -281,9 +313,22 @@ export function Auth({
                         value={confirm}
                         onChange={(e) => setConfirm(e.target.value)}
                       />
+                      <p
+                        id="auth-confirm-hint"
+                        className="small"
+                        aria-live="polite"
+                      >
+                        {confirmHint}
+                      </p>
                     </>
                   )}
                 </>
+              )}
+              {!adapter.configured && (
+                <p role="alert">
+                  Account access is unavailable right now. Please try again
+                  later.
+                </p>
               )}
               {error && <p role="alert">{error}</p>}
               <button

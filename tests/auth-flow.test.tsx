@@ -251,3 +251,44 @@ it("retains recovery state after password-update failure and continues only afte
   );
   expect(done).toHaveBeenCalledOnce();
 });
+
+it("explains short and mismatched signup passwords before enabling account creation", async () => {
+  const { adapter, u } = setup();
+  await u.click(screen.getByRole("button", { name: "Create an account" }));
+  await u.type(
+    screen.getByLabelText("Email address"),
+    "member@example.invalid",
+  );
+  const password = screen.getByLabelText("New password");
+  const confirm = screen.getByLabelText("Confirm password");
+  const create = screen.getByRole("button", {
+    name: "Create account",
+    exact: true,
+  });
+  await u.type(password, "abcdefghijk");
+  await u.type(confirm, "abcdefghijk");
+  expect(password).toHaveAccessibleDescription(
+    "Add 1 more character — your password needs at least 12.",
+  );
+  expect(password).toHaveAttribute("aria-invalid", "true");
+  expect(create).toBeDisabled();
+  await u.click(create);
+  expect(adapter.signUp).not.toHaveBeenCalled();
+  await u.type(password, "l");
+  expect(confirm).toHaveAccessibleDescription(
+    "Your passwords do not match. Enter the same password in both fields.",
+  );
+  expect(confirm).toHaveAttribute("aria-invalid", "true");
+  expect(create).toBeDisabled();
+  await u.type(confirm, "l");
+  expect(confirm).toHaveAccessibleDescription("Passwords match.");
+  expect(confirm).not.toHaveAttribute("aria-invalid");
+  expect(password).not.toHaveAttribute("aria-invalid");
+  expect(create).toBeEnabled();
+  await u.click(create);
+  expect(adapter.signUp).toHaveBeenCalledWith(
+    "member@example.invalid",
+    "abcdefghijkl",
+  );
+  expect(await screen.findByLabelText("Verification code")).toBeVisible();
+});
