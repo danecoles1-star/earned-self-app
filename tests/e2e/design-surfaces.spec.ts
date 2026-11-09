@@ -65,15 +65,18 @@ for (const width of [320, 390, 1440]) {
         await page.evaluate(() => document.documentElement.scrollWidth),
         name,
       ).toBeLessThanOrEqual(width);
-      expect(
-        await page
-          .locator("img")
-          .evaluateAll(
-            (images) =>
-              images.filter((i) => !i.complete || !i.naturalWidth).length,
-          ),
-        name,
-      ).toBe(0);
+      await expect
+        .poll(
+          () =>
+            page
+              .locator("img")
+              .evaluateAll(
+                (images) =>
+                  images.filter((i) => !i.complete || !i.naturalWidth).length,
+              ),
+          { message: `${name}: all rendered images load` },
+        )
+        .toBe(0);
       await page.screenshot({
         path: `test-results/design-${name}-${width}.png`,
         fullPage: true,

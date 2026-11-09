@@ -33,17 +33,17 @@ it("public examples switch without creating or selecting a user's challenge", ()
     exact: true,
   }))
     fireEvent.click(button);
-  fireEvent.click(screen.getByRole("button", { name: "Take your first step" }));
   expect(
     screen.queryByRole("button", { name: "Begin my challenge" }),
   ).toBeNull();
   fireEvent.click(screen.getByRole("button", { name: "Make it mine" }));
+  // Hero and closing calls to action; the sticky mobile copy is hidden until scrolled.
   expect(start.mock.calls).toEqual([
-    ["vision"],
     ["vision"],
     ["vision"],
     ["vision", "personal"],
   ]);
+  expect(screen.getByText("Do I need an account to start?")).toBeDefined();
   fireEvent.click(screen.getByRole("button", { name: "Log in" }));
   expect(signIn).toHaveBeenCalledOnce();
 });

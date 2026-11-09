@@ -16,7 +16,7 @@ for (const width of [390, 1440]) {
       name: "Choose an example",
     });
     await exampleSelector.scrollIntoViewIfNeeded();
-    await page.locator(".example-story img").evaluate((image) => {
+    await page.locator(".es-home-example img").evaluate((image) => {
       if (!(image instanceof HTMLImageElement) || image.complete) return;
       return new Promise<void>((resolve) => {
         image.addEventListener("load", () => resolve(), { once: true });
@@ -46,7 +46,7 @@ for (const width of [390, 1440]) {
       await page.evaluate(() => document.documentElement.scrollWidth),
     ).toBeLessThanOrEqual(width);
     await page
-      .locator(".how-examples")
+      .locator(".es-home-hero")
       .getByRole("button", { name: "Build my challenge" })
       .click();
     await expect(page).toHaveURL(/\/start$/);
