@@ -153,9 +153,10 @@ function NowScreen() {
         <section className="es-now-greeting">
           <p className="es-date">Tuesday, November 10</p>
           <p className="es-greeting">Good morning.</p>
-          <span className="es-challenge-link">
-            Summit a 14,000 ft peak by next September.
-          </span>
+          <p className="es-becoming">
+            <span>Becoming</span>
+            Someone who can still climb big mountains in my seventies.
+          </p>
         </section>
         <section className="es-now-card">
           <img className="es-now-halo" src={halo} alt="" />

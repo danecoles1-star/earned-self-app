@@ -104,7 +104,12 @@ for (const width of [390, 1440]) {
     await p.screenshot({
       path: `${process.env.ES_EVIDENCE_DIR || "test-results"}/transformation-detail-${width}.png`,
     });
-    await p.getByRole("button", { name: "Proof", exact: true }).click();
+    await expect(
+      p.getByRole("navigation", { name: "Main navigation" }),
+    ).toHaveCount(0);
+    await p
+      .getByRole("button", { name: "Return to Your Proof", exact: true })
+      .click();
     await p.getByRole("button", { name: /Revisit what changed/ }).click();
     await p.getByText("Steps and milestone attempts", { exact: true }).click();
     await expect(p.getByText("My first rehearsal ran long.")).toBeVisible();
@@ -136,9 +141,7 @@ for (const width of [390, 1440]) {
     await p
       .getByRole("button", { name: "Finish and check in", exact: true })
       .click();
-    await p
-      .getByRole("button", { name: "Not yet", exact: true })
-      .click();
+    await p.getByRole("button", { name: "Not yet", exact: true }).click();
     await p
       .getByLabel("What happened?", { exact: true })
       .fill("I missed the rehearsal.");

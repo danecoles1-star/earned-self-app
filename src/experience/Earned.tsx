@@ -11,27 +11,54 @@ import {
 import { displaySchedule } from "../data/time";
 import { StepTimer } from "./StepTimer";
 
+/** Tab icons: the Earned Self mark (Now), folded map (Plan) and cairn (Proof). */
 export function TabIcon({ name }: { name: "now" | "plan" | "proof" }) {
   return (
     <svg
-      width="22"
-      height="22"
+      width="24"
+      height="24"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth="2"
+      strokeWidth="1.8"
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden="true"
     >
       {name === "now" && (
-        <path d="M3 18h18M6 18a6 6 0 0 1 12 0M12 5v2M5 9l1.5 1.5M19 9l-1.5 1.5" />
+        <g strokeWidth="2">
+          {/* The Earned Self mark: a path stepping up, ember at the step */}
+          <path d="M2.9 9.8A9.6 9.6 0 0 1 20.9 9.9" />
+          <path d="M3.2 13.9a9.6 9.6 0 0 0 17.9 1.3" />
+          <path d="M20.9 9.9h-5c-.6 0-1 .4-1 1s-.4 1-1 1" />
+          <path d="M13.9 11.9h-4.5" stroke="#FF5B36" />
+          <path d="M9.4 11.9c-.6 0-1 .4-1 1s-.4 1-1 1H3.2" />
+        </g>
       )}
-      {name === "plan" && <path d="M3 20l6-12 4 7 3-4 5 9z" />}
+      {name === "plan" && (
+        <>
+          {/* Folded map with a route to a pin */}
+          <path d="M3 6.5 8.5 4l6 2.5L20.5 4v13.5L14.5 20l-6-2.5L3 20z" />
+          <path d="M8.5 4v13.5M14.5 6.5V20" strokeOpacity="0.55" />
+          <circle cx="5.9" cy="15.4" r="1.1" fill="currentColor" stroke="none" />
+          <path d="M8 14.6c1.3-.9 2.6-.6 3.8-1.2" strokeDasharray="1.4 1.8" />
+          <path
+            d="M16.9 13s-2.3-2.3-2.3-4a2.3 2.3 0 0 1 4.6 0c0 1.7-2.3 4-2.3 4z"
+            fill="currentColor"
+            fillOpacity="0.22"
+          />
+        </>
+      )}
       {name === "proof" && (
         <>
-          <path d="M6 3h9l3 3v15H6z" />
-          <path d="M9 12l2 2 4-4" />
+          {/* Cairn: three stacked stones marking the trail walked */}
+          <path
+            d="M3.6 20.6c-.9-.6-.8-2 .2-2.8 1-.8 2.7-1.3 4.5-1.4h7.4c1.9.1 3.6.6 4.4 1.6.6.8.5 1.9-.4 2.6z"
+            fill="currentColor"
+            fillOpacity="0.22"
+          />
+          <path d="M6.4 15.1c-.8-.5-.7-1.7.3-2.5.9-.7 2.3-1 3.8-1h3c1.7.1 3 .6 3.4 1.5.4.9-.1 1.7-.9 2z" />
+          <path d="M10 10.5c-.7-.6-.4-1.8.6-2.4.8-.5 2-.6 3.1-.4 1.1.2 1.9.9 1.9 1.7 0 .6-.4 1-1 1.1z" />
         </>
       )}
     </svg>

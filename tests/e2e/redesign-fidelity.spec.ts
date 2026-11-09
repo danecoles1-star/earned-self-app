@@ -73,6 +73,11 @@ for (const scheme of ["light", "dark"] as const)
         "background-color",
         scheme === "dark" ? "rgb(11, 18, 22)" : "rgb(246, 241, 232)",
       );
+      if (scheme === "dark")
+        await expect(p.locator(".account-button img")).toHaveCSS(
+          "filter",
+          "brightness(0) invert(1)",
+        );
       // Now: prepared step, centred Begin, Get ready, floating tab bar.
       const begin = p.getByRole("button", { name: "Begin", exact: true });
       const halo = p.locator(".es-now-halo");
@@ -231,3 +236,28 @@ for (const scheme of ["light", "dark"] as const)
       );
       await capture("milestone-earned");
     });
+
+// Audit changes preserve navigation boundaries and the calendar duration control.
+test("audit navigation and calendar choices", async ({ page: p }) => {
+  const store = fixture();
+  await seed(p, store);
+  await expect(p.locator(".es-becoming")).toContainText(foundation.vision);
+  await expect(p.locator(".es-challenge-link")).toHaveCount(0);
+  const nav = p.getByRole("navigation", { name: "Main navigation" });
+  await expect(nav.locator("svg")).toHaveCount(3);
+  await p.goto("/manage");
+  await expect(nav).toBeVisible();
+  await expect(p.getByRole("button", { name: "Revise this step" })).toHaveCount(
+    0,
+  );
+  await p.goto("/proof/" + store.snapshot.evidence[0].id);
+  await expect(nav).toHaveCount(0);
+  await expect(p.getByRole("heading", { name: action.action, exact: true })).toBeVisible();
+  await p.goto("/calendar/g");
+  await expect(nav).toHaveCount(0);
+  await expect(p.getByRole("group", { name: "How long" })).toBeVisible();
+  await p.getByRole("button", { name: "1.5 hours", exact: true }).click();
+  await expect(
+    p.getByRole("button", { name: "1.5 hours", exact: true }),
+  ).toHaveAttribute("aria-pressed", "true");
+});

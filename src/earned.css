@@ -2080,3 +2080,215 @@ html body .es-mock .es-mock-tabbar:is(*, #es-legacy) {
 .es-home .es-mock .es-ready {
   margin-top: 26px;
 }
+
+/* ============ Audit pass: one hierarchy for every secondary page ============ */
+/* Now: who you're becoming, not a link back into Plan */
+.es-becoming {
+  margin: 6px 0 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font: italic 400 1.02rem/1.4 var(--es-display);
+  color: var(--es-body);
+}
+.es-becoming span {
+  margin-right: 6px;
+  font: 600 0.72rem/1 var(--es-ui);
+  font-style: normal;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--es-ember-text);
+}
+
+/* Page titles: display serif. Section headings: interface type, never shouting caps. */
+html body .stage-title:is(*, #es-legacy) {
+  margin: 10px 0 6px;
+  font: 400 2rem/1.1 var(--es-display);
+  letter-spacing: -0.01em;
+  text-transform: none;
+  color: var(--es-text);
+}
+html body :is(.experience-content, .stage-main) :is(h2, h3):not([class*="es-"]):not(.es-now-card h2):is(*, #es-legacy) {
+  font-family: var(--es-ui);
+  font-weight: 600;
+  font-size: 1.12rem;
+  line-height: 1.3;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--es-text);
+}
+/* Milestone and challenge names keep the display face */
+html body :is(.plan-challenge h2, .plan-stage h3, .accomplishment-summary h2, .milestone-title):is(*, #es-legacy) {
+  font: 400 1.4rem/1.2 var(--es-display);
+}
+html body :is(.section-label, .eyebrow):is(*, #es-legacy) {
+  font: 600 0.72rem/1.3 var(--es-ui);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--es-muted);
+}
+html body .reflection-answer:is(*, #es-legacy) {
+  padding: 16px 0;
+  border-top: 1px solid var(--es-line);
+}
+html body .reflection-answer p:is(*, #es-legacy) {
+  font: 400 1rem/1.5 var(--es-ui);
+  color: var(--es-text);
+}
+html body .experience-content details > summary:is(*, #es-legacy),
+html body .stage-main details > summary:is(*, #es-legacy) {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  font: 600 0.94rem/1.3 var(--es-ui);
+  color: var(--es-link);
+  cursor: pointer;
+}
+
+/* Choice groups replace dropdowns */
+.es-choice-group {
+  margin: 0 0 18px;
+  padding: 0;
+  border: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.es-choice-group legend {
+  padding: 0 0 10px;
+  font: 600 0.88rem/1.3 var(--es-ui);
+  color: var(--es-muted);
+}
+html body .es-choice-group .experience-choice:is(*, #es-legacy) {
+  justify-content: flex-start;
+  text-align: left;
+  padding: 12px 16px;
+  min-height: 52px;
+  width: 100%;
+}
+.es-challenge-row {
+  flex-direction: column;
+  align-items: flex-start !important;
+  gap: 2px;
+}
+.es-challenge-row small {
+  font: 500 0.78rem/1.2 var(--es-ui);
+  opacity: 0.75;
+}
+.es-chip-group {
+  margin: 0 0 18px;
+  padding: 0;
+  border: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.es-chip-group legend {
+  padding: 0 0 10px;
+  font: 600 0.88rem/1.3 var(--es-ui);
+  color: var(--es-muted);
+}
+html body .es-chip-group button:is(*, #es-legacy) {
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 999px;
+  border: 1.5px solid var(--es-line-strong);
+  background: transparent;
+  color: var(--es-text);
+  font: 500 0.94rem/1 var(--es-ui);
+}
+html body .es-chip-group button:is(*, #es-legacy)[aria-pressed="true"] {
+  background: var(--es-primary-bg);
+  border-color: var(--es-primary-bg);
+  color: var(--es-primary-fg);
+  font-weight: 600;
+}
+.es-field-static {
+  margin: 0 0 18px;
+  padding: 12px 16px;
+  border-radius: 16px;
+  background: var(--es-chip);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font: 600 1rem/1.35 var(--es-ui);
+  color: var(--es-text);
+}
+.es-field-static span {
+  font: 600 0.82rem/1.2 var(--es-ui);
+  color: var(--es-muted);
+}
+/* Any select that remains (none in member flows) matches text fields */
+html body select:is(*, #es-legacy) {
+  -webkit-appearance: none;
+  appearance: none;
+  padding-right: 40px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%235A6B73' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+}
+/* Plan: steps that aren't current are plain text, not links */
+html body strong.plan-step-title:is(*, #es-legacy) {
+  display: block;
+  font: 600 1rem/1.35 var(--es-ui);
+  color: var(--es-text);
+}
+/* Completed challenge in Proof: card, not the old teal texture */
+html body .completed-proof-entry:is(*, #es-legacy) {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  width: 100%;
+  padding: 18px;
+  text-align: left;
+  border-radius: 20px;
+  border: 1.5px solid var(--es-gold);
+  background: var(--es-card);
+  background-image: none;
+  color: var(--es-text);
+  box-shadow: none;
+}
+html body .completed-proof-entry:is(*, #es-legacy) * {
+  color: inherit;
+}
+html body .completed-proof-entry .record-link:is(*, #es-legacy) {
+  color: var(--es-link);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+html body .illustration-caption:is(*, #es-legacy) {
+  display: none;
+}
+html body .reflection-answer:is(*, #es-legacy) {
+  margin: 0;
+  min-height: 0;
+}
+html body .reflection-answer h2:is(*, #es-legacy) {
+  margin: 0 0 6px;
+}
+html body .transformation-details:is(*, #es-legacy) {
+  gap: 0;
+  margin: 8px 0 0;
+}
+html body .earned-statement:is(*, #es-legacy) {
+  margin: 16px 0;
+  padding: 16px 0;
+}
+html body .completed-proof-entry .record-link:is(*, #es-legacy) {
+  display: inline;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  text-align: left;
+}
+
+/* Keep the default account icon visible on dark surfaces; preserve member photos. */
+@media (prefers-color-scheme: dark) {
+  html body .account-button img:not(.profile-photo):is(*, #es-legacy) {
+    filter: brightness(0) invert(1);
+  }
+}

@@ -47,9 +47,6 @@ export function ChallengeRecord({
       back={() => navigate("/proof")}
     >
       <Landscape scene="completed" area={g.area} />
-      <p className="illustration-caption">
-        Illustration · Your accomplishment is recorded in your own words.
-      </p>
       <section className="accomplishment-summary">
         <span className="section-label">
           Challenge completed

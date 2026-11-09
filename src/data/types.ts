@@ -217,8 +217,8 @@ export const emptySnapshot = (): Snapshot => ({
 });
 export const resultLabel: Record<Result, string> = {
   done: "Done",
-  partly: "Partly done",
-  did_not_happen: "Didn’t happen",
+  partly: "Partly",
+  did_not_happen: "Not yet",
 };
 export const stateLabel: Record<PursuitState, string> = {
   draft: "Draft pursuit",

@@ -47,19 +47,19 @@ export function Calendar({
             <h2>{d.action}</h2>
             <p>{displaySchedule(s.local_date, s.local_time, s.time_zone)}</p>
           </section>
-          <label>
-            Duration
-            <select
-              value={minutes}
-              onChange={(e) => setMinutes(Number(e.target.value))}
-            >
-              {[5, 10, 15, 30, 45, 60, 90, 120].map((n) => (
-                <option key={n} value={n}>
-                  {n} minutes
-                </option>
-              ))}
-            </select>
-          </label>
+          <fieldset className="es-chip-group">
+            <legend>How long</legend>
+            {[15, 30, 45, 60, 90, 120].map((n) => (
+              <button
+                key={n}
+                type="button"
+                aria-pressed={minutes === n}
+                onClick={() => setMinutes(n)}
+              >
+                {n < 60 ? n + " min" : n / 60 + (n === 60 ? " hour" : " hours")}
+              </button>
+            ))}
+          </fieldset>
           <a
             className="button calendar-action"
             href={googleCalendarUrl(
@@ -502,6 +502,14 @@ export function Wallpaper({
     </Page>
   );
 }
+const challengeState: Record<string, string> = {
+  draft: "Getting ready",
+  active: "In progress",
+  paused: "Paused",
+  completed: "Completed",
+  changed_direction: "Changed direction",
+  abandoned: "Ended",
+};
 export function Settings({
   email,
   snapshot,
@@ -552,20 +560,22 @@ export function Settings({
           Download my data
         </button>
         {snapshot.goals.length > 1 && (
-          <label>
-            Open a challenge
-            <select
-              value={snapshot.selectedGoal ?? ""}
-              disabled={saving}
-              onChange={(e) => selectAmbition(e.target.value)}
-            >
-              {snapshot.goals.map((g) => (
-                <option key={g.id} value={g.id}>
-                  {g.words || g.vision} · {g.status}
-                </option>
-              ))}
-            </select>
-          </label>
+          <fieldset className="es-choice-group">
+            <legend>Your challenges</legend>
+            {snapshot.goals.map((g) => (
+              <button
+                key={g.id}
+                type="button"
+                className="experience-choice es-challenge-row"
+                aria-pressed={snapshot.selectedGoal === g.id}
+                disabled={saving}
+                onClick={() => selectAmbition(g.id)}
+              >
+                <span>{g.words || g.vision}</span>
+                <small>{challengeState[g.status]}</small>
+              </button>
+            ))}
+          </fieldset>
         )}
         <button className="experience-choice" onClick={() => navigate("/new")}>
           Begin another challenge

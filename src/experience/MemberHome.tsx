@@ -74,13 +74,12 @@ export function MemberHome({
         <section className="es-now-greeting" aria-label="Your direction">
           <p className="es-date">{today}</p>
           <p className="es-greeting">{greeting}</p>
-          <button
-            className="es-challenge-link"
-            onClick={() => navigate("/manage")}
-          >
-            <span className="visually-hidden">Challenge: </span>
-            {goal.words || "Your challenge"}
-          </button>
+          {goal.vision && (
+            <p className="es-becoming">
+              <span>Becoming</span>
+              {goal.vision}
+            </p>
+          )}
         </section>
       }
     >

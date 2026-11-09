@@ -49,6 +49,7 @@ for (const colorScheme of ["light", "dark"] as const)
         await page.screenshot({
           path: `docs/homepage-review/${colorScheme}-${width}-homepage.png`,
           fullPage: true,
+          style: ".es-home-dock { visibility: hidden !important; }",
         });
       }
       const manifestURL = await page
