@@ -1,2 +1,4 @@
+# Only the public homepage is meant for search. Member screens require sign-in.
 User-agent: *
+Allow: /$
 Disallow: /

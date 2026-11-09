@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "preview:local": "vite --mode preview-local --host 127.0.0.1",
-    "build": "tsc -b && vite build && node scripts/audit-build.mjs",
+    "build": "node scripts/check-env.mjs && tsc -b && vite build && node scripts/audit-build.mjs",
     "preview": "vite preview --host 127.0.0.1",
     "test": "vitest run",
     "test:e2e": "playwright test",
@@ -15,9 +15,13 @@
     "supabase:version": "supabase --version",
     "supabase:migrations": "supabase migration list --linked",
     "supabase:dry-run": "supabase db push --linked --dry-run",
-    "supabase:push": "supabase db push --linked"
+    "supabase:push": "supabase db push --linked",
+    "test:prod": "playwright test --config playwright.production.config.ts",
+    "verify": "npm test && npm run test:db && npm run build && npm run test:prod"
   },
   "dependencies": {
+    "@fontsource-variable/figtree": "^5.1.1",
+    "@fontsource-variable/newsreader": "^5.1.1",
     "@supabase/supabase-js": "^2.57.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
