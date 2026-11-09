@@ -1,5 +1,10 @@
 import { applyLocal, emptySnapshot, type LocalStore } from "../data/domain";
-import type { Adapter, User, Command } from "../data/types";
+import {
+  emptyFoundation,
+  type Adapter,
+  type User,
+  type Command,
+} from "../data/types";
 const storeKey = "earned-self:LOCAL-PREVIEW-ONLY:personal:v1",
   sessionKey = "earned-self:LOCAL-PREVIEW-ONLY:session";
 const user: User = { id: "local-preview-member", email: "Local preview" };
@@ -10,7 +15,28 @@ export function createPreviewAdapter(): Adapter {
     const raw = localStorage.getItem(storeKey);
     if (!raw) return { snapshot: emptySnapshot(), receipts: {} };
     try {
-      return JSON.parse(raw);
+      const store = JSON.parse(raw) as LocalStore;
+      store.snapshot.events ??= [];
+      store.snapshot.goalHistory ??= [];
+      store.snapshot.goals = store.snapshot.goals.map((g) => ({
+        ...emptyFoundation(),
+        ...g,
+        status: g.status ?? "draft",
+        revision: g.revision ?? 1,
+        meaning: g.meaning ?? "",
+      }));
+      for (const g of store.snapshot.goals)
+        if (!store.snapshot.goalHistory.some((h) => h.goal_id === g.id))
+          store.snapshot.goalHistory.push({
+            ...g,
+            goal_id: g.id,
+            recorded_at: g.created_at,
+          });
+      store.snapshot.schedules = store.snapshot.schedules.map((v) => ({
+        ...v,
+        state: v.state ?? "current",
+      }));
+      return store;
     } catch {
       throw new Error(
         "Local preview data could not be read. It has not been overwritten.",
@@ -32,6 +58,26 @@ export function createPreviewAdapter(): Adapter {
       return () => {
         listeners.delete(cb);
       };
+    },
+    async getProfilePhoto() {
+      check();
+      const value = localStorage.getItem(storeKey + ":photo:" + user.id);
+      return value ? await (await fetch(value)).blob() : null;
+    },
+    async setProfilePhoto(photo) {
+      check();
+      const key = storeKey + ":photo:" + user.id;
+      if (!photo) {
+        localStorage.removeItem(key);
+        return;
+      }
+      const value = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result));
+        reader.onerror = reject;
+        reader.readAsDataURL(photo);
+      });
+      localStorage.setItem(key, value);
     },
     async signIn() {
       throw new Error("Preview does not send email.");

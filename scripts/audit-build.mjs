@@ -37,8 +37,19 @@ for (const jwt of text.matchAll(
     if (e.message === "Service credential in build") throw e;
   }
 }
-if (!fs.readFileSync("dist/_headers", "utf8").includes("X-Robots-Tag: noindex"))
-  throw new Error("Missing noindex");
+const headers = fs.readFileSync("dist/_headers", "utf8");
+if (!/https:\/\/:version\.:project\.pages\.dev\/\*\n\s+X-Robots-Tag: noindex/.test(headers))
+  throw new Error("Preview deployments must send X-Robots-Tag: noindex");
+if (/connect-src[^;]*\*\.supabase\.co/.test(headers))
+  throw new Error("CSP connect-src must name the exact Supabase project, not *.supabase.co");
+if (!/\/assets\/\*\n\s+Cache-Control: public, max-age=31536000, immutable/.test(headers))
+  throw new Error("Fingerprinted /assets must be cached as immutable");
+if (/no-store/.test(headers))
+  throw new Error("Cache-Control: no-store was the private-test setting; remove it");
+if (/cloudflareaccess|cf-access/i.test(headers + text))
+  throw new Error("Cloudflare Access references found; this release is public");
+if (!fs.readFileSync("dist/robots.txt", "utf8").includes("Allow: /$"))
+  throw new Error("robots.txt should allow the homepage only");
 console.log(
   "Build boundary PASS: no preview adapter, preview identities or detected service credentials.",
 );

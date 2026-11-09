@@ -1,80 +1,40 @@
-# Earned Self: private test build v1
+# Earned Self
 
-Repository-ready React, Vite and TypeScript source for the first private member loop. This is a new application, with direct Supabase integration. It has no connection to Lovable or any existing repository. No service has been connected or deployed.
+React, Vite and TypeScript web app backed by Supabase (sign-in, Postgres with row-level security, private storage). Deployed as static files to Cloudflare Pages at https://earned-self.pages.dev. The app is public; there is no Cloudflare Access gate.
 
-## Run the isolated local preview
+- **Deploying:** read [DEPLOY.md](DEPLOY.md). It is the only current runbook.
+- **Design system and next product work (AI preparation):** [docs/REDESIGN_BRIEF.md](docs/REDESIGN_BRIEF.md). Styles live in `src/earned.css`, the single token set for light and dark.
+- **History:** `docs/archive/` holds earlier handoffs and runbooks. They are superseded; do not follow them.
 
-Use Node 24 (the tested runtime) and npm.
+## Run locally
+
+Node 24 and npm.
 
 ```sh
 npm ci
-npm run preview:local
+npm run preview:local   # browser-only local data, no email, never deployable
+npm run dev             # real Supabase; needs .env.local with the two VITE_ values from .env.example
 ```
 
-Open the localhost URL printed by Vite. Choose a goal, retain the draft, then choose **Enter local preview**. No email is sent. The banner identifies browser-only preview data on every screen. Start empty and enter your own test writing. Maya appears only in the read-only homepage demonstration.
-
-This mode is development-only. `vite build --mode preview-local` deliberately fails. A deployed build cannot turn preview mode on with a query parameter, localStorage value, or environment toggle. `npm run preview` serves a normal compiled build; it is not the local data adapter.
-
-## Run with the Supabase development project
-
-Read `docs/Earned_Self_Supabase_Implementation_v1.md` first. After the authorized operator configures the separate development project, create an ignored `.env.local` using the variable names in `.env.example`, then:
+## Verify
 
 ```sh
-npm run dev
+npm test            # unit and component tests
+npm run test:db     # all migrations in an in-memory Postgres, ownership and isolation checks
+npm run build       # environment check, TypeScript, Vite build, build-boundary audit
+npx playwright install chromium
+npx playwright test --project=chromium   # browser journeys on the local adapter
+npm run test:prod   # built app with production headers
 ```
 
-The normal application sends email sign-in links and uses narrow database RPCs. With no configuration, it retains the pre-auth draft and honestly reports that account saving is not connected. It never falls back to preview storage.
+`npm run build` refuses to run without `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` for project `vovmkiuxmtnedfosoxds`. Set `ES_EXPECTED_SUPABASE_REF` only if the production project ever changes.
 
-## Supabase CLI activation
+## Source layout
 
-`npm ci` installs the pinned CLI. Follow [the CLI activation addendum](docs/Earned_Self_Supabase_CLI_Activation_Addendum_v1.md); its CLI-only activation route supersedes SQL Editor migration instructions. Only the account owner may authenticate and link the exact empty development project, using `npm exec -- supabase login` and `npm exec -- supabase link --project-ref <EXACT_DEVELOPMENT_PROJECT_REF>`.
-
-| Command | Purpose |
-| --- | --- |
-| `npm run supabase:version` | Confirm the installed CLI version |
-| `npm run supabase:migrations` | Read linked migration history |
-| `npm run supabase:dry-run` | Preview pending linked migrations without applying them |
-| `npm run supabase:push` | Apply the reviewed migrations to the linked project |
-
-Stop unless history is initially empty and the dry run lists exactly `202609130001`, then `202609130002`. Push only after checking the linked development project and approving that output. These scripts do not enforce project identity or validate the dry-run output for you. Never use them against production. No Docker or local Supabase services are needed for this workflow.
-
-`supabase/config.toml` contains local defaults, not a hosted project reference. It disables seeding, allows only the local callback, and disables anonymous sign-in. Migration push does not configure hosted Auth; the owner must configure it separately. Do not run config push, seed, reset or migration repair. The tracked `.gitignore` excludes CLI-generated `supabase/.temp/` and `supabase/.branches/` directories. Never commit credentials.
-
-## Validate
-
-```sh
-npm test
-npm run test:db
-npm run build
-npx playwright install chromium firefox
-npm run test:e2e
-```
-
-`test:db` applies the two migrations only to a disposable in-memory PGlite PostgreSQL database with simulated authentication roles. It never reads Supabase connection variables. It is not a substitute for testing the real project's JWTs and RLS.
-
-`test:e2e` starts the isolated local adapter. `ES_SCREENSHOTS_DIR` optionally selects an evidence-output directory. `ES_BROWSER_EXECUTABLE` optionally selects an existing local Chromium executable for restricted test environments; normal installations should use Playwright's managed browsers. Neither setting changes the shipped application.
-
-## Included experience
-
-Six-section homepage; member-authored goal or vision; draft before authentication; email sign-in; deliberate or quick commitment; required action and done criterion; optional date, time, IANA time zone and location; dominant goal; Done / Partly / Didn’t happen; optional factual detail and reflection revisions; private Record; next commitment; basic goal switching; sign-out and return.
-
-The first implementation intentionally stops short of the broader MVP. It does not expose editing an existing commitment, rescheduling, result-status correction, targeted undo, pause, goal completion, account deletion or export controls. Immutable definitions and versioned reports leave room for reviewed follow-up commands. No feature is represented as implemented simply because its data could be extended.
-
-No billing, trial activation, AI, patterns, Edge, uploads, calendar integration, wallpaper, notifications, outreach, sharing, public profile or program catalog is included. Homepage membership text describes planned pricing and clearly identifies this free private test.
-
-## Source organization
-
-- `src/components/Homepage.tsx`: approved homepage presentation and isolated public demonstration.
-- `src/App.tsx`: small member route tree and first-loop screens. Shared form/save behavior stays here for this slice.
-- `src/data/`: typed commands, member state, drafts and Supabase adapter.
-- `src/preview/`: explicit development-only local adapter.
-- `supabase/migrations/`: ordered new-project schema and atomic commands.
-- `tests/` and `scripts/`: state, UI, SQL and build-boundary verification.
-- `public/`: preview-wide headers, robots exclusion and SPA fallback.
-- `docs/`: implementation, setup, limits and test evidence.
-
-The Record is a projection over real definitions and reported evidence. There is no Record table, score, simulated accomplishment, or automatic inference of a missed action.
-
-## Next step
-
-Codex should add this source to the new empty repository in a reviewable branch, inspect the migration and tests, connect only the development project, then configure a protected Cloudflare preview. No production deployment, domain change, or account operation is authorized by running this source locally.
+- `src/experience/`: member screens. `src/components/`: homepage and shared pursuit screens.
+- `src/data/`: typed commands, domain rules, drafts, Supabase adapter.
+- `src/preview/`: development-only local adapter (excluded from production builds).
+- `supabase/migrations/`: forward-only schema and atomic `es_command` RPC. Never edit an applied file.
+- `public/`: `_headers`, `_redirects` (SPA fallback), `robots.txt`.
+- `scripts/`: environment check, build audit, database tests, test server.
+- `.github/workflows/`: CI on every PR; manual production deploy.
