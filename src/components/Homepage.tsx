@@ -3,9 +3,9 @@ import { Brand } from "./Brand";
 import physical from "../assets/workshop/area-physical.webp";
 import professional from "../assets/workshop/how-after-speech.webp";
 import personal from "../assets/workshop/area-personal.webp";
-import halo from "../assets/panel/tex-halo.webp";
 import ridge from "../assets/illustrations/illo-physical.webp";
 import { MountainMark, TabIcon } from "../experience/Earned";
+import { NowCard } from "../experience/NowCard";
 
 export const illustrativeExamples = [
   {
@@ -158,25 +158,22 @@ function NowScreen() {
             Someone who can still climb big mountains in my seventies.
           </p>
         </section>
-        <section className="es-now-card">
-          <img className="es-now-halo" src={halo} alt="" />
-          <div className="es-now-top">
-            <span className="es-now-tag">
-              <i />
-              11/10/2026 · 6:30 AM
-            </span>
-            <h2>Hill intervals: six climbs, steady breathing</h2>
-          </div>
-          <span className="es-begin">
-            <svg width="18" height="18" viewBox="0 0 24 24">
-              <path d="M8 5.5v13l10-6.5z" fill="currentColor" />
-            </svg>
-            Begin
-          </span>
-          <span className="es-now-foot">
-            Milestone 1 of 4 · Hike 8 miles with 2,000 ft of gain
-          </span>
-        </section>
+        <NowCard
+          inert
+          state="ready"
+          image={ridge}
+          tag="Ready now · prepared for you"
+          when="Today · 6:30 AM · 40 min"
+          title="Hill intervals: six climbs, steady breathing"
+          parts={[
+            { label: "Warm up", minutes: 8 },
+            { label: "Six climbs", minutes: 18 },
+            { label: "Walk downs", minutes: 12 },
+            { label: "Cool down", minutes: 2 },
+          ]}
+          action="Begin"
+          foot="Milestone 1 of 4 · Hike 8 miles with 2,000 ft of gain"
+        />
         <section className="es-ready">
           <h2>Get ready</h2>
           <dl className="es-card es-list">

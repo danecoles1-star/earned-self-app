@@ -10,6 +10,7 @@ import {
 } from "../data/domain";
 import { displaySchedule } from "../data/time";
 import { StepTimer } from "./StepTimer";
+import { preparedStep, totalMinutes } from "./NowCard";
 
 /** Tab icons: the Earned Self mark (Now), folded map (Plan) and cairn (Proof). */
 export function TabIcon({ name }: { name: "now" | "plan" | "proof" }) {
@@ -193,6 +194,8 @@ export function FocusSession({
   const d = definition(s, c.id, c.revision)!;
   const schedule = currentSchedule(s, c.id);
   const milestone = g.milestones.find((m) => m.id === c.milestone_id);
+  const prepared = preparedStep(s, c.id, c.revision);
+  const parts = prepared?.parts;
   const [running, setRunning] = useState(false);
   useWakeLock(running);
   return (
@@ -217,11 +220,13 @@ export function FocusSession({
           </svg>
         </button>
         <span className="es-focus-meta">
-          {displaySchedule(
-            schedule?.local_date,
-            schedule?.local_time,
-            schedule?.time_zone,
-          )}
+          {parts?.length
+            ? `${totalMinutes(parts)} min · ${parts.length} ${parts.length === 1 ? "part" : "parts"}`
+            : displaySchedule(
+                schedule?.local_date,
+                schedule?.local_time,
+                schedule?.time_zone,
+              )}
         </span>
         <span className="es-icon-spacer" />
       </header>
@@ -248,6 +253,7 @@ export function FocusSession({
             key={c.id}
             identity={`${g.owner_id}:${c.id}:${c.revision}`}
             onRunningChange={setRunning}
+            parts={parts}
           />
         </div>
         <p className="es-focus-note">

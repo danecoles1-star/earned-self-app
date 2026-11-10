@@ -6,6 +6,7 @@ import {
   type ReactNode,
 } from "react";
 import ring from "../assets/workshop/timer-ring.webp";
+import type { SessionPart } from "../data/types";
 type Clock = { elapsed: number; started: number | null };
 export function elapsedTime(clock: Clock, now = Date.now()) {
   return Math.max(
@@ -37,12 +38,15 @@ export function StepTimer({
   schedule,
   title,
   onRunningChange,
+  parts,
 }: {
   identity: string;
   children?: ReactNode;
   schedule?: ReactNode;
   title?: string;
   onRunningChange?: (running: boolean) => void;
+  /** Prepared session parts: draws the segmented ring. */
+  parts?: SessionPart[];
 }) {
   const key = `earned-self:timer:${identity}`;
   const read = (): Clock => {
@@ -126,8 +130,28 @@ export function StepTimer({
       setError("Timer cannot be saved on this device. Keep this page open.");
     }
   };
+  const total = parts?.reduce((n, p) => n + p.minutes, 0) || 0;
+  let current: { label: string; left: number; index: number } | null = null;
+  if (parts && total) {
+    let acc = 0;
+    for (const [index, p] of parts.entries()) {
+      acc += p.minutes * 60;
+      if (seconds < acc) {
+        current = {
+          index,
+          label: p.label,
+          left: Math.ceil((acc - seconds) / 60),
+        };
+        break;
+      }
+    }
+  }
   return (
-    <div className="step-timer" data-running={clock.started !== null}>
+    <div
+      className="step-timer"
+      data-running={clock.started !== null}
+      data-parts={parts && total ? "true" : undefined}
+    >
       {children && (
         <div className="timer-step-title">
           <span className="section-label">Current step</span>
@@ -136,6 +160,9 @@ export function StepTimer({
       )}
       <div className="timer-face">
         <img className="timer-ring" src={ring} alt="" draggable={false} />
+        {parts && total > 0 && (
+          <SegmentRing parts={parts} total={total} seconds={seconds} />
+        )}
         <span ref={orbit} className="timer-orbit" aria-hidden="true">
           <span className="timer-marker" />
         </span>
@@ -156,10 +183,28 @@ export function StepTimer({
           >
             {compactDisplay}
           </output>
-          <span className="timer-label">Dedicated time</span>
+          <span className="timer-label">
+            {parts && total
+              ? current
+                ? `${current.label} · ${current.left} min left`
+                : "Planned time reached"
+              : "Dedicated time"}
+          </span>
           {schedule && <p className="timer-schedule">{schedule}</p>}
         </div>
       </div>
+      {parts && total > 0 && (
+        <ol className="timer-parts" aria-label="Session parts">
+          {parts.map((p, i) => (
+            <li
+              key={i}
+              aria-current={current?.index === i ? "step" : undefined}
+            >
+              {p.label} · {p.minutes} min
+            </li>
+          ))}
+        </ol>
+      )}
       <p className="timer-help" id="timer-help">
         Start the timer while you work. Check in when you finish.
       </p>
@@ -172,5 +217,70 @@ export function StepTimer({
       </button>
       {error && <p role="alert">{error}</p>}
     </div>
+  );
+}
+
+/** Ember ring split into the session's parts; each fills as time passes. */
+function SegmentRing({
+  parts,
+  total,
+  seconds,
+}: {
+  parts: SessionPart[];
+  total: number;
+  seconds: number;
+}) {
+  const size = 232;
+  const r = 112;
+  const c = 2 * Math.PI * r;
+  const gap = parts.length > 1 ? 16 : 0;
+  let offset = 0;
+  let elapsed = seconds / 60;
+  return (
+    <svg
+      className="timer-segments"
+      width={size}
+      height={size}
+      viewBox={`0 0 ${size} ${size}`}
+      aria-hidden="true"
+    >
+      {parts.map((p, i) => {
+        const arc = (p.minutes / total) * c;
+        const partGap = Math.min(gap, arc / 2);
+        const len = arc - partGap;
+        const done = Math.max(0, Math.min(1, elapsed / p.minutes));
+        elapsed -= p.minutes;
+        const start = offset;
+        offset += arc;
+        return (
+          <g key={i} transform={`rotate(-90 ${size / 2} ${size / 2})`}>
+            <circle
+              cx={size / 2}
+              cy={size / 2}
+              r={r}
+              fill="none"
+              className="timer-seg-track"
+              strokeWidth="8"
+              strokeLinecap="round"
+              strokeDasharray={`${Math.max(0.01, len)} ${c}`}
+              strokeDashoffset={-start}
+            />
+            {done > 0 && (
+              <circle
+                cx={size / 2}
+                cy={size / 2}
+                r={r}
+                fill="none"
+                className="timer-seg-fill"
+                strokeWidth="8"
+                strokeLinecap="round"
+                strokeDasharray={`${Math.max(0.01, len * done)} ${c}`}
+                strokeDashoffset={-start}
+              />
+            )}
+          </g>
+        );
+      })}
+    </svg>
   );
 }

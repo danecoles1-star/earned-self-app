@@ -1,36 +1,31 @@
-# Homepage and app design audit update — deployment handoff
+# Now card and segmented session update
 
-This update follows PR #8 and signup-validation PR #9, both already merged. Do not recreate the old redesign release branch. `DEPLOY.md` remains the deployment runbook; ignore `docs/archive/`.
+This is an incremental update based on merged PR #10, main `9947f4d0d15ee88d292a37205ff956fc5826ca86`. Branch: `release/now-card-session-ring`. Preserve PR #9 signup feedback and PR #10 audit changes. Do not replay the original PR #8 release handoff or overlay a stale full-repository copy onto newer main.
 
-## Integrate this incremental release
+Read `DEPLOY.md` as the only deployment runbook, and `docs/now-card-review.md` for this update's results. Ignore `docs/archive/`. `docs/HANDOFF.md` contains product direction; future AI plans there are not implemented by this update.
 
-- Repository: `danecoles1-star/earned-self-app`.
-- Baseline: `main` at `8f60ed5ca9bdb87572e3ae790b52b8a9304e067b`.
-- Branch: `release/design-audit-update`.
-- Scope: supplied homepage, interactive examples, mobile CTA, manifest and logo icons, plus the supplied app audit: vision on Now, inline SVG tab icons, choice controls, simplified Plan, detail-page navigation and consistent result labels. Includes matching browser assertions. PR #8 fixes and PR #9 signup-validation feedback are preserved. Dependencies and the database are unchanged.
-- Keep the approved AI-focused homepage copy. The owner is holding public invitations until AI is ready. This release does not connect or build AI.
+## Integration
 
-The delivery ZIP contains a Git bundle, a patch, a source snapshot, review screenshots and checksums. Prefer the Git bundle over copying the source snapshot onto a newer main:
+The delivery contains `now-card-session.bundle`, `now-card-session.patch`, `source.zip`, `START_HERE.md`, test logs and checksums. Use the bundle from an existing checkout containing the baseline:
 
 ```sh
 git fetch origin
-git fetch /absolute/path/design-audit.bundle release/design-audit-update:release/design-audit-update
-git switch release/design-audit-update
-git merge-base --is-ancestor 8f60ed5ca9bdb87572e3ae790b52b8a9304e067b HEAD
+git fetch /absolute/path/now-card-session.bundle release/now-card-session-ring:release/now-card-session-ring
+git switch release/now-card-session-ring
+git merge-base --is-ancestor 9947f4d0d15ee88d292a37205ff956fc5826ca86 HEAD
 ```
 
-If the branch already exists, inspect it before changing it. If main has advanced, integrate those changes and rerun the gates. Preserve ignored local environment files. The source ZIP is a reference snapshot, not permission to overwrite newer work. No package or lockfile changes are needed.
+Inspect an existing branch before changing it. If main has advanced, integrate the newer commits and rerun gates. Preserve ignored local environment files. The full source ZIP is a reference snapshot, not a replacement for newer history.
 
-## Verification and release
+## Required before merge
 
-1. Read `docs/design-audit-review.md` for local results and browser limitations.
-2. Run `npm ci`, `npm test`, `npm run test:db`, and `npm run build` with the existing production Supabase URL and real publishable key configured privately. Do not print credentials.
-3. Install normal Chromium with `npx playwright install --with-deps chromium`. Run `npx playwright test --project=chromium`, `npm run test:prod`, and `npm audit --omit=dev`. Do not set a browser executable override in CI.
-4. Review homepage examples at 390px and 1440px in light/dark mode, and confirm Now, focus, check-in, scheduling, Proof and milestone screens still match the approved design. Review screenshots are local disposable-data previews, not proof of hosted authentication.
-5. Push the branch and open a PR titled **Homepage + app design audit**, including results and screenshots. Require green CI. Follow the owner's merge/deploy authorization; never bypass branch protection or the production reviewer.
-6. Reuse the existing dashboard configuration. Do not activate paid services, reconfigure authentication, change development protection, or run Supabase migrations. There is no new migration.
-7. For an authorized deployment, record the previous production deployment for rollback, merge after green CI, record the main SHA, and run **Deploy to Cloudflare Pages** on main. The owner approves the protected production environment. Verify the deployed SHA and follow `DEPLOY.md` §4.
-8. Check `/manifest.webmanifest` and all four icon URLs, then physically test Home Screen installation and launching `/app` on iPhone and Android. A manifest is not evidence of offline support; no service worker was added.
-9. Keep public invitations on hold. Fresh outside-email signup, account isolation, physical-device checks and the existing launch blockers must be recorded honestly; local tests do not prove those hosted outcomes.
+This is NOT a fully verified release. Local Chromium journeys and visual review are blocked by this execution environment. Do not treat old screenshots under docs/release-review or docs/homepage-review as evidence of this update.
 
-Do not start the AI workstream as part of this update.
+1. Run `npm ci`, `npm test`, `npm run test:db`, and `npm run build` using the configured production Supabase URL and real publishable key privately.
+2. Run `npx playwright install --with-deps chromium`, `npx playwright test --project=chromium`, `npm run test:prod`, and `npm audit --omit=dev`. Do not use the local browser override in CI.
+3. Review Now, Begin/session, check-in/schedule-next, Proof and milestone earned at 390px and 1440px in light/dark mode. Also inspect the prepared Now card and segmented timer at 320px. Tests use disposable local fixtures and write review screenshots.
+4. Check both prepared and unprepared states. Production does not yet have an AI preparation pipeline: existing steps use the area illustration and a single timer ring. The homepage preview is illustrative.
+5. Push and open a PR titled **Now card + segmented session timer**, attaching new screenshots and honest test results. Require green CI and owner review before merge.
+6. Follow the existing protected production workflow only after authorization. Record the previous production SHA/deployment and resulting main SHA, obtain owner environment approval, verify deployed SHA, then run DEPLOY §4 hosted smoke checks.
+
+No migrations, dependency updates, password-policy changes, paid-service activation, dashboard changes or AI integration are part of this update. Public invitations remain on hold. Physical iPhone/Android checks and fresh hosted authentication/account isolation remain separate checks.
