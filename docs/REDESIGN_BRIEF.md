@@ -18,7 +18,7 @@ Build the rest in small PRs, each passing CI, behind no feature flags visible to
 5. **Now is for getting ready. Begin is for doing the step.**
    - **Now** shows the prepared step, Begin, and *Get ready*: Where, Bring, Done when. It also has a "Can't make it today?" link, which opens check-in with **Not yet** selected and then schedules the step again.
    - **Begin** opens *How it goes* (segments with times and instructions, plus one example and an alternative), then *Start the timer* opens the focus session.
-6. **Begin is always centered in the halo.** Halo artwork: `src/assets/panel/tex-halo.webp`. Its halo center sits at (50.06%, 56.9%) of the image, with diameter ≈ 29% of image width. Size the image so the halo is about 115px across behind a 100px ivory Begin button with a 3px ember border, a play glyph and a drop shadow, so it clearly reads as a button.
+6. **Now uses the illustrated experience card (direction A).** The full-width ivory Begin button sits inside the card with an ember ring. The halo has been replaced. Prepared session parts appear as chips; the focus session uses a segmented ember ring (direction B) when those parts exist, and a single ring otherwise.
 7. **Proof is a journal.** At the top is a compact milestone tracker on ink: gold badge for earned milestones, dashed numbered circles for the ones ahead, plus steps and time totals. Below it, entries are grouped by week, newest first, each quoting the member's words with a result chip (Done = filled, Partly = tinted, Not yet = dashed outline). Earned milestones appear in the journal with a gold outline and badge. Filters: All, Milestones, Reflections. No streaks, scores or percentages.
 8. **Milestone earned** is a full ink screen with the gold badge, the milestone in the member's terms, totals (steps, comebacks, time) and one reflection prompt.
 9. **Vocabulary:** Challenge → Milestones → Steps → Proof. Tabs: Now, Plan, Proof. Remove "pursuit," "ambition" and "Basecamp" from the interface.
@@ -63,6 +63,8 @@ Replace the four competing `:root` token blocks in `presentation.css` and `state
 
 ## 4. AI preparation: architecture and data contract
 
+- **Providers:** Meta Muse Spark 1.3 writes the step (text), and Muse Image Generation makes the step image. Both are called from the server behind one small adapter, so a provider can be swapped without touching the app.
+- **Images:** the function generates the image once per step revision, in the Earned Self illustration style, and stores it in a private Supabase Storage bucket at `step-images/<uid>/<commitment>-<revision>.webp` (compressed to about 200 KB, 1200 px wide). The app shows it through a signed URL. When the image is not ready, or generation fails, the Now card uses the challenge's area illustration, so the card never shows a broken or odd picture. Add the project's storage origin (`https://vovmkiuxmtnedfosoxds.supabase.co`) to the CSP `img-src` when this ships.
 - **Server-side only.** Use a Supabase Edge Function. The provider key is a Supabase secret, never a `VITE_` variable, and the browser never calls the AI provider directly.
 - **Rate limits** per user and a daily cost ceiling. Log usage, but never log members' writing.
 - **Validation:** the function validates AI output against the schema below before saving it. On failure it retries once, then marks the step "preparing" and tells the member honestly.
@@ -82,9 +84,19 @@ Per prepared step:
     { "name": "Warm up", "minutes": 8, "instruction": "Easy walk on flat ground.", "cue": "Let your breathing settle." }
   ],
   "example": { "title": "The talk test", "levels": [["Too easy","Full sentences"],["Right here","Short phrases"],["Ease off","Can't speak"]] },
-  "alternative": "No hill nearby? Three minutes of steady stairs counts the same."
+  "alternative": "No hill nearby? Three minutes of steady stairs counts the same.",
+  "image": { "prompt": "Older hiker climbing a short grassy hill at dawn, watercolor-ink style", "alt": "A hiker climbing a short hill at dawn" }
 }
 ```
+
+**What the app reads today.** The Now card and the session timer already render a prepared step from `snapshot.prepared` (type `PreparedStep` in `src/data/types.ts`), matched to the step by `commitment_id` and `commitment_revision`:
+
+```json
+{ "commitment_id": "…", "commitment_revision": 1, "image_url": "https://…signed…", "image_alt": "A hiker climbing a short hill at dawn",
+  "parts": [ { "label": "Warm up", "minutes": 8 }, { "label": "Six climbs", "minutes": 18 } ] }
+```
+
+`segments[].name` maps to `parts[].label`. `preparedStep()` drops empty or zero-minute parts and any image URL that isn't same-origin or `https://`. Until `es_read_state` returns `prepared`, the card shows the area illustration, no chips, and no "prepared for you" label.
 
 After a check-in:
 

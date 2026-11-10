@@ -141,6 +141,19 @@ export interface Snapshot {
   reports: Report[];
   selectedGoal: string | null;
   supportMode: "guided" | "on_request";
+  /** AI-prepared step experiences (filled by the preparation pipeline). */
+  prepared?: PreparedStep[];
+}
+export interface SessionPart {
+  label: string;
+  minutes: number;
+}
+export interface PreparedStep {
+  commitment_id: string;
+  commitment_revision: number;
+  image_url: string | null;
+  image_alt: string | null;
+  parts: SessionPart[];
 }
 export interface Command {
   operationId: string;

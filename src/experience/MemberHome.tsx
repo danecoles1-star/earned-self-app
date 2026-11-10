@@ -1,7 +1,13 @@
 import { useState } from "react";
 import { Paused } from "./Paused";
-import halo from "../assets/panel/tex-halo.webp";
 import { TabIcon } from "./Earned";
+import {
+  NowCard,
+  friendlyWhen,
+  preparedStep,
+  totalMinutes,
+  type NowCardState,
+} from "./NowCard";
 import physicalIllustration from "../assets/illustrations/illo-physical.webp";
 import professionalIllustration from "../assets/illustrations/illo-professional.webp";
 import personalIllustration from "../assets/illustrations/illo-personal.webp";
@@ -54,6 +60,14 @@ export function MemberHome({
   const recurring = Boolean(commitment?.recurrence);
 
   const schedule = commitment ? currentSchedule(snapshot, commitment.id) : null;
+  const prepared = preparedStep(snapshot, commitment?.id, commitment?.revision);
+  const state = cardState(
+    schedule?.starts_at,
+    schedule?.local_date,
+    schedule?.local_time,
+    !!commitment,
+  );
+  const minutes = totalMinutes(prepared?.parts);
   const stepMilestone =
     goal.milestones.find((m) => m.id === commitment?.milestone_id) || milestone;
   const hour = new Date().getHours();
@@ -116,54 +130,47 @@ export function MemberHome({
         </section>
       ) : (
         <>
-          <section
-            className={`es-now-card${currentStep.length > 70 ? " es-long-step" : ""}`}
-            aria-labelledby="today-step"
-          >
-            <img className="es-now-halo" src={halo} alt="" aria-hidden="true" />
-            <div className="es-now-top">
-              <span className="es-now-tag">
-                <i aria-hidden="true" />
-                {commitment
-                  ? displaySchedule(
-                      schedule?.local_date,
-                      schedule?.local_time,
-                      schedule?.time_zone,
-                    ) || "Ready when you are"
-                  : "Next step not scheduled"}
-              </span>
-              <h2 id="today-step">{currentStep}</h2>
-            </div>
-            <button
-              className="es-begin"
-              disabled={goal.status === "paused"}
-              onClick={() =>
-                navigate(
-                  commitment
-                    ? "/focus/" + goal.id
-                    : goal.status === "draft"
-                      ? "/plan/" + goal.id
-                      : "/add-step/" + goal.id,
-                )
-              }
-            >
-              <svg
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
-                <path d="M8 5.5v13l10-6.5z" fill="currentColor" />
-              </svg>
-              {commitment ? "Begin" : "Prepare"}
-            </button>
-            {stepMilestone && (
-              <span className="es-now-foot">
-                Milestone {goal.milestones.indexOf(stepMilestone) + 1} of{" "}
-                {goal.milestones.length} · {stepMilestone.title}
-              </span>
-            )}
-          </section>
+          <NowCard
+            {...state}
+            tag={
+              prepared && (state.state === "ready" || state.state === "later")
+                ? `${state.tag} · prepared for you`
+                : state.tag
+            }
+            image={prepared?.image_url || illustration}
+            parts={prepared?.parts}
+            when={
+              commitment
+                ? [
+                    friendlyWhen(schedule?.starts_at) ||
+                      displaySchedule(
+                        schedule?.local_date,
+                        schedule?.local_time,
+                        schedule?.time_zone,
+                      ),
+                    minutes ? `${minutes} min` : "",
+                  ]
+                    .filter(Boolean)
+                    .join(" · ") || undefined
+                : undefined
+            }
+            title={currentStep}
+            disabled={goal.status === "paused"}
+            onAction={() =>
+              navigate(
+                commitment
+                  ? "/focus/" + goal.id
+                  : goal.status === "draft"
+                    ? "/plan/" + goal.id
+                    : "/add-step/" + goal.id,
+              )
+            }
+            foot={
+              stepMilestone
+                ? `Milestone ${goal.milestones.indexOf(stepMilestone) + 1} of ${goal.milestones.length} · ${stepMilestone.title}`
+                : undefined
+            }
+          />
 
           {commitment && currentDefinition && (
             <section className="es-ready" aria-labelledby="get-ready">
@@ -338,4 +345,37 @@ export function AppNavigation({
       ))}
     </nav>
   );
+}
+
+/** Where today's step stands, from its saved schedule. */
+export function cardState(
+  startsAt: string | null | undefined,
+  localDate: string | null | undefined,
+  localTime: string | null | undefined,
+  hasStep: boolean,
+  now = new Date(),
+): { state: NowCardState; tag: string; action: string } {
+  if (!hasStep)
+    return { state: "unscheduled", tag: "Not scheduled yet", action: "Prepare" };
+  const start = startsAt
+    ? new Date(startsAt)
+    : localDate
+      ? new Date(`${localDate}T${(localTime || "00:00").slice(0, 5)}`)
+      : null;
+  if (!start || Number.isNaN(start.getTime()))
+    return { state: "ready", tag: "Ready when you are", action: "Begin" };
+  const startDay = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  if (startDay < today) {
+    const day = start.toLocaleDateString(undefined, { weekday: "long" });
+    return { state: "missed", tag: `Still yours · from ${day}`, action: "Begin" };
+  }
+  if (start.getTime() - now.getTime() > 60 * 60 * 1000) {
+    const label =
+      startDay.getTime() === today.getTime()
+        ? `Starts ${start.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}`
+        : "Coming up";
+    return { state: "later", tag: label, action: "Begin" };
+  }
+  return { state: "ready", tag: "Ready now", action: "Begin" };
 }

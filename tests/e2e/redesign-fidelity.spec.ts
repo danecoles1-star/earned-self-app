@@ -3,7 +3,7 @@ import { applyLocal, type LocalStore } from "../../src/data/domain";
 import { emptySnapshot, type Command } from "../../src/data/types";
 import { foundation, action, mid } from "../fixtures";
 
-// November 2026 redesign contract: Now prep + centred Begin, ink focus session,
+// November 2026 redesign contract: Now preview card + in-card Begin, ink focus session,
 // two-part check-in, Proof journal with milestone tracker, light and dark mode.
 const owner = "local-preview-member";
 function fixture(earned = false) {
@@ -78,18 +78,12 @@ for (const scheme of ["light", "dark"] as const)
           "filter",
           "brightness(0) invert(1)",
         );
-      // Now: prepared step, centred Begin, Get ready, floating tab bar.
-      const begin = p.getByRole("button", { name: "Begin", exact: true });
-      const halo = p.locator(".es-now-halo");
-      const b = (await begin.boundingBox())!,
-        h = (await halo.boundingBox())!;
-      expect(
-        Math.abs(b.x + b.width / 2 - (h.x + h.width * 0.5006)),
-      ).toBeLessThan(0.5);
-      expect(
-        Math.abs(b.y + b.height / 2 - (h.y + h.height * 0.569)),
-      ).toBeLessThan(0.5);
-      await expect(begin).toHaveCSS("border-top-color", "rgb(255, 91, 54)");
+      // Now: experience-preview card with image, status tag and in-card Begin.
+      const card = p.locator(".es-now-card");
+      const begin = card.getByRole("button", { name: "Begin", exact: true });
+      await expect(card.locator(".es-now-media img")).toBeVisible();
+      await expect(card.locator(".es-now-tag")).toBeVisible();
+      await expect(begin).toHaveCSS("box-shadow", /255, 91, 54/);
       await expect(p.getByRole("heading", { name: "Get ready" })).toBeVisible();
       await expect(p.getByText("Studio", { exact: true })).toBeVisible();
       const nav = p.getByRole("navigation", { name: "Main navigation" });
@@ -252,7 +246,9 @@ test("audit navigation and calendar choices", async ({ page: p }) => {
   );
   await p.goto("/proof/" + store.snapshot.evidence[0].id);
   await expect(nav).toHaveCount(0);
-  await expect(p.getByRole("heading", { name: action.action, exact: true })).toBeVisible();
+  await expect(
+    p.getByRole("heading", { name: action.action, exact: true }),
+  ).toBeVisible();
   await p.goto("/calendar/g");
   await expect(nav).toHaveCount(0);
   await expect(p.getByRole("group", { name: "How long" })).toBeVisible();
@@ -261,3 +257,67 @@ test("audit navigation and calendar choices", async ({ page: p }) => {
     p.getByRole("button", { name: "1.5 hours", exact: true }),
   ).toHaveAttribute("aria-pressed", "true");
 });
+
+for (const scheme of ["light", "dark"] as const)
+  for (const width of [320, 390, 1440])
+    test(`prepared card and segmented session ${scheme} ${width}`, async ({
+      page: p,
+    }) => {
+      await p.emulateMedia({ colorScheme: scheme });
+      await p.setViewportSize({ width, height: 900 });
+      const s = fixture();
+      s.snapshot.prepared = [
+        {
+          commitment_id: "c",
+          commitment_revision: 1,
+          image_url: null,
+          image_alt: null,
+          parts: [
+            { label: "Review options", minutes: 3 },
+            { label: "Compare costs", minutes: 12 },
+            { label: "Record findings", minutes: 5 },
+          ],
+        },
+      ];
+      await seed(p, s);
+      const card = p.locator(".es-now-card");
+      await expect(
+        card.getByRole("list", { name: "Session parts" }),
+      ).toBeVisible();
+      await expect
+        .poll(() =>
+          card
+            .locator("img")
+            .evaluate((img: HTMLImageElement) => img.naturalWidth),
+        )
+        .toBeGreaterThan(0);
+      const box = (await card.boundingBox())!;
+      for (const item of await card.locator("li, .es-begin").all()) {
+        const b = (await item.boundingBox())!;
+        expect(b.x).toBeGreaterThanOrEqual(box.x);
+        expect(b.x + b.width).toBeLessThanOrEqual(box.x + box.width);
+      }
+      await noOverflow(p, width);
+      await p.screenshot({
+        path: `docs/release-review/${scheme}-${width}-prepared-now.png`,
+        fullPage: true,
+      });
+      await card.getByRole("button", { name: "Begin", exact: true }).click();
+      await expect(p.locator(".timer-seg-track")).toHaveCount(3);
+      await expect(p.locator('.timer-parts [aria-current="step"]')).toHaveText(
+        "Review options · 3 min",
+      );
+      await p.getByRole("button", { name: "Start timer" }).click();
+      await p.getByRole("button", { name: "Pause timer" }).click();
+      await p.reload();
+      await expect(p.locator(".timer-seg-track")).toHaveCount(3);
+      await noOverflow(p, width);
+      await p.screenshot({
+        path: `docs/release-review/${scheme}-${width}-segmented-session.png`,
+        fullPage: true,
+      });
+      await p.getByRole("button", { name: "Finish and check in" }).click();
+      await expect(
+        p.getByRole("button", { name: "Not yet", exact: true }),
+      ).toBeVisible();
+    });

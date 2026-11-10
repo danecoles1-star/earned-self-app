@@ -77,8 +77,9 @@ for (const width of [320, 390, 1440]) {
     await expect(p.locator(".es-becoming").getByRole("button")).toHaveCount(0);
     const begin = p.getByRole("button", { name: "Begin", exact: true });
     const beginBox = (await begin.boundingBox())!;
-    expect(Math.round(beginBox.width)).toBe(100);
-    expect(Math.round(beginBox.height)).toBe(100);
+    const cardBox = (await p.locator(".es-now-card").boundingBox())!;
+    expect(beginBox.width).toBeGreaterThan(cardBox.width - 60);
+    expect(beginBox.height).toBeGreaterThanOrEqual(44);
     await expect(begin).toHaveCSS("background-color", "rgb(246, 241, 232)");
     await expect(begin).toHaveCSS("color", "rgb(16, 26, 32)");
     await capture(p, "basecamp", width);
@@ -146,7 +147,7 @@ for (const width of [320, 390, 1440]) {
     expect(errors).toEqual([]);
   });
 }
-test("long step titles remain readable in the Halo panel", async ({
+test("long step titles remain readable in the Now card", async ({
   page: p,
 }) => {
   await p.setViewportSize({ width: 320, height: 812 });
@@ -176,37 +177,37 @@ test("long step titles remain readable in the Halo panel", async ({
   expect(titleBox.y + titleBox.height).toBeLessThan(beginBox.y);
   await capture(p, "long-title", 320);
   await expect(stepTitle).toHaveText(title);
+  expect(
+    await stepTitle.evaluate((el) => el.scrollHeight <= el.clientHeight),
+  ).toBe(true);
   expect(errors).toEqual([]);
 });
 
-test("locked Halo and Begin remain stable with reduced motion and narrow screens", async ({
+test("Now card Begin stays a full-width, in-card action on narrow screens", async ({
   page: p,
 }) => {
   await p.setViewportSize({ width: 390, height: 844 });
-  await p.emulateMedia({ reducedMotion: "no-preference" });
   await seed(p, fixture());
   const panel = p.locator(".es-now-card"),
-    begin = p.getByRole("button", { name: "Begin", exact: true }),
-    halo = panel.locator(".es-now-halo");
-  await expect(halo).toHaveAttribute("src", /tex-halo/);
-  const centred = async () => {
-    const b = (await begin.boundingBox())!,
-      h = (await halo.boundingBox())!;
-    // Halo centre sits at 50.06% / 56.9% of the artwork.
-    expect(Math.abs(b.x + b.width / 2 - (h.x + h.width * 0.5006))).toBeLessThan(2);
-    expect(Math.abs(b.y + b.height / 2 - (h.y + h.height * 0.569))).toBeLessThan(2);
-    expect(Math.round(b.width)).toBe(100);
-    expect(Math.round(b.height)).toBe(100);
+    begin = p.getByRole("button", { name: "Begin", exact: true });
+  const fits = async () => {
+    const c = (await panel.boundingBox())!,
+      b = (await begin.boundingBox())!;
+    // Begin spans the card body and sits inside the card.
+    expect(b.x).toBeGreaterThanOrEqual(c.x + 12);
+    expect(b.x + b.width).toBeLessThanOrEqual(c.x + c.width - 12);
+    expect(b.width).toBeGreaterThan(c.width - 60);
+    expect(b.height).toBeGreaterThanOrEqual(44);
+    expect(b.y + b.height).toBeLessThan(c.y + c.height);
   };
-  await centred();
-  await p.emulateMedia({ reducedMotion: "reduce" });
-  await expect(begin).toHaveCSS("animation-name", "none");
+  await fits();
+  await expect(begin).toHaveCSS("box-shadow", /255, 91, 54/);
   await p.setViewportSize({ width: 320, height: 844 });
-  await centred();
+  await fits();
   expect(
     await p.evaluate(() => document.documentElement.scrollWidth),
   ).toBeLessThanOrEqual(320);
-  await capture(p, "locked-halo", 320);
+  await capture(p, "now-card", 320);
   await p.getByRole("button", { name: "Plan", exact: true }).click();
   await expect(
     p.getByRole("region", { name: "All milestones & steps" }),

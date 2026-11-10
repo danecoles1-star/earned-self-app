@@ -139,11 +139,15 @@ for (const width of [320, 390, 1440])
       }),
     ).toBeVisible();
     await capture("now");
+    const card = (await p.locator(".es-now-card").boundingBox())!;
     const begin = (await p
       .getByRole("button", { name: "Begin" })
       .boundingBox())!;
-    expect(Math.round(begin.width)).toBe(100);
-    expect(Math.round(begin.height)).toBe(100);
+    expect(begin.x).toBeGreaterThanOrEqual(card.x + 12);
+    expect(begin.x + begin.width).toBeLessThanOrEqual(card.x + card.width - 12);
+    expect(begin.width).toBeGreaterThan(card.width - 60);
+    expect(begin.height).toBeGreaterThanOrEqual(44);
+    expect(begin.y + begin.height).toBeLessThan(card.y + card.height);
     await areas
       .getByRole("button", { name: "Professional", exact: true })
       .click();
