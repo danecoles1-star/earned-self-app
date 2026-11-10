@@ -12,11 +12,11 @@ Resolved supplied conflicts against the newer main. Replaced remaining circular-
 - Database: 57 checks passed using ephemeral local PostgreSQL only; no hosted mutations.
 - Production build and boundary audit: passed with production target and privately configured publishable key.
 - Production dependency audit: zero vulnerabilities.
-- Production-header test: 1 passed with official Chromium 140 headless shell fallback. This tests local built output with mocked Supabase responses, not live authentication.
-- Full Chromium suite: NOT PASSED. Normal Playwright browser and headless-shell downloads returned invalid ZIP data. Installed Chromium 156 aborted on a denied Unix socket. An official Chromium 140 headless shell launched but rendered no text (even a plain Arial heading had zero height). Its initial journey failures are not accepted as app validation. The run was stopped; the 61-case suite must pass in normal CI.
-- Visual review: NOT COMPLETED for this update. Prior committed screenshots are historical. New visual assertions and screenshot journeys are included but need a working browser.
+- Production-header test: 1 passed in the normal Playwright Chromium installation. This tests local built output with mocked Supabase responses, not live authentication.
+- Full Chromium suite: 61 journeys passed in the normal Playwright Chromium installation after correcting one stale Workshop assertion that still required the superseded circular Begin control. The replacement assertion verifies that the full-width action remains usable and contained within the Now card at 320, 390 and 1440 px.
+- Visual review: passed with fresh local fixtures at 320, 390 and 1440 px in light and dark mode. The prepared card and segmented timer, existing-card single-ring fallback, check-in, schedule-next, Proof and milestone-earned screens showed no clipping, horizontal overflow or missing content. Review screenshots remained local QA artifacts and are not committed.
 - Physical devices and fresh hosted signup/account isolation: not tested.
 
 ## Delivery status
 
-Local review branch only. Git push preflight failed because no GitHub write credential was available. No PR, merge, deployment or dashboard changes were performed. This package must not be described as ready for protected deployment until normal CI and visual review are complete.
+Reviewed source branch only. No merge, deployment or dashboard changes were performed. Hosted authentication and physical-device checks remain separate release gates.
