@@ -16,12 +16,27 @@ This is the only current deployment document. Everything in `docs/archive/` is h
 
 - **One design system, light and dark:** `src/earned.css` holds the single token set and follows the iPhone's dark-mode setting. Body text is 17px and scales with the phone's text size. Spacing respects safe areas. Reduce Motion turns off the Begin pulse and transitions.
 - **Fonts:** Figtree (interface) and Newsreader (display) are self-hosted through `@fontsource-variable` packages, so they look the same on every device and the CSP stays `font-src 'self'`.
-- **Floating tab bar:** Now / Plan / Proof with drawn icons. It appears only on those top-level screens and Settings; flows and focus screens are full-screen.
+- **Floating tab bar:** Now / Plan / Proof, with the Earned Self mark for Now (a path stepping up, ember at the step) and the approved folded-map and cairn icons, all drawn as line icons (`TabIcon` in `src/experience/Earned.tsx`) so they stay sharp at tab size and follow the active state and dark mode. It appears only on those top-level screens and Settings; flows and focus screens are full-screen.
 - **Now is for getting ready:** greeting, the prepared-step card with **Begin centered in the halo**, and *Get ready* (Where, When, Done when). Two links sit below: **Can't make it today?** opens check-in with *Not yet* selected, and **Add to calendar**.
 - **Begin opens the focus session:** an ink screen with *How it goes* (step, where, done when), the timer, and **Finish and check in**. The screen stays awake while the timer runs, where the browser allows it.
 - **Two-part check-in:** part 1 is *Tell it as it happened* (Done / Partly / Not yet, plus your words). When a plan step is done, part 2 asks for the **next step and its date and time** before returning to Now. Repeating steps already carry their schedule, and misses still go to recovery.
 - **Proof:** the milestone tracker sits on top (gold badge when earned, dashed numbered circles ahead, with steps and comebacks totals). Below it, a **weekly journal** of entries quotes the member's words with Done / Partly / Not yet chips. Earned milestones appear with a gold outline.
 - **Milestone earned:** a full ink screen with the gold badge, the milestone, the member's words, totals, and buttons for Proof, lock screen and what comes next.
+- **Homepage rebuilt for sign-ups:**
+  - **Hero:** an outcome-led promise, the "Build my challenge" button, and "About 3 minutes · No account needed to start."
+  - **"Every step arrives prepared for you":** a section selling the AI-crafted step experience.
+  - **Body:** How it works; the interactive Physical / Professional / Personal example with "Make it mine"; the Proof section; privacy points; an FAQ, including how to add the app to your Home Screen; and a closing call to action. On mobile, a sticky "Build my challenge" bar appears once the hero button scrolls away.
+  - **Accurate app images:** the three phones render the app's own screen markup and styles, scaled down, so they match the real Now, step experience and Proof screens in light and dark.
+  - **Launch caveat:** the homepage now promises AI-prepared step experiences. Turn on public sign-ups only once AI preparation is live, or members will see a step screen without that content.
+- **Full-app audit of leftovers from earlier builds:**
+  - **Now:** shows "Becoming" and the member's vision under the greeting. The tappable challenge link is gone.
+  - **Tab bar:** shows only on Now, Plan, Proof and Settings. Detail pages (Proof entries, completed challenge) are full screen, so it no longer covers their buttons.
+  - **No dropdowns in member flows:** milestone reflection ("I reached it / I attempted it", what happens to remaining steps), the step editor's milestone (a read-only field or choices), calendar length (chips) and Settings' challenge list (rows).
+  - **Plan editing removed after onboarding:** "Revise this step" and the links on non-current steps in Plan are gone. Adjusting a step remains only inside check-in recovery and resume-after-pause.
+  - **Consistent labels:** results read Done / Partly / Not yet everywhere; Proof entries used to say "Partly done" and "Didn't happen."
+  - **One type hierarchy:** display serif for page titles, interface type for section headings. The shouting all-caps headings on recovery and challenge-record pages, the old teal button texture, the "Illustration ·" caption and the default "evidence is stacking up" line are gone. Empty gaps on the challenge-record and recovery pages are closed.
+  - **Unknown routes:** the unreachable legacy "pursuit" workspace (with its dropdowns) is no longer shown for unmatched routes; it shows "This page isn't available · Return to Now."
+- **Home Screen app:** `public/manifest.webmanifest` plus icons made from the logo mark (`apple-touch-icon.png`, 192px, 512px and a maskable 512px). Added to Home Screen, the app opens full screen at `/app`.
 - **Fix:** links to schedule a prepared step (`/commitment/<goal>/<step>`, `/add-step/<goal>/<step>`) were rejected by the route list. They work now.
 
 No database migration. Data and commands are unchanged; the redesign is presentation plus navigation. The AI that writes each step's segments and examples is the next workstream (see `docs/REDESIGN_BRIEF.md`). Until it ships, How it goes shows the member's own step, place and finish line.

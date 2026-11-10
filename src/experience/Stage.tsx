@@ -14,9 +14,7 @@ export function Stage({
   tone = "prepare",
   back,
   backLabel = "Back to Proof",
-  statement = title === "Your Proof"
-    ? "The evidence is stacking up, keep going"
-    : undefined,
+  statement,
 }: {
   title: string;
   hero?: ReactNode;

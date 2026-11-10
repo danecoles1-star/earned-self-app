@@ -168,18 +168,18 @@ export function Ambition({
                               Current step
                             </small>
                           )}
-                          <button
-                            className="quiet plan-step-title"
-                            onClick={() =>
-                              navigate(
-                                currentAction(s, g.id)?.id === c.id
-                                  ? "/app"
-                                  : "/revise/" + g.id + "/" + c.id,
-                              )
-                            }
-                          >
-                            {definition(s, c.id, c.revision)?.action}
-                          </button>
+                          {currentAction(s, g.id)?.id === c.id ? (
+                            <button
+                              className="quiet plan-step-title"
+                              onClick={() => navigate("/app")}
+                            >
+                              {definition(s, c.id, c.revision)?.action}
+                            </button>
+                          ) : (
+                            <strong className="plan-step-title">
+                              {definition(s, c.id, c.revision)?.action}
+                            </strong>
+                          )}
                           <small className="step-state">
                             {c.state === "active"
                               ? g.status === "paused"
@@ -197,14 +197,6 @@ export function Ambition({
                             )}{" "}
                             · {repeatLabel(c.recurrence)}
                           </small>
-                          <button
-                            className="quiet step-edit"
-                            onClick={() =>
-                              navigate("/revise/" + g.id + "/" + c.id)
-                            }
-                          >
-                            Revise this step
-                          </button>
                           {c.state === "active" && c.recurrence && (
                             <button
                               className="quiet stop-repeat"

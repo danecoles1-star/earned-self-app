@@ -72,10 +72,9 @@ for (const width of [320, 390, 1440]) {
     await expect(p.getByRole("heading", { name: "Get ready" })).toBeVisible();
     await expect(p.getByLabel("Elapsed time")).toHaveCount(0);
     await expect(p.getByRole("button", { name: /Revise/ })).toHaveCount(0);
-    await expect(p.locator(".es-challenge-link")).toHaveCSS(
-      "background-color",
-      "rgba(0, 0, 0, 0)",
-    );
+    // Now shows who the member is becoming, not a link back into Plan.
+    await expect(p.locator(".es-becoming")).toBeVisible();
+    await expect(p.locator(".es-becoming").getByRole("button")).toHaveCount(0);
     const begin = p.getByRole("button", { name: "Begin", exact: true });
     const beginBox = (await begin.boundingBox())!;
     expect(Math.round(beginBox.width)).toBe(100);

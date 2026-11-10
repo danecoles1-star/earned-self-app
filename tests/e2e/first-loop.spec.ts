@@ -25,7 +25,7 @@ test("first visit through first action, failure recovery, accomplishment and nex
   await p.goto("/");
   await shot("01-home-mobile");
   await p
-    .locator(".how-opening")
+    .locator(".es-home-hero")
     .getByRole("button", { name: "Build my challenge", exact: true })
     .click();
   assert(
@@ -200,7 +200,7 @@ test("small screen keyboard entry, required answer and reload recovery", async (
   await p.setViewportSize({ width: 375, height: 812 });
   await p.goto("/");
   await p
-    .locator(".how-opening")
+    .locator(".es-home-hero")
     .getByRole("button", { name: "Build my challenge", exact: true })
     .focus();
   await p.keyboard.press("Enter");
@@ -238,7 +238,7 @@ test("responsive opening keeps the primary action visible on phones and desktop"
     await page.setViewportSize({ width, height });
     await page.goto("/");
     const begin = page
-      .locator(".how-opening")
+      .locator(".es-home-hero")
       .getByRole("button", { name: "Build my challenge", exact: true });
     await expect(begin).toBeVisible();
     const box = await begin.boundingBox();
@@ -260,7 +260,7 @@ test("phone preview works when HTTP does not provide randomUUID", async ({
   });
   await page.goto("/");
   await page
-    .locator(".how-opening")
+    .locator(".es-home-hero")
     .getByRole("button", { name: "Build my challenge", exact: true })
     .click();
   await page.getByRole("button", { name: "Personal", exact: true }).click();

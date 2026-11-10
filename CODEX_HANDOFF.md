@@ -1,35 +1,36 @@
-# Prompt for the deployment Codex account
+# Homepage and app design audit update — deployment handoff
 
-Paste everything below the line into Codex with this package attached.
+This update follows PR #8 and signup-validation PR #9, both already merged. Do not recreate the old redesign release branch. `DEPLOY.md` remains the deployment runbook; ignore `docs/archive/`.
 
----
+## Integrate this incremental release
 
-You are shipping the Earned Self redesign and public-launch cleanup as one release. The attached package is a full copy of the repository with both applied. Read `DEPLOY.md` first. It is the only current runbook. Ignore everything in `docs/archive/`.
+- Repository: `danecoles1-star/earned-self-app`.
+- Baseline: `main` at `8f60ed5ca9bdb87572e3ae790b52b8a9304e067b`.
+- Branch: `release/design-audit-update`.
+- Scope: supplied homepage, interactive examples, mobile CTA, manifest and logo icons, plus the supplied app audit: vision on Now, inline SVG tab icons, choice controls, simplified Plan, detail-page navigation and consistent result labels. Includes matching browser assertions. PR #8 fixes and PR #9 signup-validation feedback are preserved. Dependencies and the database are unchanged.
+- Keep the approved AI-focused homepage copy. The owner is holding public invitations until AI is ready. This release does not connect or build AI.
 
-Do this, in order:
+The delivery ZIP contains a Git bundle, a patch, a source snapshot, review screenshots and checksums. Prefer the Git bundle over copying the source snapshot onto a newer main:
 
-1. Create a branch `release/redesign-public-launch` from the current `main` of the existing earned-self repository. Copy this package's files over the working tree. Keep any ignored local `.env*` files.
-   - Deletions are intentional: `qa/`, `tests/e2e/statement-fidelity.spec.ts` (replaced by `tests/e2e/redesign-fidelity.spec.ts`), and the docs moved to `docs/archive/`.
-2. Run `npm install`. Two font packages were added to `package.json` (`@fontsource-variable/figtree`, `@fontsource-variable/newsreader`). Commit the updated `package-lock.json`, because CI uses `npm ci`. If those exact version ranges don't resolve, use the newest 5.x of each.
-3. Run the gates:
-   - `npm test`
-   - `npm run test:db`
-   - `npm run build`, with `VITE_SUPABASE_URL=https://vovmkiuxmtnedfosoxds.supabase.co` and the real publishable key
-   - `npx playwright install chromium`
-   - `npx playwright test --project=chromium`
-   - `npm run test:prod`
-4. Fix failures narrowly:
-   - These tests were already updated for the redesign and could not be run where the package was prepared: `tests/focus-stage.test.tsx`, `tests/pilot-regressions.test.tsx`, `tests/loop.test.tsx`, and the e2e specs `focus-stage`, `first-loop`, `pilot-review`, `pilot-regressions`, `reflection-recovery`, `workshop`, `redesign-fidelity`.
-   - Expected behavior changes:
-     - Begin navigates to `/focus/<goal>`, and that screen's footer button is "Finish and check in".
-     - Check-in's third choice reads "Not yet".
-     - A done plan step's check-in continues to `/add-step/<goal>?after=checkin`.
-     - The tab bar shows only on Now, Plan, Proof and Settings.
-     - The old inline "prepared activity" panel and "Who I am becoming" on Now are gone.
-   - Old visual assertions about the October design (117px mineral Begin, foot band, nav PNG icons, mineral colors) should be replaced with the new design values, not deleted. Never weaken a behavior test.
-5. Check the design by eye. Run `npm run preview:local` and look at Now, Begin → session, check-in → schedule next, Proof and milestone earned, at 390px and 1440px, in light and dark mode. Begin must sit exactly in the center of the halo.
-6. Confirm nothing configures or mentions Cloudflare Access outside `docs/archive/`. Do not add any login gate in front of the site.
-7. Commit, push and open a PR titled "Redesign + public launch". Include screenshots of the screens in step 5 and the test results. List the owner's dashboard steps from DEPLOY.md sections 1a–1d.
-8. Do **not** merge, deploy, run Supabase migrations or change dashboard settings. The owner does those. There is no new migration in this release. After the owner merges and finishes 1a–1d, walk them through DEPLOY.md sections 2–4 and record the smoke-test results.
+```sh
+git fetch origin
+git fetch /absolute/path/design-audit.bundle release/design-audit-update:release/design-audit-update
+git switch release/design-audit-update
+git merge-base --is-ancestor 8f60ed5ca9bdb87572e3ae790b52b8a9304e067b HEAD
+```
 
-The next workstream after launch is AI preparation: `docs/REDESIGN_BRIEF.md` section 4. Start it only when the owner asks.
+If the branch already exists, inspect it before changing it. If main has advanced, integrate those changes and rerun the gates. Preserve ignored local environment files. The source ZIP is a reference snapshot, not permission to overwrite newer work. No package or lockfile changes are needed.
+
+## Verification and release
+
+1. Read `docs/design-audit-review.md` for local results and browser limitations.
+2. Run `npm ci`, `npm test`, `npm run test:db`, and `npm run build` with the existing production Supabase URL and real publishable key configured privately. Do not print credentials.
+3. Install normal Chromium with `npx playwright install --with-deps chromium`. Run `npx playwright test --project=chromium`, `npm run test:prod`, and `npm audit --omit=dev`. Do not set a browser executable override in CI.
+4. Review homepage examples at 390px and 1440px in light/dark mode, and confirm Now, focus, check-in, scheduling, Proof and milestone screens still match the approved design. Review screenshots are local disposable-data previews, not proof of hosted authentication.
+5. Push the branch and open a PR titled **Homepage + app design audit**, including results and screenshots. Require green CI. Follow the owner's merge/deploy authorization; never bypass branch protection or the production reviewer.
+6. Reuse the existing dashboard configuration. Do not activate paid services, reconfigure authentication, change development protection, or run Supabase migrations. There is no new migration.
+7. For an authorized deployment, record the previous production deployment for rollback, merge after green CI, record the main SHA, and run **Deploy to Cloudflare Pages** on main. The owner approves the protected production environment. Verify the deployed SHA and follow `DEPLOY.md` §4.
+8. Check `/manifest.webmanifest` and all four icon URLs, then physically test Home Screen installation and launching `/app` on iPhone and Android. A manifest is not evidence of offline support; no service worker was added.
+9. Keep public invitations on hold. Fresh outside-email signup, account isolation, physical-device checks and the existing launch blockers must be recorded honestly; local tests do not prove those hosted outcomes.
+
+Do not start the AI workstream as part of this update.

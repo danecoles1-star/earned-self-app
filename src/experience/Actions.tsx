@@ -243,30 +243,37 @@ export function MoveEditor({
         <>
           {step === 0 && (
             <>
-              <label>
-                Milestone
-                <select
-                  disabled={!!c}
-                  value={v.milestoneId}
-                  onChange={(e) => set("milestoneId", e.target.value)}
-                >
-                  {g.milestones
-                    .filter(
-                      (m) =>
-                        !s.events.some(
-                          (e) =>
-                            e.goal_id === g.id &&
-                            e.kind === "milestone" &&
-                            e.data.milestoneId === m.id,
-                        ),
-                    )
-                    .map((m) => (
-                      <option key={m.id} value={m.id}>
+              {(() => {
+                const open = g.milestones.filter(
+                  (m) =>
+                    !s.events.some(
+                      (e) =>
+                        e.goal_id === g.id &&
+                        e.kind === "milestone" &&
+                        e.data.milestoneId === m.id,
+                    ),
+                );
+                const chosen = open.find((m) => m.id === v.milestoneId);
+                return c || open.length < 2 ? (
+                  <p className="es-field-static">
+                    <span>Milestone</span>
+                    {chosen?.title || open[0]?.title}
+                  </p>
+                ) : (
+                  <fieldset className="es-choice-group">
+                    <legend>Milestone</legend>
+                    {open.map((m) => (
+                      <Choice
+                        key={m.id}
+                        selected={v.milestoneId === m.id}
+                        onClick={() => set("milestoneId", m.id)}
+                      >
                         {m.title}
-                      </option>
+                      </Choice>
                     ))}
-                </select>
-              </label>
+                  </fieldset>
+                );
+              })()}
               {c?.recurrence && (
                 <fieldset className="recovery-scope">
                   <legend>Apply this change to</legend>
@@ -776,40 +783,43 @@ export function MilestoneComplete({
               carry forward.
             </p>
           )}
-          <label>
-            What happened?
-            <select
-              value={milestoneResult}
-              onChange={(e) => setMilestoneResult(e.target.value)}
+          <fieldset className="es-choice-group">
+            <legend>What happened?</legend>
+            <Choice
+              selected={milestoneResult === "done"}
+              onClick={() => setMilestoneResult("done")}
             >
-              <option value="done">I accomplished it</option>
-              <option value="attempted">
-                I attempted it and need another try
-              </option>
-            </select>
-          </label>
+              I reached it
+            </Choice>
+            <Choice
+              selected={milestoneResult === "attempted"}
+              onClick={() => setMilestoneResult("attempted")}
+            >
+              I attempted it and need another try
+            </Choice>
+          </fieldset>
           {milestoneResult === "done" && remainingSteps.length > 0 && (
-            <label>
-              Remaining steps and routines
-              <select
-                value={remaining}
-                onChange={(e) => setRemaining(e.target.value)}
+            <fieldset className="es-choice-group">
+              <legend>Steps still scheduled for this milestone</legend>
+              {g.milestones.indexOf(m!) < g.milestones.length - 1 && (
+                <Choice
+                  selected={remaining === "carry"}
+                  onClick={() => setRemaining("carry")}
+                >
+                  Carry them into my next milestone
+                </Choice>
+              )}
+              <Choice
+                selected={remaining === "stop"}
+                onClick={() => setRemaining("stop")}
               >
-                <option value="">Choose what happens next</option>
-                <option value="stop">
-                  End remaining steps and repetitions
-                </option>
-                {g.milestones.indexOf(m!) < g.milestones.length - 1 && (
-                  <option value="carry">
-                    Carry them into my next milestone
-                  </option>
-                )}
-              </select>
+                End them here
+              </Choice>
               <p className="small">
-                Previous check-ins stay in Proof. Ending future work does not
-                mark it completed.
+                Earlier check-ins stay in Proof. Ending future steps does not
+                mark them done.
               </p>
-            </label>
+            </fieldset>
           )}
           <Input
             label="What happened and what did you learn?"

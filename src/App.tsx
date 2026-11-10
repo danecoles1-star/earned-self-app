@@ -880,58 +880,7 @@ export function App({ adapter }: { adapter: Adapter }) {
       ) : (
         <Unavailable navigate={navigate} />
       );
-  } else
-    screen = (
-      <main id="main" className="workspace">
-        <div className="support-row">
-          {snapshot.goals.length > 1 && (
-            <label>
-              Current pursuit
-              <select
-                value={selected?.id ?? ""}
-                disabled={saving}
-                onChange={(e) =>
-                  void save("select", { goalId: e.target.value })
-                }
-              >
-                {snapshot.goals.map((g) => (
-                  <option value={g.id} key={g.id}>
-                    {(g.words || g.vision || "Draft pursuit").slice(0, 65)}
-                  </option>
-                ))}
-              </select>
-            </label>
-          )}
-        </div>
-        {!selected ? (
-          <>
-            <p className="eyebrow">Your own starting point</p>
-            <h1 tabIndex={-1}>Your challenge belongs here.</h1>
-            <p className="intro">
-              Choose something you want to work toward. Your Proof begins with
-              what you actually do.
-            </p>
-            <button className="button" onClick={() => start("goal")}>
-              Start a pursuit
-            </button>
-            <div className="privacy">
-              <h2>Your Proof is empty.</h2>
-              <p>No commitments or results have been added.</p>
-            </div>
-          </>
-        ) : (
-          <Pursuit
-            key={`${user.id}:${selected.id}`}
-            goal={selected}
-            snapshot={snapshot}
-            save={save}
-            saving={saving}
-            navigate={navigate}
-          />
-        )}
-        <Privacy />
-      </main>
-    );
+  } else screen = <Unavailable navigate={navigate} />;
   return (
     <>
       <a className="skip" href="#main">
@@ -1044,9 +993,9 @@ export function App({ adapter }: { adapter: Adapter }) {
           </AreaContext.Provider>
         </ProfileProvider>
         {user &&
-          (["/app", "/manage", "/proof", "/settings"].includes(path) ||
-            path.startsWith("/manage/") ||
-            path.startsWith("/proof/")) && (
+          ["/app", "/manage", "/manage/why", "/proof", "/settings"].includes(
+            path,
+          ) && (
             <AppNavigation path={path} navigate={navigate} />
           )}
       </div>
@@ -1056,15 +1005,15 @@ export function App({ adapter }: { adapter: Adapter }) {
 function Unavailable({ navigate }: { navigate: (p: string) => void }) {
   return (
     <Page
-      title="This entry is unavailable."
-      sub="Open your own goal or Proof to continue."
+      title="This page isn’t available."
+      sub="Your saved work is safe in Now and Proof."
       footer={
         <button className="button" onClick={() => navigate("/app")}>
-          Open my pursuit
+          Return to Now
         </button>
       }
     >
-      <p>Your saved work is available from Now and Proof.</p>
+      <p>It may belong to a step that has already changed.</p>
     </Page>
   );
 }
