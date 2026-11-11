@@ -10,3 +10,6 @@ coverage/
 .DS_Store
 supabase/.temp/
 supabase/.branches/
+
+# Generated local device fixture; never commit or deploy.
+/device-review.html

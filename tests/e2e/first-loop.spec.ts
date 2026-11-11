@@ -179,7 +179,7 @@ test("first visit through first action, failure recovery, accomplishment and nex
   await fill("Words to carry", "Keep writing.");
   await click("Preview lock screen");
   const wallpaper = p.waitForEvent("download");
-  await click("Download image");
+  await click("Save to phone");
   assert.equal(
     (await wallpaper).suggestedFilename(),
     "Earned_Self_Lock_Screen.png",

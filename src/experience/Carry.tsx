@@ -134,7 +134,7 @@ export function Wallpaper({
       wallpaperColors[selectedTile ?? 0]?.id || "ink",
     ),
     [error, setError] = useState(""),
-    [saved, setSaved] = useState(false),
+    [saveMessage, setSaveMessage] = useState(""),
     [busy, setBusy] = useState(false);
   const palette =
     wallpaperColors.find((c) => c.id === style) || wallpaperColors[0];
@@ -148,7 +148,7 @@ export function Wallpaper({
     let alive = true;
     let url = "";
     setImageBlob(null);
-    setSaved(false);
+    setSaveMessage("");
     async function createPreview() {
       setBusy(true);
       setError("");
@@ -257,22 +257,43 @@ export function Wallpaper({
   }, [words, reason, date, brand, style, goal.meaning, palette]);
   async function save() {
     if (!imageBlob) return;
+    setError("");
+    setSaveMessage("");
     const file = new File([imageBlob], "Earned_Self_Lock_Screen.png", {
       type: "image/png",
     });
-    if (navigator.canShare?.({ files: [file] }) && navigator.share) {
-      try {
+    try {
+      // The PNG already exists: invoke sharing directly from the tap, before
+      // any awaited image generation can consume transient user activation.
+      if (navigator.share && navigator.canShare?.({ files: [file] })) {
         await navigator.share({
           files: [file],
           title: "My Earned Self vision",
         });
-      } catch (e) {
-        if ((e as Error).name !== "AbortError")
-          setError(
-            "Sharing is unavailable. Open the full-size image below to save it.",
-          );
+        setSaveMessage(
+          "Share sheet closed. If you chose Save Image, check Photos. On Android, check the destination you selected.",
+        );
+      } else if (
+        /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+        (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)
+      ) {
+        setError(
+          window.isSecureContext
+            ? "Image sharing is unavailable in this browser. Open this page in Safari and try Save to phone again."
+            : "Saving to Photos needs a secure connection. Open the HTTPS preview link and try Save to phone again.",
+        );
+      } else {
+        download(imageBlob, "Earned_Self_Lock_Screen.png");
+        setSaveMessage(
+          "Download started. Look for Earned_Self_Lock_Screen.png in Downloads. Your phone may also show it in Gallery. Photos backup is not automatic.",
+        );
       }
-    } else setSaved(true);
+    } catch (e) {
+      if ((e as Error).name !== "AbortError")
+        setError(
+          "Your phone could not open image sharing. Nothing was confirmed saved. Please try Save to phone again.",
+        );
+    }
   }
   return (
     <Page
@@ -304,37 +325,13 @@ export function Wallpaper({
               Edit words
             </button>
           )}
-          {previewUrl && step === 1 && (
-            <div className="image-save-options">
-              <p>On supported phones, choose Save Image in the share sheet.</p>
-              <a
-                className="button secondary"
-                href={previewUrl}
-                target="_blank"
-                rel="noopener"
-              >
-                Open full-size image
-              </a>
-              <button
-                className="button secondary"
-                onClick={() =>
-                  imageBlob &&
-                  download(imageBlob, "Earned_Self_Lock_Screen.png")
-                }
-              >
-                Download image
-              </button>
-              <button className="quiet" onClick={() => navigate("/app")}>
-                Return to Now
-              </button>
-            </div>
-          )}
-          {saved && (
-            <p role="status">
-              Open the full-size image, then touch and hold it to see your
-              browser’s image-saving options.
+          {step === 1 && (
+            <p>
+              On iPhone, choose Save Image in the share sheet. On Android,
+              choose an available image destination.
             </p>
           )}
+          {saveMessage && <p role="status">{saveMessage}</p>}
         </>
       }
     >

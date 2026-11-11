@@ -75,6 +75,10 @@ for (const width of [320, 390, 1440]) {
     // Now shows who the member is becoming, not a link back into Plan.
     await expect(p.locator(".es-becoming")).toBeVisible();
     await expect(p.locator(".es-becoming").getByRole("button")).toHaveCount(0);
+    const mediaBox = (await p.locator(".es-now-media").boundingBox())!;
+    const tagBox = (await p.locator(".es-now-tag").boundingBox())!;
+    expect(Math.abs(tagBox.x - mediaBox.x - 14)).toBeLessThan(2);
+    expect(Math.abs(mediaBox.y + mediaBox.height - tagBox.y - tagBox.height - 14)).toBeLessThan(2);
     const begin = p.getByRole("button", { name: "Begin", exact: true });
     const beginBox = (await begin.boundingBox())!;
     const cardBox = (await p.locator(".es-now-card").boundingBox())!;

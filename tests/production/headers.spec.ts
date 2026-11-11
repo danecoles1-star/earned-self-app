@@ -120,7 +120,7 @@ test("production headers permit the real wallpaper preview and download without 
     .click();
   const download = page.waitForEvent("download");
   await page
-    .getByRole("button", { name: "Download image", exact: true })
+    .getByRole("button", { name: "Save to phone", exact: true })
     .click();
   expect((await download).suggestedFilename()).toBe(
     "Earned_Self_Lock_Screen.png",

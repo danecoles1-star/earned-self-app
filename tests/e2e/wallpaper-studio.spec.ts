@@ -17,7 +17,7 @@ for (const width of [320, 390, 1440])
           actorId: owner,
           operationId: "wallpaper-fixture",
           kind: "goal",
-          payload: { ...foundation, id: "g", area: "personal" },
+          payload: { ...foundation, id: "g", area: "professional" },
         },
         owner,
       ).store;
@@ -100,7 +100,7 @@ for (const width of [320, 390, 1440])
       });
       const download = page.waitForEvent("download");
       await page
-        .getByRole("button", { name: "Download image", exact: true })
+        .getByRole("button", { name: "Save to phone", exact: true })
         .click();
       const downloaded = await download;
       expect(downloaded.suggestedFilename()).toBe(

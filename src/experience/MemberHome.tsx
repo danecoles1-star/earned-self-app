@@ -11,6 +11,7 @@ import {
 import physicalIllustration from "../assets/illustrations/illo-physical.webp";
 import professionalIllustration from "../assets/illustrations/illo-professional.webp";
 import personalIllustration from "../assets/illustrations/illo-personal.webp";
+import { exampleArtwork } from "./exampleArtwork";
 import { wallpaperColors } from "./wallpapers";
 import type { Goal, GrowthArea, Snapshot } from "../data/types";
 import {
@@ -40,7 +41,7 @@ export function MemberHome({
   navigate: (p: string) => void;
 }) {
   const [wallpaperOpen, setWallpaperOpen] = useState(false);
-  const illustration = illustrations[goal.area || "physical"];
+  const illustration = exampleArtwork(goal.words) || illustrations[goal.area || "physical"];
   const commitment = currentAction(snapshot, goal.id);
   const currentDefinition =
     commitment && definition(snapshot, commitment.id, commitment.revision);

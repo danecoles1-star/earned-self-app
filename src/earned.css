@@ -353,8 +353,9 @@ html .es-challenge-link {
 .es-now-tag {
   position: absolute;
   z-index: 1;
-  top: 14px;
+  bottom: 14px;
   left: 14px;
+  max-width: calc(100% - 28px);
   display: inline-flex;
   align-items: center;
   gap: 7px;

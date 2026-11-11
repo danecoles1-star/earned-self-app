@@ -118,3 +118,61 @@ it("blocks export when a single word would overflow instead of clipping it", asy
     screen.getByRole("button", { name: "Preview lock screen" }),
   ).toBeDisabled();
 });
+
+async function openExport() {
+  render(<Wallpaper goal={goal} navigate={() => {}} />);
+  const preview = await screen.findByRole("button", { name: "Preview lock screen" });
+  await waitFor(() => expect(preview).toBeEnabled());
+  fireEvent.click(preview);
+  return screen.getByRole("button", { name: "Save to phone" });
+}
+it("shares the generated PNG from one save action without reporting Photos success", async () => {
+  const share = vi.fn().mockResolvedValue(undefined);
+  vi.stubGlobal("navigator", { canShare: () => true, share });
+  fireEvent.click(await openExport());
+  expect(share).toHaveBeenCalledTimes(1);
+  const file = share.mock.calls[0][0].files[0];
+  expect(file.name).toBe("Earned_Self_Lock_Screen.png");
+  expect(file.type).toBe("image/png");
+  expect(file.size).toBe(3);
+  expect(await screen.findByRole("status")).toHaveTextContent(
+    "If you chose Save Image",
+  );
+  expect(screen.queryByText("Download image")).not.toBeInTheDocument();
+  expect(screen.queryByText("Open full-size image")).not.toBeInTheDocument();
+});
+it("explains unsupported iPhone sharing instead of silently doing nothing", async () => {
+  vi.stubGlobal("navigator", {
+    userAgent: "iPhone",
+    platform: "iPhone",
+    maxTouchPoints: 5,
+  });
+  fireEvent.click(await openExport());
+  expect(await screen.findByRole("alert")).toHaveTextContent("HTTPS preview");
+});
+it("reports share failures but treats user cancellation as cancellation", async () => {
+  const share = vi
+    .fn()
+    .mockRejectedValue(new DOMException("blocked", "NotAllowedError"));
+  vi.stubGlobal("navigator", { canShare: () => true, share });
+  const save = await openExport();
+  fireEvent.click(save);
+  expect(await screen.findByRole("alert")).toHaveTextContent(
+    "Nothing was confirmed saved",
+  );
+  share.mockRejectedValue(new DOMException("cancelled", "AbortError"));
+  fireEvent.click(save);
+  await waitFor(() =>
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument(),
+  );
+  expect(screen.queryByRole("status")).not.toBeInTheDocument();
+});
+it("starts a PNG download when Android cannot share files", async () => {
+  vi.stubGlobal("navigator", { userAgent: "Android", canShare: () => false });
+  const click = vi
+    .spyOn(HTMLAnchorElement.prototype, "click")
+    .mockImplementation(() => {});
+  fireEvent.click(await openExport());
+  expect(click).toHaveBeenCalledTimes(1);
+  expect(await screen.findByRole("status")).toHaveTextContent("Downloads");
+});

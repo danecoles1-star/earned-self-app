@@ -178,7 +178,7 @@ for (const width of [390, 1440])
     expect(downloads).toBe(0);
     const img = p.waitForEvent("download");
     await p
-      .getByRole("button", { name: "Download image", exact: true })
+      .getByRole("button", { name: "Save to phone", exact: true })
       .click();
     expect((await img).suggestedFilename()).toBe("Earned_Self_Lock_Screen.png");
     expect(
