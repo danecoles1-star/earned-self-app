@@ -1,0 +1,1522 @@
+/* Workstream 1 (November 2026): onboarding conversation, sign-in, the Plan
+   milestone path, and the shared notices and empty states.
+   Loaded after earned.css. Tokens come from earned.css; nothing here defines
+   a colour that is not in the design system. The #es-entry and #es-plan roots
+   plus :is(#es-legacy) keep these rules above the legacy stylesheets. */
+
+/* ---------- Shared: kept line, toasts, empty states ---------- */
+html body .es-kept:is(*, #es-legacy) {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 0;
+  font: 400 0.8rem/1.45 var(--es-ui);
+  color: var(--es-muted);
+  text-align: left;
+}
+html body .es-kept:is(*, #es-legacy) svg {
+  flex: none;
+  margin-top: 0.1em;
+  color: var(--es-link);
+}
+html body .es-toasts:is(*, #es-legacy) {
+  position: fixed;
+  z-index: 60;
+  left: 50%;
+  top: calc(var(--es-safe-top) + 12px);
+  transform: translateX(-50%);
+  width: min(100% - 2 * var(--es-gutter), 28rem);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  background: none;
+  pointer-events: none;
+}
+html body .es-toasts:is(*, #es-legacy) .es-toast {
+  pointer-events: auto;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 12px 16px;
+  border: 1px solid var(--es-line-strong);
+  border-radius: 16px;
+  background: var(--es-card);
+  color: var(--es-text);
+  box-shadow: var(--es-shadow);
+  font: 600 0.88rem/1.4 var(--es-ui);
+  text-align: left;
+  letter-spacing: 0;
+  text-transform: none;
+}
+html body .es-toasts:is(*, #es-legacy) .live-status.es-toast:empty {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  box-shadow: none;
+}
+html body .es-toasts:is(*, #es-legacy) .live-status.es-toast::before {
+  content: "";
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  margin-right: 10px;
+  border-radius: 50%;
+  background: var(--es-link);
+}
+html body .es-toasts:is(*, #es-legacy) .live-status[data-tone="saving"]::before {
+  background: transparent;
+  box-shadow: inset 0 0 0 2px var(--es-link);
+}
+html body .es-toasts:is(*, #es-legacy) .live-status[data-tone="failed"]::before {
+  border-radius: 2px;
+  background: var(--es-ember);
+}
+html body .es-toasts:is(*, #es-legacy) .es-toast-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 8px 10px 16px;
+  border: 1.5px solid var(--es-ember);
+}
+html body .es-toasts:is(*, #es-legacy) .es-toast-error .notice {
+  flex: 1;
+  margin: 0;
+  padding: 2px 0;
+  border: 0;
+  background: none;
+  color: var(--es-text);
+  font: 600 0.88rem/1.4 var(--es-ui);
+  text-align: left;
+}
+html body .es-toasts:is(*, #es-legacy) .es-toast-close {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin: -8px -4px -8px 0;
+  border: 0;
+  border-radius: 12px;
+  background: none;
+  color: var(--es-text);
+}
+html body .es-empty:is(*, #es-legacy) {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  padding: 20px;
+  border: 1.5px dashed var(--es-line-strong);
+  border-radius: 20px;
+  background: none;
+  color: var(--es-body);
+}
+html body .es-empty:is(*, #es-legacy) .es-empty-mark {
+  width: 28px;
+  height: 28px;
+  border: 2px dashed var(--es-line-strong);
+  border-radius: 50%;
+}
+html body .es-empty:is(*, #es-legacy) h2 {
+  margin: 0;
+  font: 600 1.06rem/1.3 var(--es-ui);
+  letter-spacing: 0;
+  color: var(--es-text);
+}
+html body .es-empty:is(*, #es-legacy) p {
+  margin: 0;
+  font: 400 0.94rem/1.5 var(--es-ui);
+  color: var(--es-body);
+}
+
+html body .es-empty-line:is(*, #es-legacy) {
+  margin: 0;
+  padding: 18px 20px;
+  border: 1.5px dashed var(--es-line-strong);
+  border-radius: 20px;
+  background: none;
+  font: 400 0.94rem/1.5 var(--es-ui);
+  color: var(--es-body);
+  text-align: left;
+}
+
+/* ---------- Onboarding and sign-in shell ---------- */
+html body:has(#es-entry) {
+  background: var(--es-ground);
+}
+html body #es-entry:is(*, #es-legacy) {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 35rem;
+  min-height: 100vh;
+  min-height: 100dvh;
+  margin: 0 auto;
+  background: var(--es-ground);
+  color: var(--es-text);
+  font: 400 1rem/1.5 var(--es-ui);
+}
+html body #es-entry:is(*, #es-legacy)[data-screen^="q"] {
+  height: 100vh;
+  height: 100dvh;
+}
+html body #es-entry:is(*, #es-legacy) * {
+  box-sizing: border-box;
+}
+html body #es-entry:is(*, #es-legacy) .eo-top {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 44px;
+  padding: calc(var(--es-safe-top) + 14px) var(--es-gutter) 0;
+}
+html body #es-entry:is(*, #es-legacy) .eo-top .brand-lockup {
+  margin: 0;
+}
+html body #es-entry:is(*, #es-legacy) .eo-back {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin-left: -10px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--es-text);
+}
+html body #es-entry:is(*, #es-legacy) .eo-progress {
+  flex: 1;
+  height: 4px;
+  border-radius: 4px;
+  background: var(--es-line-strong);
+  overflow: hidden;
+}
+html body #es-entry:is(*, #es-legacy) .eo-progress span {
+  display: block;
+  height: 100%;
+  border-radius: 4px;
+  background: var(--es-ember);
+  transition: width 300ms ease;
+}
+html body #es-entry:is(*, #es-legacy) .eo-count {
+  flex: none;
+  min-width: 3.2rem;
+  margin: 0;
+  font: 400 0.76rem/1.3 var(--es-ui);
+  color: var(--es-muted);
+  text-align: right;
+}
+html body #es-entry:is(*, #es-legacy) .eo-eyebrow {
+  margin: 0;
+  color: var(--es-ember-text);
+}
+html body #es-entry:is(*, #es-legacy) .eo-main {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/* ---------- The conversation ---------- */
+html body #es-entry:is(*, #es-legacy) .eo-thread {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 28px var(--es-gutter) 4px;
+  overflow-y: auto;
+  scrollbar-width: none;
+  -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 64px);
+  mask-image: linear-gradient(180deg, transparent 0, #000 64px);
+}
+html body #es-entry:is(*, #es-legacy) .eo-thread::-webkit-scrollbar {
+  display: none;
+}
+html body #es-entry:is(*, #es-legacy) .eo-thread > :first-child {
+  margin-top: auto;
+}
+html body #es-entry:is(*, #es-legacy) .eo-turn {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+html body #es-entry:is(*, #es-legacy) .eo-asked {
+  align-self: flex-start;
+  max-width: 78%;
+  margin: 0 0 0 42px;
+  padding: 9px 14px;
+  border: 1px solid var(--es-line);
+  border-radius: 18px 18px 18px 6px;
+  background: var(--es-card);
+  font: 400 0.88rem/1.4 var(--es-ui);
+  color: var(--es-body);
+}
+html body #es-entry:is(*, #es-legacy) .eo-said {
+  align-self: flex-end;
+  max-width: 86%;
+  min-height: 44px;
+  margin: 0;
+  padding: 11px 16px;
+  border: 0;
+  border-radius: 20px 20px 6px 20px;
+  background: var(--es-primary-bg);
+  color: var(--es-primary-fg);
+  font: 400 0.94rem/1.45 var(--es-ui);
+  text-align: left;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+html body #es-entry:is(*, #es-legacy) .eo-guide {
+  flex: none;
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+}
+html body #es-entry:is(*, #es-legacy) .eo-avatar {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--es-line);
+  border-radius: 50%;
+  background: var(--es-card);
+  color: var(--es-text);
+}
+html body #es-entry:is(*, #es-legacy) .eo-avatar svg {
+  width: 18px;
+  height: 18px;
+}
+html body #es-entry:is(*, #es-legacy) .eo-bubbles {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+html body #es-entry:is(*, #es-legacy) .eo-bubble {
+  max-width: 100%;
+  padding: 12px 16px;
+  border: 1px solid var(--es-line);
+  background: var(--es-card);
+}
+html body #es-entry:is(*, #es-legacy) .eo-question {
+  border-radius: 20px 20px 20px 6px;
+}
+html body #es-entry:is(*, #es-legacy) .eo-note {
+  border-radius: 6px 20px 20px 20px;
+}
+html body #es-entry:is(*, #es-legacy) .eo-question h1 {
+  margin: 0;
+  font: 400 1.5rem/1.15 var(--es-display);
+  letter-spacing: -0.01em;
+  color: var(--es-text);
+  outline: none;
+}
+html body #es-entry:is(*, #es-legacy) .eo-note p {
+  margin: 0;
+  font: 400 0.88rem/1.5 var(--es-ui);
+  color: var(--es-body);
+}
+html body #es-entry:is(*, #es-legacy) .eo-typing {
+  display: none;
+}
+
+/* ---------- Answers ---------- */
+html body #es-entry:is(*, #es-legacy) .eo-answer {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 66vh;
+  max-height: 66dvh;
+  padding: 14px var(--es-gutter) calc(var(--es-safe-bottom) + 20px);
+  overflow-y: auto;
+}
+html body #es-entry:is(*, #es-legacy) .eo-answer-plain {
+  max-height: none;
+  margin-top: auto;
+  overflow: visible;
+}
+html body #es-entry:is(*, #es-legacy) .eo-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+}
+html body #es-entry:is(*, #es-legacy) .eo-field label {
+  display: block;
+  margin: 0;
+  font: 600 0.8rem/1.3 var(--es-ui);
+  color: var(--es-muted);
+}
+html body #es-entry:is(*, #es-legacy) .eo-field-box {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 6px 6px 6px 16px;
+  border: 1.5px solid var(--es-line-strong);
+  border-radius: 18px;
+  background: var(--es-card);
+}
+html body #es-entry:is(*, #es-legacy) .eo-field-box:focus-within {
+  border-color: var(--es-text);
+}
+html body #es-entry:is(*, #es-legacy) .eo-field-box textarea {
+  flex: 1;
+  width: auto;
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  padding: 9px 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  color: var(--es-text);
+  font: 400 1rem/1.5 var(--es-ui);
+  resize: none;
+  outline: none;
+  field-sizing: content;
+  max-height: 9em;
+}
+html body #es-entry:is(*, #es-legacy) .eo-field-box textarea::placeholder {
+  color: var(--es-muted);
+  opacity: 1;
+}
+html body #es-entry:is(*, #es-legacy) .eo-mic {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 14px;
+  background: var(--es-chip);
+  color: var(--es-text);
+}
+html body #es-entry:is(*, #es-legacy) .eo-mic[aria-pressed="true"] {
+  background: var(--es-ember);
+  color: #101a20;
+}
+html body #es-entry:is(*, #es-legacy) .eo-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+html body #es-entry:is(*, #es-legacy) .eo-chip {
+  min-height: 44px;
+  margin: 0;
+  padding: 0 16px;
+  border: 1.5px solid var(--es-line-strong);
+  border-radius: 999px;
+  background: none;
+  color: var(--es-text);
+  font: 400 0.88rem/1.2 var(--es-ui);
+}
+html body #es-entry:is(*, #es-legacy) .eo-pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+html body #es-entry:is(*, #es-legacy) .eo-choice {
+  min-height: 52px;
+  margin: 0;
+  padding: 8px 12px;
+  border: 1.5px solid var(--es-line-strong);
+  border-radius: 16px;
+  background: none;
+  color: var(--es-text);
+  font: 600 0.9rem/1.2 var(--es-ui);
+}
+html body #es-entry:is(*, #es-legacy) :is(.eo-chip, .eo-choice)[aria-pressed="true"] {
+  border-color: var(--es-primary-bg);
+  background: var(--es-primary-bg);
+  color: var(--es-primary-fg);
+  font-weight: 600;
+}
+html body #es-entry:is(*, #es-legacy) .eo-reply {
+  margin: 0;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: var(--es-chip);
+  font: 400 0.9rem/1.5 var(--es-ui);
+  color: var(--es-body);
+}
+html body #es-entry:is(*, #es-legacy) .eo-areas {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+html body #es-entry:is(*, #es-legacy) .eo-area {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  min-height: 84px;
+  margin: 0;
+  padding: 8px 8px 8px 16px;
+  border: 1.5px solid var(--es-line-strong);
+  border-radius: 20px;
+  background: var(--es-card);
+  color: var(--es-text);
+  text-align: left;
+}
+html body #es-entry:is(*, #es-legacy) .eo-area[aria-pressed="true"] {
+  border-color: var(--es-text);
+  box-shadow: inset 0 0 0 1px var(--es-text);
+}
+html body #es-entry:is(*, #es-legacy) .eo-area > span {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+html body #es-entry:is(*, #es-legacy) .eo-area strong {
+  font: 600 1rem/1.3 var(--es-ui);
+}
+html body #es-entry:is(*, #es-legacy) .eo-area[aria-pressed="true"] strong::after {
+  content: "";
+  display: inline-block;
+  width: 0.45em;
+  height: 0.85em;
+  margin-left: 0.6em;
+  border: solid var(--es-ember);
+  border-width: 0 2.5px 2.5px 0;
+  transform: rotate(45deg);
+}
+html body #es-entry:is(*, #es-legacy) .eo-area small {
+  font: 400 0.82rem/1.4 var(--es-ui);
+  color: var(--es-muted);
+}
+html body #es-entry:is(*, #es-legacy) .eo-area img {
+  flex: none;
+  width: 100px;
+  height: 66px;
+  border-radius: 14px;
+  object-fit: cover;
+}
+html body #es-entry:is(*, #es-legacy) .eo-primary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  margin: 0;
+}
+html body #es-entry:is(*, #es-legacy) .eo-primary .eo-arrow {
+  color: var(--es-ember);
+}
+html body #es-entry:is(*, #es-legacy) .eo-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+html body #es-entry:is(*, #es-legacy) .eo-quiet {
+  min-height: 44px;
+  margin: 0;
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  color: var(--es-text);
+  font: 600 0.88rem/1.3 var(--es-ui);
+  text-decoration: none;
+  align-self: center;
+}
+html body #es-entry:is(*, #es-legacy) .eo-quiet:disabled {
+  opacity: 0.45;
+}
+html body #es-entry:is(*, #es-legacy) .eo-alert {
+  margin: 0;
+  padding: 12px 16px;
+  border: 1.5px solid var(--es-ember);
+  border-radius: 16px;
+  background: var(--es-card);
+  font: 600 0.88rem/1.4 var(--es-ui);
+  color: var(--es-text);
+}
+html body #es-entry:is(*, #es-legacy) .context-help {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+html body #es-entry:is(*, #es-legacy) .eo-kept .first-proof {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+html body #es-entry:is(*, #es-legacy) .context-help [role="region"] {
+  margin: 0;
+  padding: 12px 16px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--es-chip);
+}
+html body #es-entry:is(*, #es-legacy) .context-help p {
+  margin: 0 0 8px;
+  font: 400 0.88rem/1.5 var(--es-ui);
+  color: var(--es-body);
+}
+html body #es-entry:is(*, #es-legacy) .context-help .quiet {
+  padding: 0;
+}
+
+/* ---------- Pages inside the flow: first step, sign-in ---------- */
+html body #es-entry:is(*, #es-legacy) .eo-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px var(--es-gutter) 0;
+}
+html body #es-entry:is(*, #es-legacy) .eo-title {
+  margin: 0;
+  font: 400 1.9rem/1.12 var(--es-display);
+  letter-spacing: -0.01em;
+  color: var(--es-text);
+  outline: none;
+}
+html body #es-entry:is(*, #es-legacy) .eo-sub {
+  margin: -6px 0 0;
+  font: 400 0.94rem/1.5 var(--es-ui);
+  color: var(--es-muted);
+}
+html body #es-entry:is(*, #es-legacy) .eo-small {
+  margin: 0;
+  font: 400 0.82rem/1.5 var(--es-ui);
+  color: var(--es-muted);
+}
+html body #es-entry:is(*, #es-legacy) .eo-card {
+  margin: 0;
+  padding: 16px 18px;
+  border: 1px solid var(--es-line);
+  border-radius: 20px;
+  background: var(--es-card);
+}
+html body #es-entry:is(*, #es-legacy) .eo-doing {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border: 0;
+  box-shadow: inset 0 0 0 2px var(--es-ember);
+}
+html body #es-entry:is(*, #es-legacy) :is(.eo-doing, .eo-kept) h2 {
+  margin: 0;
+  font: 600 1.18rem/1.3 var(--es-ui);
+  letter-spacing: 0;
+  color: var(--es-text);
+}
+html body #es-entry:is(*, #es-legacy) :is(.eo-doing, .eo-kept) p {
+  margin: 0;
+  font: 400 0.94rem/1.45 var(--es-ui);
+  color: var(--es-body);
+}
+html body #es-entry:is(*, #es-legacy) .eo-kept {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+html body #es-entry:is(*, #es-legacy) .eo-results {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+html body #es-entry:is(*, #es-legacy) .eo-result {
+  min-height: 52px;
+  margin: 0;
+  padding: 0 8px;
+  border: 1.5px solid var(--es-line-strong);
+  border-radius: 16px;
+  background: none;
+  color: var(--es-text);
+  font: 600 0.94rem/1.2 var(--es-ui);
+}
+html body #es-entry:is(*, #es-legacy) .eo-result[data-result="partly"] {
+  background: var(--es-chip);
+}
+html body #es-entry:is(*, #es-legacy) .eo-result[data-result="did_not_happen"] {
+  border-style: dashed;
+  border-color: var(--es-link);
+}
+html body #es-entry:is(*, #es-legacy) .eo-result[aria-pressed="true"] {
+  border-style: solid;
+  border-color: var(--es-primary-bg);
+  background: var(--es-primary-bg);
+  color: var(--es-primary-fg);
+}
+html body #es-entry:is(*, #es-legacy) .eo-result[aria-pressed="true"]::before {
+  content: "";
+  display: inline-block;
+  width: 0.4em;
+  height: 0.75em;
+  margin-right: 0.6em;
+  border: solid currentColor;
+  border-width: 0 2.5px 2.5px 0;
+  transform: translateY(-0.1em) rotate(45deg);
+}
+
+/* ---------- Building and reveal ---------- */
+html body #es-entry:is(*, #es-legacy) .eo-build {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 18vh 28px 0;
+  text-align: center;
+}
+html body #es-entry:is(*, #es-legacy) .eo-build-mark {
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  border: 2px solid var(--es-ember);
+  border-radius: 50%;
+  background: var(--es-card);
+  color: var(--es-text);
+  animation: eo-pulse 2.2s ease-in-out infinite;
+}
+html body #es-entry:is(*, #es-legacy) .eo-build-mark svg {
+  width: 34px;
+  height: 34px;
+}
+html body #es-entry:is(*, #es-legacy) .eo-build h1 {
+  margin: 6px 0 0;
+  font: 400 1.9rem/1.12 var(--es-display);
+  letter-spacing: -0.01em;
+  outline: none;
+}
+html body #es-entry:is(*, #es-legacy) .eo-build > p {
+  margin: 0;
+  font: 400 0.94rem/1.5 var(--es-ui);
+  color: var(--es-muted);
+}
+html body #es-entry:is(*, #es-legacy) .eo-build-inputs {
+  align-self: stretch;
+  margin-top: 8px;
+  text-align: left;
+}
+html body #es-entry:is(*, #es-legacy) .eo-build-inputs dt {
+  margin: 0 0 8px;
+  font: 600 0.78rem/1.3 var(--es-ui);
+  color: var(--es-muted);
+}
+html body #es-entry:is(*, #es-legacy) .eo-build-inputs dd {
+  margin: 0;
+  padding: 10px 0;
+  border-top: 1px solid var(--es-line);
+  font: 400 0.9rem/1.45 var(--es-ui);
+  color: var(--es-body);
+  white-space: pre-wrap;
+}
+html body #es-entry:is(*, #es-legacy) .eo-build-inputs dd.eo-build-vision {
+  padding-top: 0;
+  border-top: 0;
+  color: var(--es-text);
+}
+html body #es-entry:is(*, #es-legacy) .eo-building .es-kept {
+  justify-content: center;
+}
+html body #es-entry:is(*, #es-legacy) .eo-hero {
+  position: relative;
+  flex: none;
+  height: 220px;
+  overflow: hidden;
+}
+html body #es-entry:is(*, #es-legacy) .eo-hero img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 30%;
+}
+html body #es-entry:is(*, #es-legacy) .eo-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 50%, var(--es-ground) 100%);
+}
+html body #es-entry:is(*, #es-legacy) .eo-hero .eo-back {
+  position: absolute;
+  z-index: 1;
+  top: calc(var(--es-safe-top) + 14px);
+  left: 16px;
+  margin: 0;
+  background: var(--es-card);
+}
+html body #es-entry:is(*, #es-legacy) .eo-reveal-body {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: -18px;
+  padding: 0 var(--es-gutter);
+}
+html body #es-entry:is(*, #es-legacy) .eo-reveal-body h1:not(.visually-hidden) {
+  margin: 0;
+  font: 400 1.76rem/1.12 var(--es-display);
+  letter-spacing: -0.01em;
+  outline: none;
+}
+html body #es-entry:is(*, #es-legacy) .eo-blank {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+html body #es-entry:is(*, #es-legacy) .eo-blank span {
+  display: block;
+  width: 72%;
+  height: 14px;
+  border-radius: 6px;
+  background: var(--es-line);
+}
+html body #es-entry:is(*, #es-legacy) .eo-blank span + span {
+  width: 40%;
+  height: 10px;
+}
+html body #es-entry:is(*, #es-legacy) .eo-blank-title {
+  gap: 12px;
+  padding: 4px 0;
+}
+html body #es-entry:is(*, #es-legacy) .eo-blank-title span {
+  width: 92%;
+  height: 26px;
+}
+html body #es-entry:is(*, #es-legacy) .eo-blank-title span + span {
+  width: 64%;
+  height: 26px;
+}
+html body #es-entry:is(*, #es-legacy) .eo-becoming {
+  margin: 0;
+}
+html body #es-entry:is(*, #es-legacy) .eo-becoming dt {
+  font: 600 0.78rem/1.3 var(--es-ui);
+  color: var(--es-muted);
+}
+html body #es-entry:is(*, #es-legacy) .eo-becoming dd {
+  margin: 3px 0 0;
+  font: 400 0.94rem/1.45 var(--es-ui);
+  color: var(--es-text);
+}
+html body #es-entry:is(*, #es-legacy) .eo-milestones {
+  padding: 18px 18px 2px;
+}
+html body #es-entry:is(*, #es-legacy) .eo-milestones h2 {
+  margin: 0 0 14px;
+  font: 600 0.88rem/1.3 var(--es-ui);
+  letter-spacing: 0;
+}
+html body #es-entry:is(*, #es-legacy) .eo-milestones ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+html body #es-entry:is(*, #es-legacy) .eo-milestones li {
+  position: relative;
+  padding: 4px 0 20px 36px;
+}
+html body #es-entry:is(*, #es-legacy) .eo-milestones li::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 2px;
+  width: 18px;
+  height: 18px;
+  border: 2px dashed var(--es-line-strong);
+  border-radius: 50%;
+}
+html body #es-entry:is(*, #es-legacy) .eo-milestones li:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: 10px;
+  top: 22px;
+  bottom: -2px;
+  width: 2px;
+  background: var(--es-line-strong);
+}
+
+/* ---------- Sign-in ---------- */
+html body #es-entry:is(*, #es-legacy).eo-auth .eo-top {
+  padding-top: calc(var(--es-safe-top) + 20px);
+}
+html body #es-entry:is(*, #es-legacy).eo-auth .eo-page {
+  padding-bottom: calc(var(--es-safe-bottom) + 24px);
+}
+html body #es-entry:is(*, #es-legacy) .eo-draft {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px;
+}
+html body #es-entry:is(*, #es-legacy) .eo-draft .es-kept {
+  font-weight: 600;
+  font-size: 0.88rem;
+  color: var(--es-text);
+}
+html body #es-entry:is(*, #es-legacy) .eo-draft-words {
+  margin: 0;
+  font: 400 0.9rem/1.45 var(--es-ui);
+  color: var(--es-body);
+  overflow-wrap: anywhere;
+}
+html body #es-entry:is(*, #es-legacy) .auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+}
+html body #es-entry:is(*, #es-legacy) .auth-form > p {
+  margin: 0 0 6px;
+  font: 400 0.88rem/1.5 var(--es-ui);
+  color: var(--es-body);
+}
+html body #es-entry:is(*, #es-legacy) .auth-form label {
+  display: block;
+  margin: 8px 0 0;
+  font: 600 0.88rem/1.3 var(--es-ui);
+  color: var(--es-text);
+}
+html body #es-entry:is(*, #es-legacy) .auth-form input {
+  width: 100%;
+  min-height: 54px;
+  margin: 0;
+  padding: 0 16px;
+  border: 1.5px solid var(--es-line-strong);
+  border-radius: 16px;
+  background: var(--es-card);
+  box-shadow: none;
+  color: var(--es-text);
+  font: 400 1rem/1.3 var(--es-ui);
+}
+html body #es-entry:is(*, #es-legacy) .auth-form input:focus-visible {
+  border-color: var(--es-text);
+  outline-offset: 1px;
+}
+html body #es-entry:is(*, #es-legacy) .auth-form .small,
+html body #es-entry:is(*, #es-legacy) .eo-page > .small {
+  margin: 0;
+  font: 400 0.78rem/1.45 var(--es-ui);
+  color: var(--es-muted);
+}
+html body #es-entry:is(*, #es-legacy) .auth-form [role="alert"] {
+  margin: 8px 0 0;
+  padding: 12px 16px;
+  border: 1.5px solid var(--es-ember);
+  border-radius: 16px;
+  background: var(--es-card);
+  font: 600 0.88rem/1.4 var(--es-ui);
+  color: var(--es-text);
+}
+html body #es-entry:is(*, #es-legacy) .auth-form .button {
+  width: 100%;
+  margin: 14px 0 0;
+}
+html body #es-entry:is(*, #es-legacy) .eo-page > .button {
+  width: 100%;
+  margin: 0;
+}
+html body #es-entry:is(*, #es-legacy) .eo-page > p:not([class]) {
+  margin: 0;
+  font: 400 0.94rem/1.5 var(--es-ui);
+  color: var(--es-body);
+}
+html body #es-entry:is(*, #es-legacy) .auth-options {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0 16px;
+  margin: 0;
+}
+html body #es-entry:is(*, #es-legacy) .auth-options .quiet {
+  padding: 0;
+  font-size: 0.86rem;
+}
+html body #es-entry:is(*, #es-legacy).eo-auth .eo-page > .small {
+  text-align: center;
+}
+
+/* ---------- Motion: each question arrives like a message ---------- */
+@keyframes eo-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes eo-typing {
+  0%,
+  92% {
+    opacity: 1;
+    max-height: 44px;
+  }
+  100% {
+    opacity: 0;
+    max-height: 0;
+    padding-block: 0;
+    border-width: 0;
+    margin-bottom: -6px;
+  }
+}
+@keyframes eo-dot {
+  0%,
+  60%,
+  100% {
+    opacity: 0.3;
+    transform: none;
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-3px);
+  }
+}
+@keyframes eo-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 91, 54, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 0 14px rgba(255, 91, 54, 0);
+  }
+}
+@media (prefers-reduced-motion: no-preference) {
+  html body #es-entry:is(*, #es-legacy) .eo-typing {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    height: 44px;
+    padding: 0 16px;
+    border: 1px solid var(--es-line);
+    border-radius: 20px 20px 20px 6px;
+    background: var(--es-card);
+    overflow: hidden;
+    animation: eo-typing 480ms linear both;
+  }
+  html body #es-entry:is(*, #es-legacy) .eo-typing i {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--es-muted);
+    animation: eo-dot 0.9s ease-in-out infinite;
+  }
+  html body #es-entry:is(*, #es-legacy) .eo-typing i:nth-child(2) {
+    animation-delay: 0.15s;
+  }
+  html body #es-entry:is(*, #es-legacy) .eo-typing i:nth-child(3) {
+    animation-delay: 0.3s;
+  }
+  html body #es-entry:is(*, #es-legacy) .eo-turn:last-of-type .eo-said {
+    animation: eo-rise 360ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+  html body #es-entry:is(*, #es-legacy) .eo-question {
+    animation: eo-rise 420ms cubic-bezier(0.2, 0.8, 0.2, 1) 440ms both;
+  }
+  html body #es-entry:is(*, #es-legacy) .eo-note {
+    animation: eo-rise 420ms cubic-bezier(0.2, 0.8, 0.2, 1) 760ms both;
+  }
+  html body #es-entry:is(*, #es-legacy)[data-screen^="q"] .eo-answer {
+    animation: eo-rise 420ms cubic-bezier(0.2, 0.8, 0.2, 1) 1040ms both;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  html body #es-entry:is(*, #es-legacy) .eo-build-mark {
+    animation: none;
+  }
+  html body #es-entry:is(*, #es-legacy) .eo-progress span {
+    transition: none;
+  }
+}
+@media (min-width: 720px) {
+  html body #es-entry:is(*, #es-legacy) {
+    border-inline: 1px solid var(--es-line);
+  }
+}
+/* In dark mode a member's answer sits on a raised chip, not an ivory block. */
+@media (prefers-color-scheme: dark) {
+  html body #es-entry:is(*, #es-legacy) .eo-said {
+    background: var(--es-chip);
+    color: var(--es-text);
+  }
+}
+
+/* ---------- Plan: the milestone path ---------- */
+html body #es-plan:is(*, #es-legacy) {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  width: 100%;
+  max-width: 35rem;
+  margin: 0 auto;
+  padding: 0 0 8px;
+  color: var(--es-text);
+  font: 400 1rem/1.5 var(--es-ui);
+}
+html body #es-plan:is(*, #es-legacy) :is(
+    .challenge-breadcrumb,
+    .plan-overview,
+    .all-plan-details,
+    .milestone-path,
+    .plan-stage,
+    .milestone-heading,
+    .stage-number,
+    .plan-step-row,
+    .plan-step-title,
+    .step-state,
+    .step-metadata,
+    .section-label,
+    .preparation-card,
+    .manage-challenge,
+    .plan-tools,
+    .route-current,
+    .path-caption
+  ) {
+  all: unset;
+  box-sizing: border-box;
+}
+html body #es-plan:is(*, #es-legacy) :is(
+    .challenge-breadcrumb,
+    .plan-overview,
+    .all-plan-details,
+    .milestone-path,
+    .plan-stage,
+    .milestone-heading,
+    .stage-number,
+    .plan-step-row,
+    .preparation-card,
+    .manage-challenge,
+    .plan-tools,
+    .route-current
+  )::before,
+html body #es-plan:is(*, #es-legacy) :is(
+    .challenge-breadcrumb,
+    .plan-overview,
+    .all-plan-details,
+    .milestone-path,
+    .plan-stage,
+    .milestone-heading,
+    .stage-number,
+    .plan-step-row,
+    .preparation-card,
+    .manage-challenge,
+    .plan-tools,
+    .route-current
+  )::after {
+  content: none;
+}
+html body #es-plan:is(*, #es-legacy) .ep-becoming {
+  margin: -6px 0 0;
+  font: 400 0.94rem/1.4 var(--es-ui);
+  color: var(--es-muted);
+}
+html body #es-plan:is(*, #es-legacy) .ep-challenge {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+html body #es-plan:is(*, #es-legacy) .ep-challenge .es-eyebrow {
+  color: var(--es-ember-text);
+}
+html body #es-plan:is(*, #es-legacy) .ep-challenge h2 {
+  margin: 0;
+  font: 600 1.3rem/1.25 var(--es-ui);
+  letter-spacing: 0;
+  color: var(--es-text);
+}
+html body #es-plan:is(*, #es-legacy) .ep-challenge h2.ep-pending {
+  font-weight: 400;
+  color: var(--es-muted);
+}
+html body #es-plan:is(*, #es-legacy) .ep-challenge p {
+  margin: 0;
+  font: 400 0.9rem/1.5 var(--es-ui);
+  color: var(--es-body);
+}
+html body #es-plan:is(*, #es-legacy) .ep-path {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 18px 16px 8px;
+  border: 1px solid rgba(242, 237, 228, 0.12);
+  border-radius: 22px;
+  background: #101a20;
+  color: #f6f1e8;
+}
+html body #es-plan:is(*, #es-legacy) .ep-path-head {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+html body #es-plan:is(*, #es-legacy) .ep-path-head .es-eyebrow {
+  color: #a9b6bc;
+}
+html body #es-plan:is(*, #es-legacy) .ep-totals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin: 0;
+  font: 400 0.78rem/1.4 var(--es-ui);
+  color: #a9b6bc;
+}
+html body #es-plan:is(*, #es-legacy) .ep-totals .path-caption {
+  font-weight: 600;
+  color: #f6f1e8;
+}
+html body #es-plan:is(*, #es-legacy) .ep-totals strong {
+  font-weight: 600;
+  color: #f6f1e8;
+}
+html body #es-plan:is(*, #es-legacy) .all-plan-details {
+  display: block;
+}
+html body #es-plan:is(*, #es-legacy) .ep-milestones {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+html body #es-plan:is(*, #es-legacy) .ep-milestone {
+  display: flex;
+  gap: 14px;
+  outline-offset: 4px;
+}
+html body #es-plan:is(*, #es-legacy) .ep-rail {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 48px;
+}
+html body #es-plan:is(*, #es-legacy) .ep-rail::after {
+  content: "";
+  flex: 1;
+  width: 2px;
+  min-height: 14px;
+  background: rgba(246, 241, 232, 0.2);
+}
+html body #es-plan:is(*, #es-legacy) .ep-milestone:last-child .ep-rail::after {
+  content: none;
+}
+html body #es-plan:is(*, #es-legacy) .ep-node {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  margin: 2px 0;
+  border: 2px dashed rgba(246, 241, 232, 0.35);
+  border-radius: 50%;
+  font: 600 0.94rem/1 var(--es-ui);
+  color: #c9d3d7;
+}
+html body #es-plan:is(*, #es-legacy) .ep-milestone[data-state="earned"] .ep-node {
+  width: 48px;
+  height: 48px;
+  margin: 0;
+  border: 2px solid var(--es-gold);
+  color: var(--es-gold);
+  box-shadow: 0 0 0 5px rgba(240, 180, 76, 0.1);
+}
+html body #es-plan:is(*, #es-legacy) .ep-milestone[data-state="earned"] .ep-rail::after {
+  margin-top: 5px;
+  background: var(--es-gold);
+}
+html body #es-plan:is(*, #es-legacy) .ep-milestone[data-state="current"] .ep-node {
+  width: 48px;
+  height: 48px;
+  margin: 0;
+  border: 3px solid var(--es-ember);
+  font-weight: 700;
+  color: #f6f1e8;
+}
+html body #es-plan:is(*, #es-legacy) .ep-milestone[data-state="current"] .ep-rail::after {
+  background: linear-gradient(180deg, var(--es-ember) 0%, rgba(246, 241, 232, 0.2) 60%);
+}
+html body #es-plan:is(*, #es-legacy) .ep-milestone-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 2px 0 20px;
+}
+html body #es-plan:is(*, #es-legacy) .ep-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  text-align: left;
+  color: inherit;
+}
+html body #es-plan:is(*, #es-legacy) button.ep-heading {
+  cursor: pointer;
+  border-radius: 8px;
+}
+html body #es-plan:is(*, #es-legacy) button.ep-heading:focus-visible {
+  outline: 3px solid var(--es-ember);
+  outline-offset: 3px;
+}
+html body #es-plan:is(*, #es-legacy) .ep-heading small {
+  font: 600 0.78rem/1.3 var(--es-ui);
+  color: #a9b6bc;
+}
+html body #es-plan:is(*, #es-legacy) .ep-heading strong {
+  font: 600 0.96rem/1.3 var(--es-ui);
+  color: #c9d3d7;
+  overflow-wrap: anywhere;
+}
+html body #es-plan:is(*, #es-legacy) .ep-milestone[data-state="earned"] .ep-heading small {
+  color: var(--es-gold);
+}
+html body #es-plan:is(*, #es-legacy) .ep-milestone[data-state="current"] .ep-heading small {
+  color: #ff8a6b;
+}
+html body #es-plan:is(*, #es-legacy) .ep-milestone:is([data-state="earned"], [data-state="current"]) .ep-heading strong {
+  color: #f6f1e8;
+}
+html body #es-plan:is(*, #es-legacy) .ep-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+html body #es-plan:is(*, #es-legacy) .ep-detail[hidden] {
+  display: none;
+}
+html body #es-plan:is(*, #es-legacy) .ep-detail p {
+  margin: 0;
+}
+html body #es-plan:is(*, #es-legacy) .ep-criterion {
+  font: 400 0.84rem/1.45 var(--es-ui);
+  color: #c9d3d7;
+}
+html body #es-plan:is(*, #es-legacy) .ep-detail .small {
+  font: 400 0.78rem/1.4 var(--es-ui);
+  color: #a9b6bc;
+}
+html body #es-plan:is(*, #es-legacy) .ep-step {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-left: 18px;
+  position: relative;
+}
+html body #es-plan:is(*, #es-legacy) .ep-step::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.5em;
+  width: 8px;
+  height: 8px;
+  border: 1.5px solid rgba(246, 241, 232, 0.5);
+  border-radius: 50%;
+}
+html body #es-plan:is(*, #es-legacy) .ep-step .plan-step-title,
+html body #es-plan:is(*, #es-legacy) .ep-step > p {
+  display: block;
+  font: 600 0.9rem/1.35 var(--es-ui);
+  color: #f6f1e8;
+  overflow-wrap: anywhere;
+}
+html body #es-plan:is(*, #es-legacy) .ep-step :is(.step-state, .step-metadata) {
+  display: block;
+  font: 400 0.78rem/1.4 var(--es-ui);
+  color: #a9b6bc;
+}
+html body #es-plan:is(*, #es-legacy) .ep-step .quiet {
+  align-self: flex-start;
+  padding: 0;
+  color: #9fc0ce;
+}
+html body #es-plan:is(*, #es-legacy) .ep-step-current {
+  gap: 4px;
+  margin: 4px 0;
+  padding: 14px;
+  border-radius: 16px;
+  background: #f6f1e8;
+  color: #101a20;
+  box-shadow: inset 0 0 0 2.5px var(--es-ember);
+}
+html body #es-plan:is(*, #es-legacy) .ep-step-current::before {
+  content: none;
+}
+html body #es-plan:is(*, #es-legacy) .ep-step-current .section-label {
+  display: block;
+  font: 700 0.72rem/1.3 var(--es-ui);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #b8401f;
+}
+html body #es-plan:is(*, #es-legacy) .ep-step-current button.plan-step-title {
+  display: block;
+  min-height: 44px;
+  padding: 2px 0;
+  cursor: pointer;
+  font: 600 1rem/1.3 var(--es-ui);
+  color: #101a20;
+  text-align: left;
+  text-decoration: underline;
+  text-decoration-color: var(--es-ember);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+}
+html body #es-plan:is(*, #es-legacy) .ep-step-current button.plan-step-title:focus-visible {
+  outline: 3px solid var(--es-ember);
+  outline-offset: 2px;
+}
+html body #es-plan:is(*, #es-legacy) .ep-step-current :is(.step-state, .step-metadata) {
+  color: #3a4a52;
+}
+html body #es-plan:is(*, #es-legacy) .ep-step-current .quiet {
+  color: #101a20;
+}
+html body #es-plan:is(*, #es-legacy) .ep-ghost {
+  min-height: 48px;
+  margin: 2px 0 0;
+  padding: 0 18px;
+  border: 1.5px solid rgba(246, 241, 232, 0.35);
+  border-radius: 14px;
+  background: none;
+  color: #f6f1e8;
+  font: 600 0.88rem/1.2 var(--es-ui);
+}
+html body #es-plan:is(*, #es-legacy) .ep-path .es-empty {
+  border-color: rgba(246, 241, 232, 0.3);
+  color: #c9d3d7;
+}
+html body #es-plan:is(*, #es-legacy) .ep-path .es-empty .es-empty-mark {
+  border-color: rgba(246, 241, 232, 0.35);
+}
+html body #es-plan:is(*, #es-legacy) .ep-path .es-empty h2 {
+  color: #f6f1e8;
+}
+html body #es-plan:is(*, #es-legacy) .ep-path .es-empty p {
+  color: #c9d3d7;
+}
+html body #es-plan:is(*, #es-legacy) .ep-tools {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+html body #es-plan:is(*, #es-legacy) .ep-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px;
+  border: 1px solid var(--es-line);
+  border-radius: 20px;
+  background: var(--es-card);
+}
+html body #es-plan:is(*, #es-legacy) .ep-card h2 {
+  margin: 0;
+  font: 600 1.1rem/1.3 var(--es-ui);
+  letter-spacing: 0;
+  color: var(--es-text);
+}
+html body #es-plan:is(*, #es-legacy) .ep-card dl {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+}
+html body #es-plan:is(*, #es-legacy) .ep-card dl > div {
+  padding: 12px 0;
+  border-top: 1px solid var(--es-line);
+}
+html body #es-plan:is(*, #es-legacy) .ep-card dl > div:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+html body #es-plan:is(*, #es-legacy) .ep-card dl > div:last-child {
+  padding-bottom: 0;
+}
+html body #es-plan:is(*, #es-legacy) .ep-card dt {
+  font: 600 0.78rem/1.3 var(--es-ui);
+  color: var(--es-muted);
+}
+html body #es-plan:is(*, #es-legacy) .ep-card dd {
+  margin: 2px 0 0;
+  font: 400 0.9rem/1.45 var(--es-ui);
+  color: var(--es-body);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+html body #es-plan:is(*, #es-legacy) .ep-card [data-empty] dd {
+  color: var(--es-muted);
+}
+html body #es-plan:is(*, #es-legacy) .ep-manage {
+  display: block;
+  border: 1px solid var(--es-line-strong);
+  border-radius: 18px;
+}
+html body #es-plan:is(*, #es-legacy) .ep-manage > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 56px;
+  padding: 0 18px;
+  cursor: pointer;
+  list-style: none;
+  font: 600 0.94rem/1.3 var(--es-ui);
+  color: var(--es-text);
+}
+html body #es-plan:is(*, #es-legacy) .ep-manage > summary::-webkit-details-marker {
+  display: none;
+}
+html body #es-plan:is(*, #es-legacy) .ep-manage > summary::after {
+  content: "";
+  width: 9px;
+  height: 9px;
+  margin-right: 4px;
+  border: solid var(--es-text);
+  border-width: 0 2px 2px 0;
+  transform: translateY(-3px) rotate(45deg);
+}
+html body #es-plan:is(*, #es-legacy) .ep-manage[open] > summary::after {
+  transform: translateY(2px) rotate(225deg);
+}
+html body #es-plan:is(*, #es-legacy) .ep-manage[open] {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0 18px 18px;
+}
+html body #es-plan:is(*, #es-legacy) .ep-manage[open] > summary {
+  padding: 0;
+}
+html body #es-plan:is(*, #es-legacy) .ep-manage .button {
+  width: 100%;
+  margin: 0;
+}
+
+/* ---------- Light/dark audit fixes ---------- */
+/* The account glyph is a dark line icon; flip it on dark surfaces. */
+@media (prefers-color-scheme: dark) {
+  html body .account-button:is(*, #es-legacy) img:not(.profile-photo),
+  html body .profile-editor:is(*, #es-legacy) img.profile-editor-image[src*="svg"] {
+    filter: invert(1) brightness(1.6);
+  }
+}
+
+/* The legacy Plan styles append ": " to the current milestone's label. */
+html body #es-plan:is(*, #es-legacy) .route-current small::after {
+  content: none;
+}

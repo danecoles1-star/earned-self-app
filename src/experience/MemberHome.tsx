@@ -11,7 +11,8 @@ import {
 import physicalIllustration from "../assets/illustrations/illo-physical.webp";
 import professionalIllustration from "../assets/illustrations/illo-professional.webp";
 import personalIllustration from "../assets/illustrations/illo-personal.webp";
-import { wallpapers } from "./wallpapers";
+import { exampleArtwork } from "./exampleArtwork";
+import { wallpaperColors } from "./wallpapers";
 import type { Goal, GrowthArea, Snapshot } from "../data/types";
 import {
   currentAction,
@@ -40,7 +41,7 @@ export function MemberHome({
   navigate: (p: string) => void;
 }) {
   const [wallpaperOpen, setWallpaperOpen] = useState(false);
-  const illustration = illustrations[goal.area || "physical"];
+  const illustration = exampleArtwork(goal.words) || illustrations[goal.area || "physical"];
   const commitment = currentAction(snapshot, goal.id);
   const currentDefinition =
     commitment && definition(snapshot, commitment.id, commitment.revision);
@@ -267,9 +268,9 @@ function WallpaperSection({
 }) {
   return (
     <section className="redesign-wallpaper es-wallpaper" aria-labelledby="wallpaper-title">
-      <h2 id="wallpaper-title">Take your vision with you.</h2>
+      <h2 id="wallpaper-title">Keep your direction in sight.</h2>
       <figure className="wallpaper-feature">
-        <img className="featured-wallpaper" src={illustration} alt="" />
+        <div className="wallpaper-brand-preview" aria-hidden="true">{goal.words || goal.vision}</div>
         {goal.vision && <figcaption>{goal.vision}</figcaption>}
       </figure>
       <button
@@ -293,7 +294,7 @@ function WallpaperSection({
             </button>
           </header>
           <div className="wallpaper-grid">
-            {wallpapers.map(([src, label], index) => (
+            {wallpaperColors.map(({label, background, foreground}, index) => (
               <button
                 key={label}
                 className="wallpaper-tile"
@@ -302,7 +303,7 @@ function WallpaperSection({
                   navigate("/wallpaper/" + goal.id + "/tile/" + index)
                 }
               >
-                <img src={src} alt="" />
+                <div className="wallpaper-color-tile" style={{background, color: foreground}} aria-hidden="true">Aa</div>
                 <span>{label}</span>
               </button>
             ))}

@@ -9,6 +9,8 @@ export interface AIIntake {
   limitations: string;
   timezone: string;
   locale: string;
+  /** Days or times that work best, in the member's words. Optional. */
+  schedule?: string;
 }
 export interface AIProfile {
   desired_growth: string;

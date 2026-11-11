@@ -67,7 +67,7 @@ for (const colorScheme of ["light", "dark"] as const)
       }
       await page.getByRole("button", { name: "Make it mine" }).click();
       await expect(
-        page.getByLabel("Step 1 of 6", { exact: true }),
+        page.getByLabel("Question 1 of 9", { exact: true }),
       ).toBeVisible();
       expect(errors).toEqual([]);
     });

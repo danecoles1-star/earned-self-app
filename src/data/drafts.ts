@@ -71,3 +71,35 @@ export function restoreDraft(draft: EntryDraft) {
   saveDraft(draft);
   localStorage.removeItem(archivePrefix + draft.id);
 }
+
+/** The onboarding answers the plan is built from (time, limits, starting
+ * point, interests). They are not part of the saved challenge yet, so a copy
+ * stays on this device, keyed by challenge, for the plan service to read. */
+const intakePrefix = key + ":intake:";
+export function keepIntake(draft: EntryDraft) {
+  if (!draft.aiIntake) return;
+  try {
+    localStorage.setItem(
+      intakePrefix + draft.id,
+      JSON.stringify({
+        owner: draft.boundOwner,
+        intent: draft.experience?.entryIntent ?? null,
+        intake: draft.aiIntake,
+      }),
+    );
+  } catch {
+    /* Storage is full or blocked: the saved challenge is unaffected. */
+  }
+}
+export function keptIntake(goalId: string, owner: string) {
+  try {
+    const value = JSON.parse(
+      localStorage.getItem(intakePrefix + goalId) || "null",
+    );
+    return value && (value.owner === null || value.owner === owner)
+      ? (value.intake as import("./aiIntake").AIIntake)
+      : null;
+  } catch {
+    return null;
+  }
+}

@@ -103,7 +103,11 @@ test("production headers permit the real wallpaper preview and download without 
   await page
     .getByLabel("Words to carry", { exact: true })
     .fill("Keep showing up.");
-  await page.getByRole("button", { name: "Preparation", exact: true }).click();
+  await page.getByRole("button", { name: "Becoming", exact: true }).click();
+  await expect(page.getByLabel("Words to carry", { exact: true })).toHaveValue(
+    "Become someone who follows through",
+  );
+  await page.getByRole("button", { name: "Earned Gold", exact: true }).click();
   const picture = page.getByRole("img", {
     name: "Your lock-screen image preview",
   });
@@ -116,7 +120,7 @@ test("production headers permit the real wallpaper preview and download without 
     .click();
   const download = page.waitForEvent("download");
   await page
-    .getByRole("button", { name: "Download image", exact: true })
+    .getByRole("button", { name: "Save to phone", exact: true })
     .click();
   expect((await download).suggestedFilename()).toBe(
     "Earned_Self_Lock_Screen.png",

@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Adapter, User } from "../data/types";
-import { Page } from "./ui";
+import { Brand } from "../components/Brand";
+import { DraftKept } from "./Notice";
 type Mode = "login" | "signup" | "email" | "recovery" | "code" | "password";
 type CodeType = "email" | "signup" | "recovery";
 const pendingKey = "earned-self:auth-request:v1";
@@ -32,8 +33,11 @@ export function Auth({
   user,
   onContinue,
   initialMode = "login",
+  draftWords = "",
 }: {
   initialMode?: "login" | "signup";
+  /** The unsaved challenge or vision waiting on this device, if any. */
+  draftWords?: string;
   adapter: Adapter;
   user: User | null;
   onContinue: () => void;
@@ -105,14 +109,6 @@ export function Auth({
     }
   };
   const submit = async () => {
-    if (newPassword && (password.length < 12 || password !== confirm)) {
-      setError(
-        password.length < 12
-          ? "Use at least 12 characters for your password."
-          : "Your passwords do not match. Enter the same password in both fields.",
-      );
-      return;
-    }
     const address = email.trim();
     if (mode === "login") {
       await adapter.passwordSignIn!(address, password);
@@ -158,18 +154,6 @@ export function Auth({
   const needsPassword =
     mode === "login" || mode === "signup" || mode === "password";
   const newPassword = mode === "signup" || mode === "password";
-  const shortPassword =
-    newPassword && password.length > 0 && password.length < 12;
-  const mismatchedPassword =
-    newPassword && confirm.length > 0 && password !== confirm;
-  const passwordHint = shortPassword
-    ? `Add ${12 - password.length} more ${12 - password.length === 1 ? "character" : "characters"} — your password needs at least 12.`
-    : "Use at least 12 characters.";
-  const confirmHint = mismatchedPassword
-    ? "Your passwords do not match. Enter the same password in both fields."
-    : confirm.length > 0
-      ? "Passwords match."
-      : "Enter your new password again to confirm it.";
   const title =
     mode === "signup"
       ? "Keep what you’ve started."
@@ -180,15 +164,38 @@ export function Auth({
           : mode === "recovery"
             ? "Reset your password."
             : "Welcome back.";
+  const heading = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    heading.current?.focus({ preventScroll: true });
+  }, [title]);
   return (
-    <Page
-      title={title}
-      sub={
-        mode === "code"
-          ? `Use the newest code for ${email.trim()}.`
-          : "Your progress stays with you."
-      }
-    >
+    <div id="es-entry" className="eo eo-auth" data-mode={mode}>
+      <header className="eo-top">
+        <Brand mineral />
+      </header>
+      <main id="main" className="eo-main">
+        <div className="eo-page">
+          <h1 ref={heading} tabIndex={-1} className="eo-title">
+            {title}
+          </h1>
+          <p className="eo-sub">
+            {mode === "code"
+              ? `Use the newest code for ${email.trim()}.`
+              : "Your progress stays with you."}
+          </p>
+          {draftWords.trim() && (mode === "signup" || mode === "login") && (
+            <div className="eo-card eo-draft">
+              <DraftKept label="Your draft is kept on this device" />
+              <p className="eo-draft-words">“{draftWords.trim()}”</p>
+              <p className="eo-small">
+                {busy
+                  ? "Signing you in. Your draft is saved to your account next."
+                  : mode === "signup"
+                    ? "Create your account and it moves into your Plan and Proof."
+                    : "Log in and it moves into your Plan and Proof."}
+              </p>
+            </div>
+          )}
       {__LOCAL_PREVIEW__ ? (
         <>
           <p>Local preview only. No account is created or email sent.</p>
@@ -283,10 +290,6 @@ export function Auth({
                       newPassword ? "new-password" : "current-password"
                     }
                     minLength={newPassword ? 12 : undefined}
-                    aria-describedby={
-                      newPassword ? "auth-password-hint" : undefined
-                    }
-                    aria-invalid={shortPassword || undefined}
                     required
                     disabled={busy}
                     value={password}
@@ -294,18 +297,10 @@ export function Auth({
                   />
                   {newPassword && (
                     <>
-                      <p
-                        id="auth-password-hint"
-                        className="small"
-                        aria-live="polite"
-                      >
-                        {passwordHint}
-                      </p>
+                      <p className="small">Use at least 12 characters.</p>
                       <label htmlFor="auth-confirm">Confirm password</label>
                       <input
                         id="auth-confirm"
-                        aria-describedby="auth-confirm-hint"
-                        aria-invalid={mismatchedPassword || undefined}
                         type="password"
                         autoComplete="new-password"
                         required
@@ -313,22 +308,9 @@ export function Auth({
                         value={confirm}
                         onChange={(e) => setConfirm(e.target.value)}
                       />
-                      <p
-                        id="auth-confirm-hint"
-                        className="small"
-                        aria-live="polite"
-                      >
-                        {confirmHint}
-                      </p>
                     </>
                   )}
                 </>
-              )}
-              {!adapter.configured && (
-                <p role="alert">
-                  Account access is unavailable right now. Please try again
-                  later.
-                </p>
               )}
               {error && <p role="alert">{error}</p>}
               <button
@@ -422,6 +404,8 @@ export function Auth({
           </p>
         </>
       )}
-    </Page>
+        </div>
+      </main>
+    </div>
   );
 }

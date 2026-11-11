@@ -1,5 +1,5 @@
 # Earned Self — Cloudflare Pages response headers (public production).
-# The app is public and member data is protected by
+# No Cloudflare Access: the app is public and member data is protected by
 # Supabase sign-in and row-level security.
 
 /*

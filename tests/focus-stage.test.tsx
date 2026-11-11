@@ -101,7 +101,7 @@ it("ongoing Proof keeps missed attempts honest and does not claim challenge comp
   });
   render(<ProofList snapshot={t.get()} navigate={() => {}} />);
   expect(screen.getByText("Not yet")).toBeVisible();
-  expect(screen.getByText("“Work ran late”")).toBeVisible();
+  expect(screen.getByText("Not yet")).toHaveAttribute("data-result", "did_not_happen");
   expect(screen.getByText("Milestone attempt")).toBeVisible();
   expect(screen.queryByText("Challenge completed")).toBeNull();
   expect(screen.queryByText("What changed")).toBeNull();
@@ -235,7 +235,7 @@ it("wallpaper selection carries the chosen asset into the export route", () => {
   );
   fireEvent.click(screen.getByRole("button", { name: "Create wallpaper" }));
   fireEvent.click(
-    screen.getByRole("button", { name: "Use Halo on Ivory wallpaper" }),
+    screen.getByRole("button", { name: "Use Proof Ivory wallpaper" }),
   );
-  expect(navigate).toHaveBeenCalledWith("/wallpaper/g/tile/7");
+  expect(navigate).toHaveBeenCalledWith("/wallpaper/g/tile/1");
 });

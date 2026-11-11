@@ -141,7 +141,9 @@ for (const width of [390, 1440]) {
     await p
       .getByRole("button", { name: "Finish and check in", exact: true })
       .click();
-    await p.getByRole("button", { name: "Not yet", exact: true }).click();
+    await p
+      .getByRole("button", { name: "Not yet", exact: true })
+      .click();
     await p
       .getByLabel("What happened?", { exact: true })
       .fill("I missed the rehearsal.");

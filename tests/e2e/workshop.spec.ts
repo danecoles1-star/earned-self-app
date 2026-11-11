@@ -189,13 +189,7 @@ for (const width of [320, 390, 1440])
     ).toBeVisible();
     await p.getByRole("button", { name: "Use my own reflection" }).click();
     for (const name of [
-      "Courage",
-      "Preparation",
-      "Possibility",
-      "Mineral",
-      "Challenge Ember",
-      "Mineral Paper",
-      "Proof Ivory",
+      "Summit Ink", "Proof Ivory", "Prepared Mineral", "Challenge Ember", "Earned Gold",
     ]) {
       await p.getByRole("button", { name, exact: true }).click();
       await expect(
@@ -208,9 +202,9 @@ for (const width of [320, 390, 1440])
       p.getByRole("img", { name: "Your lock-screen image preview" }),
     ).toBeVisible();
     await capture("wallpaper-preview");
-    await p.getByRole("button", { name: "Go back", exact: true }).click();
-    await p.getByRole("button", { name: "Go back", exact: true }).click();
-    await p.getByRole("button", { name: "Now", exact: true }).click();
+    await p
+      .getByRole("button", { name: "Return to Now", exact: true })
+      .click();
     await areas.getByRole("button", { name: "Personal", exact: true }).click();
     await expect(
       p.getByRole("heading", { name: "Write the opening scene", exact: true }),
@@ -291,14 +285,17 @@ for (const width of [390, 1440]) {
       fullPage: true,
     });
     await p
-      .getByRole("button", { name: "Use Physical hero wallpaper", exact: true })
+      .getByRole("button", { name: "Use Summit Ink wallpaper", exact: true })
       .click();
     await expect(
       p.getByRole("heading", { name: "Words worth carrying." }),
     ).toBeVisible();
-    const label = p.locator(".wallpaper-swatch.mineral span");
-    await expect(label).toHaveCSS("color", "rgb(16, 26, 32)");
-    await expect(label).toHaveCSS("background-color", "rgb(246, 241, 232)");
+    await expect(
+      p.getByRole("button", { name: "Summit Ink", exact: true }),
+    ).toHaveAttribute("aria-pressed", "true");
+    await expect(
+      p.getByRole("img", { name: "Your lock-screen image preview" }),
+    ).toBeVisible();
     await p.getByRole("button", { name: "Go back", exact: true }).click();
     await expect(p.getByRole("button", { name: "Add step" })).toHaveCount(0);
     expect(

@@ -21,7 +21,10 @@ export async function resumeEntry(
     throw new Error(
       "Sign in with the account that owns this draft. Your draft has been kept.",
     );
-  if (!draft.words.trim() || !draft.vision.trim())
+  // A member who asked for a challenge to be crafted has no challenge words
+  // yet; their vision is enough to save.
+  const crafting = draft.experience?.entryIntent === "discover";
+  if ((!draft.words.trim() && !crafting) || !draft.vision.trim())
     throw new Error("Finish your vision and challenge before saving.");
   const bound = { ...draft, boundOwner: user.id };
   saveDraft(bound);

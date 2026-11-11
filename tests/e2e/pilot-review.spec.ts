@@ -116,9 +116,9 @@ for (const width of [390, 1440])
     await p.reload();
     await p.getByRole("button", { name: "Now", exact: true }).click();
     await expect(
-      p.getByText("Healthy enough to climb mountains into my 70s", {
-        exact: true,
-      }),
+      p
+        .getByRole("paragraph")
+        .filter({ hasText: "Healthy enough to climb mountains into my 70s" }),
     ).toBeVisible();
     await p.screenshot({
       path: `${process.env.ES_EVIDENCE_DIR || "test-results"}/pilot-plan-${width}.png`,
@@ -147,10 +147,10 @@ for (const width of [390, 1440])
       .getByRole("button", { name: "Create wallpaper", exact: true })
       .click();
     await p
-      .getByRole("button", { name: "Use Physical hero wallpaper", exact: true })
+      .getByRole("button", { name: "Use Summit Ink wallpaper", exact: true })
       .click();
     await p.getByRole("button", { name: "Use my own vision" }).click();
-    await p.getByRole("button", { name: "Mineral", exact: true }).click();
+    await p.getByRole("button", { name: "Prepared Mineral", exact: true }).click();
     await p.getByRole("button", { name: "Preview lock screen" }).click();
     await expect(
       p.getByRole("img", { name: "Your lock-screen image preview" }),
@@ -176,9 +176,16 @@ for (const width of [390, 1440])
     await p.getByRole("button", { name: "Save to phone", exact: true }).click();
     await p.waitForTimeout(150);
     expect(downloads).toBe(0);
+    // Test unsupported sharing separately from user cancellation.
+    await p.evaluate(() => {
+      Object.defineProperty(navigator, "canShare", {
+        configurable: true,
+        value: () => false,
+      });
+    });
     const img = p.waitForEvent("download");
     await p
-      .getByRole("button", { name: "Download image", exact: true })
+      .getByRole("button", { name: "Save to phone", exact: true })
       .click();
     expect((await img).suggestedFilename()).toBe("Earned_Self_Lock_Screen.png");
     expect(

@@ -142,7 +142,11 @@ it("preserves writing focus when the background account read finishes", async ()
   const adapter = createPreviewAdapter();
   const snapshot = await adapter.read();
   let finishRead!: (value: typeof snapshot) => void;
-  vi.spyOn(adapter, "read").mockImplementation(() => new Promise(resolve => { finishRead = resolve; }));
+  vi.spyOn(adapter, "read").mockImplementation(
+    () => new Promise((resolve) => {
+      finishRead = resolve;
+    }),
+  );
   render(<App adapter={adapter} />);
   const input = await screen.findByLabelText("Who do you want to become?");
   await userEvent.type(input, "A confident speaker");

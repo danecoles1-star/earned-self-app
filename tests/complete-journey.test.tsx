@@ -53,11 +53,12 @@ it("returning members have a direct Basecamp entry", () => {
   fireEvent.click(screen.getByRole("button", { name: "Return to Now" }));
   expect(signIn).toHaveBeenCalledOnce();
 });
-it("first-action stage carries the authored title into the timer without changing the answer", () => {
+it("first-action stage shows the authored step and what done means, without a timer", () => {
   const x = newEntryExperience();
   x.step = 8;
   x.first.action = "Write my opening sentence";
   x.first.criterion = "One sentence saved";
+  const onFinish = vi.fn();
   render(
     <Onboarding
       draft={{
@@ -71,18 +72,19 @@ it("first-action stage carries the authored title into the timer without changin
       signedIn={false}
       saving={false}
       error=""
-      onFinish={vi.fn()}
+      onFinish={onFinish}
       back={vi.fn()}
     />,
   );
   expect(
     screen.getByRole("heading", { name: "Write my opening sentence" }),
   ).toBeVisible();
-  expect(document.querySelector(".timer-action-name")).toHaveTextContent(
-    "Write my opening sentence",
-  );
-  expect(screen.getByLabelText("Elapsed time")).toHaveTextContent("00:00");
-  expect(screen.getByText("Dedicated time")).toBeVisible();
+  expect(screen.getByText("Done means: One sentence saved")).toBeVisible();
+  // The onboarding timer was removed on purpose (owner decision, November
+  // 2026). The session timer itself is still covered below.
+  expect(screen.queryByLabelText("Elapsed time")).toBeNull();
+  expect(screen.getByRole("button", { name: "Check in" })).toBeEnabled();
+  expect(onFinish).not.toHaveBeenCalled();
 });
 it("only the marker is animated; time and schedule remain in the stationary readout", () => {
   render(
