@@ -1,5 +1,4 @@
 import type { Goal } from "../data/types";
-import { artFor } from "./workshopArt";
 export function WallpaperCard({
   goal,
   navigate,
@@ -14,7 +13,6 @@ export function WallpaperCard({
       onClick={() => navigate("/wallpaper/" + goal.id)}
     >
       <span className="wallpaper-miniature" aria-hidden="true">
-        <img src={artFor(goal.area)} alt="" />
         <span>{goal.vision}</span>
       </span>
       <span>

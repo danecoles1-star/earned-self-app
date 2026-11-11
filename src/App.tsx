@@ -7,6 +7,7 @@ import type { GrowthArea } from "./data/types";
 import { isAppRoute } from "./data/routes";
 import { ProfileProvider } from "./experience/ProfilePhoto";
 import { Auth } from "./experience/Auth";
+import { Notices } from "./experience/Notice";
 import { ResumeEntry } from "./experience/ResumeEntry";
 import { PlanStep } from "./experience/PlanStep";
 import { AddMilestone } from "./experience/AddMilestone";
@@ -61,6 +62,7 @@ import {
   archiveDraft,
   archivedDrafts,
   restoreDraft,
+  keepIntake,
   type EntryDraft,
 } from "./data/drafts";
 const message = (e: unknown) =>
@@ -513,6 +515,11 @@ export function App({ adapter }: { adapter: Adapter }) {
       <Auth
         adapter={adapter}
         user={user}
+        draftWords={
+          sessionStorage.getItem("earned-self:save-after-auth") === draft.id
+            ? draft.words || draft.vision
+            : ""
+        }
         initialMode={
           sessionStorage.getItem("earned-self:save-after-auth") === draft.id
             ? "signup"
@@ -605,8 +612,10 @@ export function App({ adapter }: { adapter: Adapter }) {
           if (
             currentDraft.id === draft.id &&
             currentDraft.operationId === draft.operationId
-          )
+          ) {
+            keepIntake(currentDraft);
             clearDraft();
+          }
           sessionStorage.removeItem("earned-self:save-after-auth");
           setDraft(loadDraft());
           setNotice("Saved to your account.");
@@ -817,7 +826,8 @@ export function App({ adapter }: { adapter: Adapter }) {
     ) : (
       <Unavailable navigate={navigate} />
     );
-  } else if (path === "/settings")
+  }
+  else if (path === "/settings")
     screen = (
       <Settings
         email={user?.email || ""}
@@ -934,16 +944,11 @@ export function App({ adapter }: { adapter: Adapter }) {
         </header>
       )}
       {path !== "/" && path !== "/start" && (
-        <div className="global-status">
-          <p className="live-status" role="status">
-            {notice}
-          </p>
-          {error && (
-            <p className="notice error" role="alert">
-              {error}
-            </p>
-          )}
-        </div>
+        <Notices
+          notice={notice}
+          error={error}
+          onDismiss={() => setError("")}
+        />
       )}
       <div inert={saving} aria-busy={saving}>
         <ProfileProvider

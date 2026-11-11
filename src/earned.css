@@ -2345,3 +2345,73 @@ html body .completed-proof-entry .record-link:is(*, #es-legacy) {
     filter: brightness(0) invert(1);
   }
 }
+
+/* Wallpaper studio: solid brand colors with explicit selection. */
+html .wallpaper-editor .wallpaper-styles {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 24px;
+}
+html .wallpaper-editor .wallpaper-swatch {
+  min-width: 0;
+  min-height: 180px;
+  border-radius: 12px;
+  background-image: none;
+}
+html .wallpaper-editor .wallpaper-swatch img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1170 / 1800;
+  object-fit: cover;
+}
+html .wallpaper-editor .wallpaper-swatch span {
+  padding: 16px;
+  background: transparent;
+  color: inherit;
+}
+html .wallpaper-editor .wallpaper-swatch[aria-pressed="true"] {
+  outline: 3px solid var(--es-ember);
+  outline-offset: 3px;
+}
+html .wallpaper-editor .wallpaper-live-preview {
+  display: block;
+  max-height: 360px;
+  margin: 0 auto 32px;
+}
+html .wallpaper-editor .wallpaper-milestones {
+  min-width: 0;
+  margin: 24px 0;
+  padding: 0;
+  border: 0;
+}
+html .wallpaper-editor .wallpaper-milestones button {
+  width: 100%;
+  margin-top: 12px;
+  overflow-wrap: anywhere;
+}
+html .wallpaper-editor .wallpaper-milestones [aria-pressed="true"] {
+  border-color: var(--es-ember);
+}
+html .es-wallpaper .wallpaper-feature img {
+  max-height: 240px;
+  object-fit: cover;
+  object-position: center 38%;
+}
+html .wallpaper-brand-preview {
+  padding: 64px 24px;
+  border-radius: 12px;
+  background: #101a20;
+  color: #f6f1e8;
+  text-align: center;
+  font: 400 24px/1.3 var(--es-display);
+}
+html .wallpaper-color-tile {
+  min-height: 160px;
+  display: grid;
+  place-items: center;
+  font: 400 36px var(--es-display);
+}
+html .wallpaper-miniature {
+  background: #101a20;
+  color: #f6f1e8;
+}

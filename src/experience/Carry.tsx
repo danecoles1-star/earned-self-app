@@ -1,5 +1,4 @@
-import { wallpapers } from "./wallpapers";
-import { areaArt, proofArt, preparationArt } from "./workshopArt";
+import { wallpaperColors } from "./wallpapers";
 import { completedEvent } from "./ChallengeRecord";
 import { ProfilePhotoEditor } from "./ProfilePhoto";
 import { displaySchedule, displayDate } from "../data/time";
@@ -125,67 +124,24 @@ export function Wallpaper({
   navigate: (p: string) => void;
 }) {
   const [step, setStep] = useState(0),
-    [words, setWords] = useState(""),
+    [words, setWords] = useState(goal.words),
+    [content, setContent] = useState("challenge"),
+    [milestoneId, setMilestoneId] = useState(goal.milestones[0]?.id || ""),
     [reason, setReason] = useState(false),
     [date, setDate] = useState(false),
     [brand, setBrand] = useState(true),
-    [style, setStyle] = useState(
-      selectedTile !== undefined && wallpapers[selectedTile]
-        ? `tile-${selectedTile}`
-        : goal.area
-          ? "courage"
-          : "light",
+    [style, setStyle] = useState<string>(
+      wallpaperColors[selectedTile ?? 0]?.id || "ink",
     ),
     [error, setError] = useState(""),
     [saved, setSaved] = useState(false),
     [busy, setBusy] = useState(false);
-  const suppliedArt = style.startsWith("tile-")
-    ? wallpapers[Number(style.slice(5))]?.[0]
-    : undefined;
-  const art =
-    suppliedArt ||
-    (goal.area
-      ? (
-          {
-            courage: areaArt[goal.area],
-            preparation: preparationArt[goal.area],
-            possibility: proofArt[goal.area],
-          } as Record<string, string>
-        )[style]
-      : undefined);
-  const light = suppliedArt
-    ? ![6, 11, 13].includes(Number(style.slice(5)))
-    : !!art || ["light", "blue", "ember"].includes(style);
+  const palette =
+    wallpaperColors.find((c) => c.id === style) || wallpaperColors[0];
+  const light = palette.foreground === "#101A20";
   const reflection = snapshot
     ? completedEvent(snapshot, goal.id)?.data.reflection
     : undefined;
-  const styles = [
-    ...wallpapers.map(([image, label], index) => ({
-      id: `tile-${index}`,
-      label,
-      image,
-    })),
-    ...(goal.area
-      ? [
-          { id: "courage", label: "Courage", image: areaArt[goal.area] },
-          {
-            id: "preparation",
-            label: "Preparation",
-            image: preparationArt[goal.area],
-          },
-          {
-            id: "possibility",
-            label: "Possibility",
-            image: proofArt[goal.area],
-          },
-        ]
-      : []),
-    { id: "ink", label: "Summit Ink" },
-    { id: "mineral", label: "Prepared Mineral" },
-    { id: "light", label: "Proof Ivory" },
-    { id: "ember", label: "Challenge Ember" },
-    { id: "blue", label: "Mineral Paper" },
-  ];
   const [previewUrl, setPreviewUrl] = useState("");
   const [imageBlob, setImageBlob] = useState<Blob | null>(null);
   useEffect(() => {
@@ -202,68 +158,10 @@ export function Wallpaper({
         canvas.width = 1170;
         canvas.height = 2532;
         const ctx = canvas.getContext("2d")!;
-        ctx.fillStyle = art
-          ? "#F6F1E8"
-          : (
-              {
-                light: "#F6F1E8",
-                mineral: "#5E7783",
-                ember: "#FF5B36",
-                blue: "#F6F1E8",
-                ink: "#101A20",
-              } as Record<string, string>
-            )[style] || "#172329";
+        ctx.fillStyle = palette.background;
         ctx.fillRect(0, 0, 1170, 2532);
-        if (suppliedArt) {
-          const image = new Image();
-          image.src = suppliedArt;
-          await image.decode();
-          const scale = Math.max(
-            canvas.width / image.naturalWidth,
-            canvas.height / image.naturalHeight,
-          );
-          ctx.drawImage(
-            image,
-            (canvas.width - image.naturalWidth * scale) / 2,
-            (canvas.height - image.naturalHeight * scale) / 2,
-            image.naturalWidth * scale,
-            image.naturalHeight * scale,
-          );
-        } else if (art) {
-          const image = new Image();
-          image.src = art;
-          await image.decode();
-          const layer = document.createElement("canvas");
-          layer.width = 1170;
-          layer.height = 1000;
-          const lc = layer.getContext("2d")!;
-          const artHeight = (1170 * image.naturalHeight) / image.naturalWidth;
-          lc.drawImage(image, 0, (1000 - artHeight) / 2, 1170, artHeight);
-          lc.globalCompositeOperation = "destination-in";
-          const mask = lc.createLinearGradient(0, 0, 0, 1000);
-          mask.addColorStop(0, "transparent");
-          mask.addColorStop(0.2, "black");
-          mask.addColorStop(0.8, "black");
-          mask.addColorStop(1, "transparent");
-          lc.fillStyle = mask;
-          lc.fillRect(0, 0, 1170, 1000);
-          ctx.drawImage(layer, 0, 1250);
-        } else {
-          // Deterministic fine grain: preview and exported pixels are identical.
-          for (let i = 0; i < 22000; i++) {
-            const x = (i * 491) % 1170,
-              y = (i * 911) % 2532;
-            ctx.fillStyle = i % 2 ? "#ffffff08" : "#00000006";
-            ctx.fillRect(x, y, 2, 2);
-          }
-          const glow = ctx.createRadialGradient(200, 1300, 10, 200, 1300, 1600);
-          glow.addColorStop(0, "#ffffff18");
-          glow.addColorStop(1, "#ffffff00");
-          ctx.fillStyle = glow;
-          ctx.fillRect(0, 0, 1170, 2532);
-        }
-        ctx.fillStyle = light ? "#101A20" : "#f1f3f1";
-        ctx.font = "78px Georgia";
+        ctx.fillStyle = palette.foreground;
+        ctx.font = "78px Newsreader, Georgia, serif";
         ctx.textAlign = "center";
         let y = 850;
         const lines: string[] = [];
@@ -304,7 +202,7 @@ export function Wallpaper({
             lines.some((l) => ctx.measureText(l).width > 920)
           )
             throw new Error(
-              "Your reason needs more space. Turn it off or shorten your display words.",
+              "Your reason needs more space. Turn off Add my reason to save this wallpaper.",
             );
           lines.forEach((l, i) => ctx.fillText(l, 585, y + 45 + i * 44));
         }
@@ -356,7 +254,7 @@ export function Wallpaper({
       alive = false;
       if (url) URL.revokeObjectURL(url);
     };
-  }, [words, reason, date, brand, style, goal.meaning, art]);
+  }, [words, reason, date, brand, style, goal.meaning, palette]);
   async function save() {
     if (!imageBlob) return;
     const file = new File([imageBlob], "Earned_Self_Lock_Screen.png", {
@@ -378,6 +276,7 @@ export function Wallpaper({
   }
   return (
     <Page
+      className="wallpaper-editor"
       title={step === 0 ? "Words worth carrying." : "Keep it in sight."}
       sub={
         step === 0
@@ -441,38 +340,120 @@ export function Wallpaper({
     >
       {step === 0 && (
         <>
+          {previewUrl && (
+            <img
+              className="wallpaper-image wallpaper-live-preview"
+              src={previewUrl}
+              alt="Your lock-screen image preview"
+            />
+          )}
+          <fieldset className="es-chip-group wallpaper-content">
+            <legend>What would you like to carry?</legend>
+            {[
+              ["challenge", "Challenge", goal.words],
+              [
+                "milestone",
+                "Milestone",
+                goal.milestones.find((m) => m.id === milestoneId)?.title || "",
+              ],
+              ["becoming", "Becoming", goal.vision],
+            ].map(([id, label, value]) => (
+              <button
+                key={id}
+                type="button"
+                aria-pressed={content === id}
+                disabled={!value.trim()}
+                onClick={() => {
+                  setContent(id);
+                  setWords(value);
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </fieldset>
+          {!goal.milestones.length && (
+            <p className="small">Add a milestone in Plan to use it here.</p>
+          )}
+          {!goal.vision.trim() && (
+            <p className="small">
+              Your becoming statement will appear here once it is saved.
+            </p>
+          )}
+          {content === "milestone" && (
+            <fieldset className="wallpaper-milestones">
+              <legend>Choose your milestone</legend>
+              {goal.milestones.map((m) => (
+                <button
+                  key={m.id}
+                  type="button"
+                  className="experience-choice"
+                  aria-pressed={milestoneId === m.id}
+                  onClick={() => {
+                    setMilestoneId(m.id);
+                    setWords(m.title);
+                  }}
+                >
+                  {m.title}
+                </button>
+              ))}
+            </fieldset>
+          )}
           <Input
             label="Words to carry"
             value={words}
-            onChange={setWords}
+            onChange={(value) => {
+              setWords(value);
+              setContent("custom");
+            }}
             placeholder="Type here…"
           />
-          <button className="quiet" onClick={() => setWords(goal.vision)}>
+          <button
+            className="quiet"
+            onClick={() => {
+              setWords(goal.vision);
+              setContent("becoming");
+            }}
+          >
             Use my own vision
           </button>
           {reflection && (
-            <button className="quiet" onClick={() => setWords(reflection)}>
+            <button
+              className="quiet"
+              onClick={() => {
+                setWords(reflection);
+                setContent("custom");
+              }}
+            >
               Use my own reflection
             </button>
           )}
+          <p className="small">
+            Edits here only change your wallpaper. Your saved challenge stays as
+            it is.
+          </p>
           <fieldset className="wallpaper-styles">
-            <legend>Choose a style</legend>
-            {styles.map((choice) => (
+            <legend>Choose a brand color</legend>
+            {wallpaperColors.map((choice) => (
               <button
                 key={choice.id}
-                className={"wallpaper-swatch " + choice.id}
+                type="button"
+                className="wallpaper-swatch"
+                style={{
+                  background: choice.background,
+                  color: choice.foreground,
+                }}
                 aria-pressed={style === choice.id}
-                aria-label={choice.id === "mineral" ? "Mineral" : choice.label}
+                aria-label={choice.label}
                 onClick={() => setStyle(choice.id)}
               >
-                {"image" in choice && <img src={choice.image} alt="" />}
                 <span>{choice.label}</span>
               </button>
             ))}
           </fieldset>
           <p className="small">
-            Illustrated scenes are inspiration, not a record of your
-            achievement.
+            Your preview is the exact image that will be saved. Space at the top
+            is left for your clock.
           </p>
           {[
             ["Add my reason", reason, setReason],
@@ -492,7 +473,7 @@ export function Wallpaper({
           ))}
         </>
       )}
-      {previewUrl && (
+      {step === 1 && previewUrl && (
         <img
           className="wallpaper-image"
           src={previewUrl}

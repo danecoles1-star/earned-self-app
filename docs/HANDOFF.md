@@ -17,7 +17,12 @@ Earned Self helps people become who they want to be. An AI onboarding conversati
   - Get ready (Where/When/Done when) sits below the card. The how-to lives inside Begin.
 - **Session:** the timer is direction B: a segmented ember ring split by the session's parts.
 - **Check-in:** the result choices are Done / Partly / Not yet. Scheduling the next step happens inside check-in. The only exception is the first step after onboarding.
-- **Onboarding only:** plan adjustments and the guided/self-guided choice.
+- **Onboarding (decided November 10):**
+  - A fixed nine-question conversation. Members never chat with the AI; they answer, then the AI generates one plan. The earlier answers stay in the thread and move up as each question arrives.
+  - No guided/self-guided choice anywhere. The AI decides when to push harder or back off from check-ins.
+  - No plan changes by the member, on the reveal or later. The reveal says the plan adjusts as they grow.
+  - The reveal is labelled "A person worth challenging", is shown unblurred before sign-up, and leaves the AI's parts blank until the plan service exists.
+  - After "Make it mine" comes one two-minute first step with no timer, then a check-in, then account creation.
 - **Proof:** a milestone tracker plus a weekly journal of entries. Keep the evidence.
 - **Style:** no dropdowns anywhere (use choice buttons or chips). Uniform styling on every page, in light and dark. Most users run dark mode.
 - **Homepage:** outcome- and emotion-led, focused on account creation. App previews must match the real app.
@@ -49,16 +54,14 @@ Earned Self helps people become who they want to be. An AI onboarding conversati
 - Cleanup and public launch: Access removed, CSP, headers, robots, manifest and icons, CI and deploy workflows, env checks.
 - The redesign of Now, session, check-in, schedule-next, Proof and milestone earned, plus the homepage.
 - The new Now card and session ring.
+- Workstream 1: the onboarding conversation, plan reveal and first step; the Plan milestone path; sign-in and sign-up with the draft card; shared toasts, kept-on-device line and empty states; compressed wallpapers and illustrations; a light/dark audit of every route.
 
 ## What's left, by workstream
 
-1. **Onboarding, Plan and sign-in:**
-   - Rebuild onboarding as a short guided conversation (canvas boards Discover and PlanReveal), keeping the same saved fields.
-   - Redesign the Plan page as a milestone path like the Proof tracker, with the current step highlighted.
-   - Redesign sign-in and sign-up: warm, one action, and show that the draft is being saved.
-   - Add consistent toasts, save and error notices, and empty states.
-   - Compress images (wallpapers and illustrations at 0.5–1 MB).
-   - Audit every route in light and dark.
+1. **Onboarding, Plan and sign-in:** done, apart from what waits on other workstreams:
+   - The reveal's challenge headline (when the member asks for one to be crafted) and its milestones are blank until workstream 3 fills them. A crafted-challenge member is saved with empty challenge words; Plan shows "Your challenge will appear here."
+   - `ResumeEntry` ("Save this plan?") and the legacy `Page` screens still use their older layout with the new tokens.
+   - `src/experience/AIOnboarding.tsx` (the earlier flag-gated preview) is unchanged and unused in production; delete it with its tests once workstream 3 no longer needs the reference.
 2. **Legal and professional:**
    - Privacy policy and terms pages, with placeholders until the owner supplies business name, entity type, state, contact email and minimum age.
    - Footer and sign-up links to them.
@@ -70,6 +73,15 @@ Earned Self helps people become who they want to be. An AI onboarding conversati
    - `es_read_state` returns `prepared`.
    - A session screen that renders the guidance and tools.
    - Add the effort check-in (Comfortable/Challenging/Too much) here, since it feeds adaptation.
+   - **Onboarding answers need a home.** Interests, starting point, weekly time, schedule, resources and limits live in the draft (`aiIntake`). At save, time and limits are copied into `constraints`, and starting point and resources into `capabilities`; the full answers are kept only on the device (`keptIntake()` in `src/data/drafts.ts`). Add a migration that stores them with the challenge, and send them to the plan function.
+   - Generate exactly one plan per challenge. Members cannot regenerate or edit it; adaptation comes from check-ins. Because sign-up comes after the reveal, the function must rate-limit anonymous generation (one plan per draft id, per-address limits, the daily cost ceiling).
+   - Optionally polish a long member-written challenge into a shorter headline for display, keeping the original saved.
+   - Onboarding no longer asks "What will completion look like?"; the plan should set `outcome`. Until then preparation asks for it.
+
+## Design system additions (workstream 1)
+
+- **Where:** `src/entry.css`, imported after `earned.css`. Onboarding and sign-in render inside `#es-entry`; the Plan path inside `#es-plan`.
+- **Shared pieces:** `src/experience/Notice.tsx` has `Notices` (the one save/error toast), `DraftKept` and `EmptyState`. Use them instead of ad hoc status text.
 
 ## Working environment notes
 
@@ -78,3 +90,7 @@ The sandbox usually has no network for npm. Build-check with esbuild, type-check
 ## Delivering
 
 End with an updated full-repo zip plus a short list of the files you changed and any test changes. Add a note for `CODEX_HANDOFF.md` if deploy steps change. Workstreams may run in parallel, so keep changes scoped to your workstream and say clearly if you had to touch shared files (`earned.css`, `types.ts`, `App.tsx`, `Settings`).
+
+## Wallpaper decision — November 10
+
+Use plain brand-color backgrounds only: Ink, Ivory, Mineral, Ember and Gold. Members choose their saved Challenge, an individual Milestone, or Becoming statement. Display wording edits do not modify saved records. No photographic gallery, sketch backgrounds or AI-generated personal images are included. See START_HERE.md and docs/WALLPAPER_STUDIO_REVIEW.md for combined validation.

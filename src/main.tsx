@@ -6,6 +6,7 @@ import "@fontsource-variable/newsreader";
 import "./presentation.css";
 import "./statement.css";
 import "./earned.css";
+import "./entry.css";
 import type { Adapter } from "./data/types";
 async function start() {
   let adapter: Adapter;

@@ -49,7 +49,12 @@ for (const width of [390, 1440]) {
       await page.setViewportSize({ width, height: 844 });
       await page.goto("/manage");
       await expect(page).toHaveTitle("Earned Self");
-      if (mode === "pending") {
+      if (mode === "empty") {
+        await expect(
+          page.getByRole("heading", { name: "No milestones planned yet." }),
+        ).toBeVisible();
+        await page.goto(`/milestone/${g}`);
+      } else if (mode === "pending") {
         await page
           .getByRole("button", { name: "Review milestone", exact: true })
           .click();

@@ -5,7 +5,7 @@ import fs from "node:fs";
 test("first visit through first action, failure recovery, accomplishment and next ambition", async ({
   page: p,
 }) => {
-  test.setTimeout(90000);
+  test.setTimeout(150000);
   await p.setViewportSize({ width: 390, height: 844 });
   const errors: string[] = [];
   p.on("pageerror", (e) => errors.push(e.message));
@@ -36,19 +36,28 @@ test("first visit through first action, failure recovery, accomplishment and nex
   await fill("Your future self", "Become a confident published writer");
   await shot("03-identity-mobile");
   await next();
+  // November 2026 onboarding: nine questions, a plan reveal, then a first
+  // step without a timer. The finish ("Done means") is asked in preparation.
+  await fill("What I love", "Reading widely and long walks");
+  await next();
+  await click("I have one");
   await fill("My challenge", "Publish a researched essay");
   await next();
   await fill("Your reason", "Share a perspective I have kept to myself");
   await next();
-  await fill(
-    "I will know I have done it when…",
-    "My essay is published and available to read",
-  );
+  await fill("My starting point", "I write short notes most weeks");
   await next();
+  await click("3–4 hours");
+  await next();
+  await fill("What I have", "A laptop and a quiet desk");
+  await next();
+  await fill("My limits", "Evenings only on weekdays");
+  await click("Build my plan");
+  await click("Make it mine");
   await fill("What will you do now?", "Write one opening sentence");
   await fill("What will be done?", "One sentence is on the page");
   await click("Do it now");
-  await click("Start timer");
+  await expect(p.getByLabel("Elapsed time")).toHaveCount(0);
   await click("Check in");
   await click("Done");
   await fill("What happened?", "I wrote one opening sentence");
@@ -65,6 +74,8 @@ test("first visit through first action, failure recovery, accomplishment and nex
     p.getByText("Saved to your account.", { exact: true }),
   ).toBeVisible();
   await click("Prepare");
+  await fill("Done means", "My essay is published and available to read");
+  await next();
   await fill("What I need to plan for", "Thirty minutes after work");
   await next();
   await fill("What I need to build", "Research and revise an argument");
@@ -163,7 +174,7 @@ test("first visit through first action, failure recovery, accomplishment and nex
     .click();
   await shot("52-wallpaper-sheet-mobile");
   await p
-    .getByRole("button", { name: "Use Personal hero wallpaper", exact: true })
+    .getByRole("button", { name: "Use Summit Ink wallpaper", exact: true })
     .click();
   await fill("Words to carry", "Keep writing.");
   await click("Preview lock screen");

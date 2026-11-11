@@ -76,7 +76,7 @@ for (const scheme of ["light", "dark"] as const)
       if (scheme === "dark")
         await expect(p.locator(".account-button img")).toHaveCSS(
           "filter",
-          "brightness(0) invert(1)",
+          "invert(1) brightness(1.6)",
         );
       // Now: experience-preview card with image, status tag and in-card Begin.
       const card = p.locator(".es-now-card");
