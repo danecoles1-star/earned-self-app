@@ -153,7 +153,7 @@ for (const width of [390, 1440])
     await p.getByRole("button", { name: "Prepared Mineral", exact: true }).click();
     await p.getByRole("button", { name: "Preview lock screen" }).click();
     await expect(
-      p.getByRole("img", { name: "Your lock-screen image preview" }),
+      p.getByRole("img", { name: "Your wallpaper image preview" }),
     ).toBeVisible();
     await p.screenshot({
       path: `${process.env.ES_EVIDENCE_DIR || "test-results"}/pilot-wallpaper-${width}.png`,
