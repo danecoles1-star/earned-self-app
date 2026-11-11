@@ -176,6 +176,13 @@ for (const width of [390, 1440])
     await p.getByRole("button", { name: "Save to phone", exact: true }).click();
     await p.waitForTimeout(150);
     expect(downloads).toBe(0);
+    // Test unsupported sharing separately from user cancellation.
+    await p.evaluate(() => {
+      Object.defineProperty(navigator, "canShare", {
+        configurable: true,
+        value: () => false,
+      });
+    });
     const img = p.waitForEvent("download");
     await p
       .getByRole("button", { name: "Save to phone", exact: true })

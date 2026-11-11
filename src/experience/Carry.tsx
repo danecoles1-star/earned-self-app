@@ -331,6 +331,11 @@ export function Wallpaper({
               choose an available image destination.
             </p>
           )}
+          {step === 1 && (
+            <button className="quiet" onClick={() => navigate("/app")}>
+              Return to Now
+            </button>
+          )}
           {saveMessage && <p role="status">{saveMessage}</p>}
         </>
       }
