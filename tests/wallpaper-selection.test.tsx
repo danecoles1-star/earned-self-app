@@ -70,14 +70,14 @@ it("exports saved challenge, chosen milestone and becoming without changing the 
     screen.getByRole("button", { name: "Launch shop", exact: true }),
   );
   await waitFor(() =>
-    expect(fillText).toHaveBeenCalledWith("Launch shop", 585, 850),
+    expect(fillText).toHaveBeenCalledWith("Launch shop", 585, 1050),
   );
   fireEvent.click(
     screen.getByRole("button", { name: "Becoming", exact: true }),
   );
   expect(screen.getByLabelText("Words to carry")).toHaveValue(goal.vision);
   await waitFor(() =>
-    expect(fillText).toHaveBeenCalledWith(goal.vision, 585, 850),
+    expect(fillText).toHaveBeenCalledWith(goal.vision, 585, 1050),
   );
   fireEvent.change(screen.getByLabelText("Words to carry"), {
     target: { value: "My wallpaper only" },
@@ -121,7 +121,9 @@ it("blocks export when a single word would overflow instead of clipping it", asy
 
 async function openExport() {
   render(<Wallpaper goal={goal} navigate={() => {}} />);
-  const preview = await screen.findByRole("button", { name: "Preview lock screen" });
+  const preview = await screen.findByRole("button", {
+    name: "Preview lock screen",
+  });
   await waitFor(() => expect(preview).toBeEnabled());
   fireEvent.click(preview);
   return screen.getByRole("button", { name: "Save to phone" });
@@ -135,9 +137,10 @@ it("shares the generated PNG from one save action without reporting Photos succe
   expect(file.name).toBe("Earned_Self_Lock_Screen.png");
   expect(file.type).toBe("image/png");
   expect(file.size).toBe(3);
-  expect(await screen.findByRole("status")).toHaveTextContent(
-    "If you chose Save Image",
+  await waitFor(() =>
+    expect(screen.getByRole("button", { name: "Save to phone" })).toBeEnabled(),
   );
+  expect(screen.queryByRole("status")).not.toBeInTheDocument();
   expect(screen.queryByText("Download image")).not.toBeInTheDocument();
   expect(screen.queryByText("Open full-size image")).not.toBeInTheDocument();
 });
@@ -175,4 +178,86 @@ it("starts a PNG download when Android cannot share files", async () => {
   fireEvent.click(await openExport());
   expect(click).toHaveBeenCalledTimes(1);
   expect(await screen.findByRole("status")).toHaveTextContent("Downloads");
+});
+
+it("keeps multiline text and branding in each selected wallpaper area", async () => {
+  render(
+    <Wallpaper
+      goal={{ ...goal, words: "Change the world with Earned Self today" }}
+      navigate={() => {}}
+    />,
+  );
+  await waitFor(() =>
+    expect(
+      screen.getByRole("button", { name: "Preview lock screen" }),
+    ).toBeEnabled(),
+  );
+  expect(screen.queryByRole("slider")).not.toBeInTheDocument();
+
+  for (const [name, firstY, secondY, brandY, preview] of [
+    ["Home Screen · Between rows", 860, 960, 1800, "Preview Home Screen"],
+    ["Home Screen · At the top", 570, 670, 1800, "Preview Home Screen"],
+    ["Lock Screen", 1000, 1100, 1940, "Preview lock screen"],
+  ] as const) {
+    fillText.mockClear();
+    fireEvent.click(screen.getByRole("button", { name, exact: true }));
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("button", { name: preview }),
+      ).toBeEnabled();
+      expect(fillText).toHaveBeenCalledWith(
+        "Change the world with Earned", 585, firstY,
+      );
+      expect(fillText).toHaveBeenCalledWith("Self today", 585, secondY);
+      expect(fillText).toHaveBeenCalledWith(
+        "E A R N E D   S E L F", 630, brandY,
+      );
+    });
+    expect(fillText).toHaveBeenCalledTimes(3);
+  }
+});
+it("blocks oversized Home Screen text blocks instead of overlapping app rows", async () => {
+  render(
+    <Wallpaper
+      goal={{ ...goal, meaning: "a reason ".repeat(15) }}
+      navigate={() => {}}
+    />,
+  );
+  fireEvent.click(
+    screen.getByRole("button", {
+      name: "Home Screen · Between rows",
+      exact: true,
+    }),
+  );
+  fireEvent.change(screen.getByLabelText("Words to carry"), {
+    target: { value: "A long statement ".repeat(4) },
+  });
+  fireEvent.click(screen.getByLabelText("Add my reason"));
+  expect(await screen.findByRole("alert")).toHaveTextContent(
+    "reserved Home Screen space",
+  );
+  expect(
+    screen.getByRole("button", { name: "Preview Home Screen" }),
+  ).toBeDisabled();
+});
+it("prevents a second share while the first share sheet is open and permits retry", async () => {
+  let finish!: () => void;
+  const share = vi.fn(
+    () =>
+      new Promise<void>((resolve) => {
+        finish = resolve;
+      }),
+  );
+  vi.stubGlobal("navigator", { canShare: () => true, share });
+  fireEvent.click(await openExport());
+  const sharing = screen.getByRole("button", { name: "Sharing…" });
+  expect(sharing).toBeDisabled();
+  fireEvent.click(sharing);
+  expect(share).toHaveBeenCalledTimes(1);
+  finish();
+  await waitFor(() =>
+    expect(screen.getByRole("button", { name: "Save to phone" })).toBeEnabled(),
+  );
+  expect(screen.queryByRole("status")).not.toBeInTheDocument();
 });

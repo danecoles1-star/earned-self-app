@@ -109,7 +109,7 @@ test("production headers permit the real wallpaper preview and download without 
   );
   await page.getByRole("button", { name: "Earned Gold", exact: true }).click();
   const picture = page.getByRole("img", {
-    name: "Your lock-screen image preview",
+    name: "Your wallpaper image preview",
   });
   await expect(picture).toBeVisible();
   await expect

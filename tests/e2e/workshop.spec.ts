@@ -199,7 +199,7 @@ for (const width of [320, 390, 1440])
     await capture("wallpapers");
     await p.getByRole("button", { name: "Preview lock screen" }).click();
     await expect(
-      p.getByRole("img", { name: "Your lock-screen image preview" }),
+      p.getByRole("img", { name: "Your wallpaper image preview" }),
     ).toBeVisible();
     await capture("wallpaper-preview");
     await p
@@ -294,7 +294,7 @@ for (const width of [390, 1440]) {
       p.getByRole("button", { name: "Summit Ink", exact: true }),
     ).toHaveAttribute("aria-pressed", "true");
     await expect(
-      p.getByRole("img", { name: "Your lock-screen image preview" }),
+      p.getByRole("img", { name: "Your wallpaper image preview" }),
     ).toBeVisible();
     await p.getByRole("button", { name: "Go back", exact: true }).click();
     await expect(p.getByRole("button", { name: "Add step" })).toHaveCount(0);

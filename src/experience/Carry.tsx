@@ -130,6 +130,8 @@ export function Wallpaper({
     [reason, setReason] = useState(false),
     [date, setDate] = useState(false),
     [brand, setBrand] = useState(true),
+    [placement, setPlacement] = useState("lock"),
+    [sharing, setSharing] = useState(false),
     [style, setStyle] = useState<string>(
       wallpaperColors[selectedTile ?? 0]?.id || "ink",
     ),
@@ -163,7 +165,11 @@ export function Wallpaper({
         ctx.fillStyle = palette.foreground;
         ctx.font = "78px Newsreader, Georgia, serif";
         ctx.textAlign = "center";
-        let y = 850;
+        // Center the complete statement in the selected reserved area.
+        const center =
+          placement === "top" ? 620 : placement === "rows" ? 910 : 1050;
+        ctx.textBaseline = "middle";
+        let y = 0;
         const lines: string[] = [];
         let line = "";
         for (const word of words.split(/\s+/)) {
@@ -178,41 +184,54 @@ export function Wallpaper({
           lines.length > 4 ||
           lines.some((l) => ctx.measureText(l).width > 970)
         )
-          throw new Error("Shorten the wording so it fits your lock screen.");
-        for (const l of lines) {
-          ctx.fillText(l, 585, y);
-          y += 100;
-        }
+          throw new Error("Shorten the wording so it fits your wallpaper.");
+        const reasonLines: string[] = [];
         if (reason) {
           ctx.font =
             '32px "Avenir Next", Avenir, Montserrat, Arial, sans-serif';
-          const words = goal.meaning.split(/\s+/);
-          const lines: string[] = [];
           let line = "";
-          for (const w of words) {
-            const next = (line + " " + w).trim();
-            if (ctx.measureText(next).width > 920) {
-              lines.push(line);
-              line = w;
+          for (const word of goal.meaning.split(/\s+/)) {
+            const next = (line + " " + word).trim();
+            if (ctx.measureText(next).width > 920 && line) {
+              reasonLines.push(line);
+              line = word;
             } else line = next;
           }
-          if (line) lines.push(line);
+          if (line) reasonLines.push(line);
           if (
-            lines.length > 5 ||
-            lines.some((l) => ctx.measureText(l).width > 920)
+            reasonLines.length > 5 ||
+            reasonLines.some((l) => ctx.measureText(l).width > 920)
           )
             throw new Error(
               "Your reason needs more space. Turn off Add my reason to save this wallpaper.",
             );
-          lines.forEach((l, i) => ctx.fillText(l, 585, y + 45 + i * 44));
         }
+        const blockHeight =
+          lines.length * 100 +
+          (reasonLines.length ? 40 + reasonLines.length * 44 : 0);
+        if (
+          placement !== "lock" &&
+          blockHeight > (placement === "rows" ? 300 : 420)
+        )
+          throw new Error(
+            "Shorten your words or turn off Add my reason to fit the reserved Home Screen space.",
+          );
+        y = center - blockHeight / 2 + 50;
+        ctx.font = "78px Newsreader, Georgia, serif";
+        for (const l of lines) {
+          ctx.fillText(l, 585, y);
+          y += 100;
+        }
+        ctx.font = '32px "Avenir Next", Avenir, Montserrat, Arial, sans-serif';
+        reasonLines.forEach((l, i) => ctx.fillText(l, 585, y + 12 + i * 44));
+        const brandY = placement === "lock" ? 1940 : 1800;
         if (date) {
           ctx.font =
             '28px "Avenir Next", Avenir, Montserrat, Arial, sans-serif';
           ctx.fillText(
             displayDate(new Date().toLocaleDateString("en-CA")),
             585,
-            2220,
+            brandY - 100,
           );
         }
         if (brand) {
@@ -222,14 +241,14 @@ export function Wallpaper({
           if (!light) {
             ctx.fillStyle = "#f1f3f1";
             ctx.beginPath();
-            ctx.arc(407.5, 2318, 34, 0, Math.PI * 2);
+            ctx.arc(407.5, brandY, 34, 0, Math.PI * 2);
             ctx.fill();
           }
-          ctx.drawImage(logo, 380, 2290, 55, 56);
+          ctx.drawImage(logo, 380, brandY - 28, 55, 56);
           ctx.fillStyle = light ? "#101A20" : "#f1f3f1";
           ctx.font =
             '24px "Avenir Next", Avenir, Montserrat, Arial, sans-serif';
-          ctx.fillText("E A R N E D   S E L F", 630, 2327);
+          ctx.fillText("E A R N E D   S E L F", 630, brandY);
         }
         const blob = await new Promise<Blob | null>((r) =>
           canvas.toBlob(r, "image/png"),
@@ -254,9 +273,19 @@ export function Wallpaper({
       alive = false;
       if (url) URL.revokeObjectURL(url);
     };
-  }, [words, reason, date, brand, style, goal.meaning, palette]);
+  }, [
+    words,
+    reason,
+    date,
+    brand,
+    style,
+    placement,
+    goal.meaning,
+    palette,
+  ]);
   async function save() {
-    if (!imageBlob) return;
+    if (!imageBlob || sharing) return;
+    setSharing(true);
     setError("");
     setSaveMessage("");
     const file = new File([imageBlob], "Earned_Self_Lock_Screen.png", {
@@ -270,9 +299,7 @@ export function Wallpaper({
           files: [file],
           title: "My Earned Self vision",
         });
-        setSaveMessage(
-          "Share sheet closed. If you chose Save Image, check Photos. On Android, check the destination you selected.",
-        );
+        // A resolved share does not confirm a Photos save. Keep the screen quiet.
       } else if (
         /iPad|iPhone|iPod/.test(navigator.userAgent) ||
         (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)
@@ -293,6 +320,8 @@ export function Wallpaper({
         setError(
           "Your phone could not open image sharing. Nothing was confirmed saved. Please try Save to phone again.",
         );
+    } finally {
+      setSharing(false);
     }
   }
   return (
@@ -301,7 +330,7 @@ export function Wallpaper({
       title={step === 0 ? "Words worth carrying." : "Keep it in sight."}
       sub={
         step === 0
-          ? "Choose what belongs on your lock screen."
+          ? "Choose what belongs on your wallpaper."
           : "Preview before you save."
       }
       dark={false}
@@ -311,14 +340,18 @@ export function Wallpaper({
           {error && <p role="alert">{error}</p>}
           <button
             className="button"
-            disabled={!words.trim() || busy || !imageBlob}
+            disabled={!words.trim() || busy || sharing || !imageBlob}
             onClick={() => (step ? void save() : setStep(1))}
           >
             {busy
               ? "Creating image…"
               : step
-                ? "Save to phone"
-                : "Preview lock screen"}
+                ? sharing
+                  ? "Sharing…"
+                  : "Save to phone"
+                : placement === "lock"
+                  ? "Preview lock screen"
+                  : "Preview Home Screen"}
           </button>
           {step === 1 && (
             <button className="quiet" onClick={() => setStep(0)}>
@@ -346,7 +379,7 @@ export function Wallpaper({
             <img
               className="wallpaper-image wallpaper-live-preview"
               src={previewUrl}
-              alt="Your lock-screen image preview"
+              alt="Your wallpaper image preview"
             />
           )}
           <fieldset className="es-chip-group wallpaper-content">
@@ -434,6 +467,34 @@ export function Wallpaper({
             Edits here only change your wallpaper. Your saved challenge stays as
             it is.
           </p>
+          <fieldset className="es-chip-group">
+            <legend>Where will you use it?</legend>
+            {[
+              ["lock", "Lock Screen"],
+              ["rows", "Home Screen · Between rows"],
+              ["top", "Home Screen · At the top"],
+            ].map(([id, label]) => (
+              <button
+                key={id}
+                type="button"
+                aria-pressed={placement === id}
+                onClick={() => {
+                  setPlacement(id);
+                }}
+              >
+                {label}
+              </button>
+            ))}
+          </fieldset>
+          <p className="small">
+            {placement === "lock"
+              ? "Leave the top clear for your clock."
+              : placement === "top"
+                ? "Leave the top two app rows empty. Place your widgets and apps below the words."
+                : "Leave a row empty below your top widget. The words are centered in that space."}{" "}
+            Keep the bottom row clear for the Earned Self mark above Search.
+            Leave the selected area clear of apps and widgets.
+          </p>
           <fieldset className="wallpaper-styles">
             <legend>Choose a brand color</legend>
             {wallpaperColors.map((choice) => (
@@ -454,8 +515,8 @@ export function Wallpaper({
             ))}
           </fieldset>
           <p className="small">
-            Your preview is the exact image that will be saved. Space at the top
-            is left for your clock.
+            Your preview is the image that will be saved. Keep the wallpaper
+            unzoomed when setting it on your phone.
           </p>
           {[
             ["Add my reason", reason, setReason],
@@ -479,7 +540,7 @@ export function Wallpaper({
         <img
           className="wallpaper-image"
           src={previewUrl}
-          alt="Your lock-screen image preview"
+          alt="Your wallpaper image preview"
         />
       )}
     </Page>

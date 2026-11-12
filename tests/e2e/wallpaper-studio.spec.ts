@@ -78,7 +78,7 @@ for (const width of [320, 390, 1440])
         .getByRole("button", { name: "Preview lock screen", exact: true })
         .click();
       const preview = page.getByRole("img", {
-        name: "Your lock-screen image preview",
+        name: "Your wallpaper image preview",
       });
       await expect(preview).toBeVisible();
       expect(
