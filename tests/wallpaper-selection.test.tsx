@@ -180,54 +180,42 @@ it("starts a PNG download when Android cannot share files", async () => {
   expect(await screen.findByRole("status")).toHaveTextContent("Downloads");
 });
 
-it("centers multiline words in the Home Screen gap and moves the complete block", async () => {
+it("keeps multiline text and branding in each selected wallpaper area", async () => {
   render(
     <Wallpaper
       goal={{ ...goal, words: "Change the world with Earned Self today" }}
       navigate={() => {}}
     />,
   );
-  fireEvent.click(
-    screen.getByRole("button", {
-      name: "Home Screen · Between rows",
-      exact: true,
-    }),
-  );
   await waitFor(() =>
     expect(
-      screen.getByRole("button", { name: "Preview Home Screen" }),
+      screen.getByRole("button", { name: "Preview lock screen" }),
     ).toBeEnabled(),
   );
-  expect(fillText).toHaveBeenCalledWith(
-    "Change the world with Earned",
-    585,
-    860,
-  );
-  expect(fillText).toHaveBeenCalledWith("Self today", 585, 960);
-  expect(fillText).toHaveBeenCalledWith("E A R N E D   S E L F", 630, 1940);
-  fillText.mockClear();
-  fireEvent.click(
-    screen.getByRole("button", {
-      name: "Home Screen · At the top",
-      exact: true,
-    }),
-  );
-  await waitFor(() =>
-    expect(fillText).toHaveBeenCalledWith("Self today", 585, 520),
-  );
-  expect(fillText).toHaveBeenCalledWith(
-    "Change the world with Earned",
-    585,
-    420,
-  );
-  fillText.mockClear();
-  fireEvent.change(
-    screen.getByRole("slider", { name: "Move words up or down" }),
-    { target: { value: "2" } },
-  );
-  await waitFor(() =>
-    expect(fillText).toHaveBeenCalledWith("Self today", 585, 570.64),
-  );
+  expect(screen.queryByRole("slider")).not.toBeInTheDocument();
+
+  for (const [name, firstY, secondY, brandY, preview] of [
+    ["Home Screen · Between rows", 860, 960, 1800, "Preview Home Screen"],
+    ["Home Screen · At the top", 570, 670, 1800, "Preview Home Screen"],
+    ["Lock Screen", 1000, 1100, 1940, "Preview lock screen"],
+  ] as const) {
+    fillText.mockClear();
+    fireEvent.click(screen.getByRole("button", { name, exact: true }));
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("button", { name: preview }),
+      ).toBeEnabled();
+      expect(fillText).toHaveBeenCalledWith(
+        "Change the world with Earned", 585, firstY,
+      );
+      expect(fillText).toHaveBeenCalledWith("Self today", 585, secondY);
+      expect(fillText).toHaveBeenCalledWith(
+        "E A R N E D   S E L F", 630, brandY,
+      );
+    });
+    expect(fillText).toHaveBeenCalledTimes(3);
+  }
 });
 it("blocks oversized Home Screen text blocks instead of overlapping app rows", async () => {
   render(

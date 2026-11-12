@@ -131,7 +131,6 @@ export function Wallpaper({
     [date, setDate] = useState(false),
     [brand, setBrand] = useState(true),
     [placement, setPlacement] = useState("lock"),
-    [offset, setOffset] = useState(0),
     [sharing, setSharing] = useState(false),
     [style, setStyle] = useState<string>(
       wallpaperColors[selectedTile ?? 0]?.id || "ink",
@@ -168,8 +167,7 @@ export function Wallpaper({
         ctx.textAlign = "center";
         // Center the complete statement in the selected reserved area.
         const center =
-          (placement === "top" ? 470 : placement === "rows" ? 910 : 1050) +
-          offset * 25.32;
+          placement === "top" ? 620 : placement === "rows" ? 910 : 1050;
         ctx.textBaseline = "middle";
         let y = 0;
         const lines: string[] = [];
@@ -226,13 +224,14 @@ export function Wallpaper({
         }
         ctx.font = '32px "Avenir Next", Avenir, Montserrat, Arial, sans-serif';
         reasonLines.forEach((l, i) => ctx.fillText(l, 585, y + 12 + i * 44));
+        const brandY = placement === "lock" ? 1940 : 1800;
         if (date) {
           ctx.font =
             '28px "Avenir Next", Avenir, Montserrat, Arial, sans-serif';
           ctx.fillText(
             displayDate(new Date().toLocaleDateString("en-CA")),
             585,
-            1840,
+            brandY - 100,
           );
         }
         if (brand) {
@@ -242,14 +241,14 @@ export function Wallpaper({
           if (!light) {
             ctx.fillStyle = "#f1f3f1";
             ctx.beginPath();
-            ctx.arc(407.5, 1940, 34, 0, Math.PI * 2);
+            ctx.arc(407.5, brandY, 34, 0, Math.PI * 2);
             ctx.fill();
           }
-          ctx.drawImage(logo, 380, 1912, 55, 56);
+          ctx.drawImage(logo, 380, brandY - 28, 55, 56);
           ctx.fillStyle = light ? "#101A20" : "#f1f3f1";
           ctx.font =
             '24px "Avenir Next", Avenir, Montserrat, Arial, sans-serif';
-          ctx.fillText("E A R N E D   S E L F", 630, 1940);
+          ctx.fillText("E A R N E D   S E L F", 630, brandY);
         }
         const blob = await new Promise<Blob | null>((r) =>
           canvas.toBlob(r, "image/png"),
@@ -281,7 +280,6 @@ export function Wallpaper({
     brand,
     style,
     placement,
-    offset,
     goal.meaning,
     palette,
   ]);
@@ -482,24 +480,12 @@ export function Wallpaper({
                 aria-pressed={placement === id}
                 onClick={() => {
                   setPlacement(id);
-                  setOffset(0);
                 }}
               >
                 {label}
               </button>
             ))}
           </fieldset>
-          <label className="wallpaper-toggle" style={{ flexWrap: "wrap" }}>
-            Move words up or down
-            <input
-              type="range"
-              min="-5"
-              max="5"
-              step="0.5"
-              value={offset}
-              onChange={(e) => setOffset(Number(e.target.value))}
-            />
-          </label>
           <p className="small">
             {placement === "lock"
               ? "Leave the top clear for your clock."
@@ -507,8 +493,7 @@ export function Wallpaper({
                 ? "Leave the top two app rows empty. Place your widgets and apps below the words."
                 : "Leave a row empty below your top widget. The words are centered in that space."}{" "}
             Keep the bottom row clear for the Earned Self mark above Search.
-            Phone grids and wallpaper cropping vary; adjust the position to suit
-            your screen.
+            Leave the selected area clear of apps and widgets.
           </p>
           <fieldset className="wallpaper-styles">
             <legend>Choose a brand color</legend>
