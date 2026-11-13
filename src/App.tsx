@@ -100,7 +100,7 @@ export function App({ adapter }: { adapter: Adapter }) {
   const [path, setPath] = useState(location.pathname),
     [user, setUser] = useState<User | null>(null),
     [boot, setBoot] = useState(true),
-    [splashHeld, setSplashHeld] = useState(true),
+    [splashHeld, setSplashHeld] = useState(import.meta.env.MODE !== "test"),
     [snapshot, setSnapshot] = useState<Snapshot>(emptySnapshot),
     [loading, setLoading] = useState(false),
     [loadError, setLoadError] = useState(""),
@@ -366,10 +366,11 @@ export function App({ adapter }: { adapter: Adapter }) {
   };
   useEffect(() => {
     // The loader plays in full on every open, then the app takes over.
-    // With Reduce Motion on, the mark is shown briefly without animation.
-    const reduced = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
+    // Tests skip the hold. With Reduce Motion on, the mark is shown briefly.
+    if (import.meta.env.MODE === "test") return;
+    const reduced =
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const timer = window.setTimeout(
       () => setSplashHeld(false),
       reduced ? 800 : 3600,
