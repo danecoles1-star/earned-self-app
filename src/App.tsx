@@ -100,6 +100,7 @@ export function App({ adapter }: { adapter: Adapter }) {
   const [path, setPath] = useState(location.pathname),
     [user, setUser] = useState<User | null>(null),
     [boot, setBoot] = useState(true),
+    [splashHeld, setSplashHeld] = useState(import.meta.env.MODE !== "test"),
     [snapshot, setSnapshot] = useState<Snapshot>(emptySnapshot),
     [loading, setLoading] = useState(false),
     [loadError, setLoadError] = useState(""),
@@ -363,6 +364,19 @@ export function App({ adapter }: { adapter: Adapter }) {
     if (goal && goal.id !== snapshot.selectedGoal)
       void save("select", { goalId: goal.id });
   };
+  useEffect(() => {
+    // The loader plays in full on every open, then the app takes over.
+    // Tests skip the hold. With Reduce Motion on, the mark is shown briefly.
+    if (import.meta.env.MODE === "test") return;
+    const reduced =
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const timer = window.setTimeout(
+      () => setSplashHeld(false),
+      reduced ? 800 : 3600,
+    );
+    return () => window.clearTimeout(timer);
+  }, []);
   let screen;
   if (path === "/")
     screen = (
@@ -372,7 +386,7 @@ export function App({ adapter }: { adapter: Adapter }) {
         signedIn={!!user}
       />
     );
-  else if (boot) screen = <BootSplash />;
+  else if (boot || splashHeld) screen = <BootSplash />;
   else if (!isAppRoute(path))
     screen = (
       <Page
