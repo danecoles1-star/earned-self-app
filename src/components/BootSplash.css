@@ -30,13 +30,6 @@
   animation: boot-draw 1.1s cubic-bezier(0.45, 0, 0.25, 1) 1.2s forwards;
 }
 
-.boot-orbit {
-  fill: #d9876a;
-  opacity: 0;
-  filter: drop-shadow(0 0 4px rgba(217, 135, 106, 0.9));
-  animation: boot-fade-in 0.4s ease 2s forwards;
-}
-
 .boot-wordmark {
   margin-top: 28px;
   font-family: "Figtree Variable", system-ui, sans-serif;
@@ -89,16 +82,12 @@
 
 @media (prefers-reduced-motion: reduce) {
   .boot-mark,
-  .boot-orbit,
   .boot-wordmark,
   .boot-draw {
     animation: none;
   }
   .boot-draw {
     stroke-dashoffset: 0;
-  }
-  .boot-orbit {
-    opacity: 0;
   }
   .boot-wordmark {
     opacity: 1;

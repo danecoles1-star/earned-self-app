@@ -3,7 +3,6 @@ import "./BootSplash.css";
 const ARC_TOP = "M 352 432 A 256 256 0 0 1 848 450";
 const ARC_BOTTOM = "M 352 574 A 256 256 0 0 0 848 592";
 const STEP = "M 352 562 H 506 V 506 H 684 V 450 H 848";
-const ORBIT = "M 600 256 A 256 256 0 1 1 600 768 A 256 256 0 1 1 600 256";
 
 export function BootSplash() {
   return (
@@ -29,7 +28,6 @@ export function BootSplash() {
             <stop offset="0.7" stopColor="#7FA3B1" />
             <stop offset="1" stopColor="#F1F3F0" />
           </linearGradient>
-          <path id="boot-orbit-path" d={ORBIT} fill="none" stroke="none" />
         </defs>
         <path
           className="boot-draw boot-arc-top"
@@ -59,11 +57,6 @@ export function BootSplash() {
           strokeLinejoin="round"
           strokeLinecap="round"
         />
-        <circle className="boot-orbit" r={13}>
-          <animateMotion dur="4s" begin="2.2s" repeatCount="indefinite">
-            <mpath href="#boot-orbit-path" />
-          </animateMotion>
-        </circle>
       </svg>
       <div className="boot-wordmark" aria-hidden="true">
         <span>Earned</span>
