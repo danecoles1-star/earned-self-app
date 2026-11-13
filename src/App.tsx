@@ -26,6 +26,7 @@ import { Recovery } from "./experience/Recovery";
 import { SupportMode } from "./experience/ui";
 import { MemberHome, AppNavigation } from "./experience/MemberHome";
 import { Art, Page } from "./experience/ui";
+import { BootSplash } from "./components/BootSplash";
 import { Onboarding, newEntryExperience } from "./experience/Onboarding";
 import {
   useCallback,
@@ -371,12 +372,7 @@ export function App({ adapter }: { adapter: Adapter }) {
         signedIn={!!user}
       />
     );
-  else if (boot)
-    screen = (
-      <Page title="Opening your session.">
-        <p role="status">Loading…</p>
-      </Page>
-    );
+  else if (boot) screen = <BootSplash />;
   else if (!isAppRoute(path))
     screen = (
       <Page
