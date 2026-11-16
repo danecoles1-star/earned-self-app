@@ -4,7 +4,7 @@ const ARC_TOP = "M 352 432 A 256 256 0 0 1 848 450";
 const ARC_BOTTOM = "M 352 574 A 256 256 0 0 0 848 592";
 const STEP = "M 352 562 H 506 V 506 H 684 V 450 H 848";
 
-export function BootSplash() {
+export function BootSplash({ onComplete }: { onComplete?: () => void }) {
   return (
     <div className="boot-splash" role="status" aria-label="Opening your session">
       <svg
@@ -58,7 +58,13 @@ export function BootSplash() {
           strokeLinecap="round"
         />
       </svg>
-      <div className="boot-wordmark" aria-hidden="true">
+      <div
+        className="boot-wordmark"
+        aria-hidden="true"
+        onAnimationEnd={(event) => {
+          if (event.animationName === "boot-word-in") onComplete?.();
+        }}
+      >
         <span>Earned</span>
         <b>Self</b>
       </div>
