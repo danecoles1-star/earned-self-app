@@ -66,6 +66,31 @@ import {
   keepIntake,
   type EntryDraft,
 } from "./data/drafts";
+// The account read can hang on a poor connection. Give up after a while so
+// the app always opens, with a message instead of an endless loader.
+const ACCOUNT_READ_TIMEOUT_MS = 10000;
+const withAccountTimeout = <T,>(work: Promise<T>): Promise<T> =>
+  new Promise<T>((resolve, reject) => {
+    const timer = window.setTimeout(
+      () =>
+        reject(
+          new Error(
+            "Earned Self could not reach your account. Check your connection and refresh.",
+          ),
+        ),
+      ACCOUNT_READ_TIMEOUT_MS,
+    );
+    work.then(
+      (value) => {
+        window.clearTimeout(timer);
+        resolve(value);
+      },
+      (error) => {
+        window.clearTimeout(timer);
+        reject(error);
+      },
+    );
+  });
 const message = (e: unknown) =>
   e instanceof Error
     ? e.message
@@ -154,8 +179,7 @@ export function App({ adapter }: { adapter: Adapter }) {
       observed = true;
       set(u);
     });
-    adapter
-      .getUser()
+    withAccountTimeout(adapter.getUser())
       .then((u) => {
         if (!observed) set(u);
         if (alive) setBoot(false);
