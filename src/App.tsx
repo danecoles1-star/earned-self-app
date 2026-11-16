@@ -365,15 +365,16 @@ export function App({ adapter }: { adapter: Adapter }) {
       void save("select", { goalId: goal.id });
   };
   useEffect(() => {
-    // The loader plays in full on every open, then the app takes over.
-    // Tests skip the hold. With Reduce Motion on, the mark is shown briefly.
+    // The loader clears when its wordmark finishes (see BootSplash). This timer
+    // is only a safety net, so a stalled or interrupted animation can't trap
+    // anyone. With Reduce Motion on there is no animation, so clear quickly.
     if (import.meta.env.MODE === "test") return;
     const reduced =
       typeof window.matchMedia === "function" &&
       window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const timer = window.setTimeout(
       () => setSplashHeld(false),
-      reduced ? 800 : 3600,
+      reduced ? 800 : 12000,
     );
     return () => window.clearTimeout(timer);
   }, []);
@@ -386,7 +387,8 @@ export function App({ adapter }: { adapter: Adapter }) {
         signedIn={!!user}
       />
     );
-  else if (boot || splashHeld) screen = <BootSplash />;
+  else if (boot || splashHeld)
+    screen = <BootSplash onComplete={() => setSplashHeld(false)} />;
   else if (!isAppRoute(path))
     screen = (
       <Page
