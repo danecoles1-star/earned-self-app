@@ -979,7 +979,7 @@ export function App({ adapter }: { adapter: Adapter }) {
           </nav>
         </header>
       )}
-      {path !== "/" && path !== "/start" && (
+      {path !== "/" && path !== "/start" && !boot && !splashHeld && (
         <Notices
           notice={notice}
           error={error}
@@ -1034,6 +1034,8 @@ export function App({ adapter }: { adapter: Adapter }) {
           </AreaContext.Provider>
         </ProfileProvider>
         {user &&
+          !boot &&
+          !splashHeld &&
           ["/app", "/manage", "/manage/why", "/proof", "/settings"].includes(
             path,
           ) && (
