@@ -411,8 +411,7 @@ export function App({ adapter }: { adapter: Adapter }) {
         signedIn={!!user}
       />
     );
-  else if (boot || splashHeld)
-    screen = <BootSplash onComplete={() => setSplashHeld(false)} />;
+  else if (boot || splashHeld) screen = null;
   else if (!isAppRoute(path))
     screen = (
       <Page
@@ -927,6 +926,10 @@ export function App({ adapter }: { adapter: Adapter }) {
         <Unavailable navigate={navigate} />
       );
   } else screen = <Unavailable navigate={navigate} />;
+  // The loader sits outside the keyed profile wrapper below. Otherwise the
+  // account arriving changes that key and remounts the loader, restarting it.
+  if ((boot || splashHeld) && path !== "/")
+    return <BootSplash onComplete={() => setSplashHeld(false)} />;
   return (
     <>
       <a className="skip" href="#main">
